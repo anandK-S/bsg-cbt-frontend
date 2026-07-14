@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
+import { API_URL } from '@/utils/apiConfig';
 
 export default function LiveMonitor() {
   const { user, isAuthenticated } = useAuthStore();
@@ -17,8 +18,7 @@ export default function LiveMonitor() {
       return;
     }
 
-    const socketUrl = typeof window !== 'undefined' ? `http://${window.location.hostname}:5000` : 'http://localhost:5000';
-    const newSocket = io(socketUrl, {
+    const newSocket = io(API_URL, {
       withCredentials: true,
     });
     

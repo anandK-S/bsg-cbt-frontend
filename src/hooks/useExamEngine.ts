@@ -3,6 +3,7 @@ import axios from 'axios';
 import { openDB } from 'idb';
 import { useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
+import { API_URL } from '@/utils/apiConfig';
 
 interface AttemptData {
   _id: string;
@@ -54,8 +55,7 @@ export function useExamEngine(examId: string) {
         }
 
         // Connect Socket
-        const socketUrl = typeof window !== 'undefined' ? `http://${window.location.hostname}:5000` : 'http://localhost:5000';
-        const newSocket = io(socketUrl, { withCredentials: true });
+        const newSocket = io(API_URL, { withCredentials: true });
         setSocket(newSocket);
         
         newSocket.emit('join-exam', { examId, candidateId: data.attempt.candidateId });
