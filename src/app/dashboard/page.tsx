@@ -186,7 +186,7 @@ export default function CandidateDashboard() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6 max-h-[500px] overflow-y-auto space-y-4 custom-scrollbar">
               {pastExams.map((result: PastResult) => {
-                const percentage = result.totalMarks > 0 ? ((result.score / result.totalMarks) * 100).toFixed(0) : 0;
+                const percentage = result.totalMarks > 0 ? Math.round((result.score / result.totalMarks) * 100) : 0;
                 const isPassed = percentage >= 50;
 
                 return (
