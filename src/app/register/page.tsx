@@ -61,20 +61,21 @@ export default function Register() {
   if (!mounted || !_hasHydrated) return null;
 
   return (
-    <div className="flex-1 bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="flex-1 bg-background flex flex-col py-6 sm:py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/20 dark:bg-bsg-blue/30 blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-gold/10 dark:bg-bsg-gold/20 blur-[100px] pointer-events-none" />
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="sm:mx-auto sm:w-full sm:max-w-md relative z-10"
-      >
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform rotate-3">
-            <UserPlus size={32} className="text-white" />
+      <div className="m-auto w-full max-w-lg">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative z-10"
+        >
+        <div className="flex justify-center mb-4">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform rotate-3">
+            <UserPlus size={28} className="text-white" />
           </div>
         </div>
         <h2 className="text-center text-3xl font-extrabold text-foreground tracking-tight">
@@ -91,8 +92,8 @@ export default function Register() {
         transition={{ duration: 0.5, delay: 0.1 }}
         className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg relative z-10"
       >
-        <div className="bg-card/80 backdrop-blur-xl py-8 px-4 shadow-2xl sm:rounded-2xl sm:px-10 border border-border">
-          <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="bg-card/80 backdrop-blur-xl py-6 px-4 shadow-2xl sm:rounded-2xl sm:px-10 border border-border">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {error && (
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
@@ -230,7 +231,8 @@ export default function Register() {
             </Link>
           </div>
         </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }
