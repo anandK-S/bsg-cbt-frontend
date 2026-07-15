@@ -65,7 +65,12 @@ export default function CandidateDashboard() {
             axios.get('http://localhost:5000/api/attempts/results/me', { withCredentials: true })
           ]);
           
-          setAvailableExams(examsRes.data);
+          const sortedExams = examsRes.data.sort((a: any, b: any) => {
+            const dateA = new Date(a.scheduledStartDate || a.createdAt || Date.now()).getTime();
+            const dateB = new Date(b.scheduledStartDate || b.createdAt || Date.now()).getTime();
+            return dateB - dateA;
+          });
+          setAvailableExams(sortedExams);
           setPastExams(resultsRes.data);
         } catch (error: unknown) {
           if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
@@ -116,7 +121,9 @@ export default function CandidateDashboard() {
         {/* Removed Edit Profile button as requested */}
       </div>
 
-      {/* Available Exams Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2">
+          {/* Available Exams Section */}
       <div className="mb-12">
         <div className="flex items-center mb-6">
           <h2 className="text-2xl font-extrabold text-gray-900">Available Exams</h2>
@@ -132,7 +139,7 @@ export default function CandidateDashboard() {
             <p className="text-gray-500">There are no new exams assigned to you at the moment.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {availableExams.map((exam: Exam) => (
               <div key={exam._id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 overflow-hidden flex flex-col transform hover:-translate-y-1 group">
                 <div className="p-6 flex-1 flex flex-col">
@@ -171,7 +178,10 @@ export default function CandidateDashboard() {
         )}
       </div>
 
-      {/* Past Results Section */}
+        </div>
+
+        <div className="lg:col-span-1">
+          {/* Past Results Section */}
       <div>
         <h2 className="text-2xl font-extrabold text-gray-900 mb-6">Past Results</h2>
         {pastExams.length === 0 ? (
@@ -219,6 +229,7 @@ export default function CandidateDashboard() {
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   );
