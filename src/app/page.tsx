@@ -47,9 +47,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 font-sans selection:bg-bsg-gold selection:text-slate-900 overflow-hidden relative">
-      {/* Dynamic Background Elements */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-blue/30 blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-gray-50 font-sans selection:bg-bsg-blue selection:text-white overflow-hidden relative">
+      {/* Light Theme Dynamic Background Elements */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-blue/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
       
       {/* Navbar (Standalone for Landing Page) */}
@@ -60,10 +60,10 @@ export default function Home() {
           transition={{ duration: 0.5 }}
           className="flex items-center gap-3"
         >
-          <div className="w-12 h-12 bg-gradient-to-br from-bsg-gold to-yellow-600 rounded-xl flex items-center justify-center shadow-lg border border-white/20">
-            <span className="text-slate-900 font-black text-xl tracking-tighter">BSG</span>
+          <div className="w-10 h-10 bg-bsg-blue rounded-xl flex items-center justify-center shadow-md">
+            <span className="text-white font-extrabold text-sm tracking-tighter">BSG</span>
           </div>
-          <span className="text-white font-black text-xl tracking-tight hidden sm:block">
+          <span className="text-bsg-blue font-extrabold text-xl tracking-tight hidden sm:block">
             CBT Portal
           </span>
         </motion.div>
@@ -75,13 +75,13 @@ export default function Home() {
         >
           <Link 
             href="/login" 
-            className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors"
+            className="text-gray-600 hover:text-bsg-blue font-semibold px-4 py-2 transition-colors"
           >
             Sign In
           </Link>
           <Link 
             href="/register" 
-            className="bg-white/10 hover:bg-white/20 border border-white/10 text-white font-medium px-6 py-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]"
+            className="bg-bsg-blue hover:bg-blue-800 text-white font-semibold px-6 py-2 rounded-lg transition-all shadow-md hover:shadow-lg"
           >
             Register
           </Link>
@@ -96,7 +96,7 @@ export default function Home() {
           animate="visible"
           className="max-w-4xl mx-auto flex flex-col items-center"
         >
-          <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-bsg-gold text-sm font-semibold mb-8 backdrop-blur-sm">
+          <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-gray-200 text-bsg-blue text-sm font-bold mb-8 shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bsg-gold opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-bsg-gold"></span>
@@ -104,29 +104,29 @@ export default function Home() {
             Next-Generation Assessment Platform
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-black text-white tracking-tight leading-[1.1] mb-6">
+          <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight leading-[1.1] mb-6">
             Elevate Your <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-bsg-gold via-yellow-400 to-bsg-gold">Testing Experience</span>
+            <span className="text-bsg-blue">Testing Experience</span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-12 leading-relaxed font-light">
+          <motion.p variants={itemVariants} className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
             The official, highly secure, and intelligent Computer Based Test (CBT) portal for Bharat Scouts and Guides proficiency badges and certifications.
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <Link 
               href="/login" 
-              className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-slate-900 bg-bsg-gold rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(253,203,88,0.4)]"
+              className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white bg-bsg-blue rounded-lg overflow-hidden transition-all hover:bg-blue-800 shadow-lg hover:shadow-xl"
             >
               <span className="relative z-10 flex items-center gap-2">
                 Start Examination <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </span>
-              <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
             </Link>
             
             <Link 
               href="/register" 
-              className="inline-flex items-center justify-center px-8 py-4 font-bold text-white bg-white/5 border border-white/10 rounded-full backdrop-blur-md hover:bg-white/10 transition-all"
+              className="inline-flex items-center justify-center px-8 py-4 font-bold text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 hover:text-bsg-blue transition-all"
             >
               Candidate Registration
             </Link>
@@ -140,32 +140,32 @@ export default function Home() {
           transition={{ delay: 0.6, duration: 0.8, type: 'spring' }}
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-24 max-w-6xl mx-auto w-full px-4"
         >
-          <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-8 rounded-3xl hover:bg-white/10 transition-colors group text-left">
-            <div className="w-14 h-14 bg-blue-500/20 text-blue-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <div className="bg-white border border-gray-100 shadow-sm p-8 rounded-2xl hover:shadow-md transition-shadow group text-left">
+            <div className="w-14 h-14 bg-blue-50 text-bsg-blue rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <ShieldCheck size={28} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-3">Enterprise Security</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Enterprise Security</h3>
+            <p className="text-gray-600 text-sm leading-relaxed font-medium">
               Military-grade anti-cheat technology with fullscreen enforcement, focus tracking, and strict clipboard monitoring.
             </p>
           </div>
 
-          <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-8 rounded-3xl hover:bg-white/10 transition-colors group text-left">
-            <div className="w-14 h-14 bg-bsg-gold/20 text-bsg-gold rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <div className="bg-white border border-gray-100 shadow-sm p-8 rounded-2xl hover:shadow-md transition-shadow group text-left">
+            <div className="w-14 h-14 bg-yellow-50 text-bsg-gold rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Zap size={28} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-3">Offline Resilience</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Offline Resilience</h3>
+            <p className="text-gray-600 text-sm leading-relaxed font-medium">
               Auto-saving mechanism powered by IndexedDB ensures no data loss even during severe network interruptions.
             </p>
           </div>
 
-          <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-8 rounded-3xl hover:bg-white/10 transition-colors group text-left">
-            <div className="w-14 h-14 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <div className="bg-white border border-gray-100 shadow-sm p-8 rounded-2xl hover:shadow-md transition-shadow group text-left">
+            <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Brain size={28} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-3">AI-Powered Insights</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
+            <h3 className="text-xl font-bold text-gray-900 mb-3">AI-Powered Insights</h3>
+            <p className="text-gray-600 text-sm leading-relaxed font-medium">
               Post-exam qualitative analysis and personalized feedback generated by advanced Google Gemini models.
             </p>
           </div>
