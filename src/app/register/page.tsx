@@ -213,10 +213,7 @@ export default function Register() {
                   </button>
                 </div>
               </div>
-
-              </div>
             </div>
-
             <div className="pt-2">
               <button
                 type="submit"
