@@ -12,11 +12,14 @@ interface ExamDetailsData {
   title: string;
   description: string;
   durationMinutes: number;
+  durationUnit: string;
+  passingMarks: number;
+  allowMultipleAttempts?: boolean;
+  scheduledStartDate?: string | null;
+  scheduledEndDate?: string | null;
   status: string;
   category?: string;
   questions: any[];
-  scheduledStartDate?: string;
-  scheduledEndDate?: string;
 }
 
 interface ResultData {
