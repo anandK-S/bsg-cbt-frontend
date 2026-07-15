@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Zap, Brain, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Zap, Brain, ChevronRight } from 'lucide-react';
 
 export default function Home() {
   const { isAuthenticated, user, _hasHydrated } = useAuthStore();
@@ -43,7 +43,7 @@ export default function Home() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
   };
 
   return (
@@ -119,7 +119,7 @@ export default function Home() {
               className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-slate-900 bg-bsg-gold rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(253,203,88,0.4)]"
             >
               <span className="relative z-10 flex items-center gap-2">
-                Start Examination <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                Start Examination <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </span>
               <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
             </Link>
