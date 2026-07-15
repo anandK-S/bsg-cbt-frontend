@@ -58,10 +58,23 @@ export default function ExamTakePage() {
         setExamTitle(data.examTitle);
         setQuestions(data.questions);
         
+        // Check for offline cached answers first
+        const cachedAnswersStr = localStorage.getItem(`attempt_answers_${data.attempt._id}`);
+        let initAnswers = [...data.attempt.answers];
+        if (cachedAnswersStr) {
+          try {
+            const cachedAnswers = JSON.parse(cachedAnswersStr);
+            // Verify cache matches question length to avoid stale data
+            if (cachedAnswers.length === data.attempt.answers.length) {
+              initAnswers = cachedAnswers;
+            }
+          } catch(e) {}
+        }
+        
         // Ensure initial question is marked as Visited if it was NotVisited
-        const initAnswers = [...data.attempt.answers];
         if (initAnswers.length > 0 && initAnswers[0].status === 'NotVisited') {
           initAnswers[0].status = 'Visited';
+          localStorage.setItem(`attempt_answers_${data.attempt._id}`, JSON.stringify(initAnswers));
         }
         setAnswers(initAnswers);
         
@@ -93,9 +106,11 @@ export default function ExamTakePage() {
       }, {
         withCredentials: true,
       });
+      localStorage.removeItem(`attempt_answers_${attemptIdRef.current}`);
       router.push(`/dashboard`); // Go to dashboard
     } catch (e: any) {
       if (e.response?.status === 400) {
+        localStorage.removeItem(`attempt_answers_${attemptIdRef.current}`);
         router.push(`/dashboard`);
       } else {
         console.error("Auto submit failed", e);
@@ -156,6 +171,16 @@ export default function ExamTakePage() {
   useEffect(() => {
     if (loading || isSubmitting) return;
 
+    const enforceFullscreen = async () => {
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch (err) {
+        console.log('User must interact first to enable fullscreen');
+      }
+    };
+
     const handleVisibilityChange = () => {
       if (document.hidden) {
         setWarnings(prev => {
@@ -163,6 +188,8 @@ export default function ExamTakePage() {
           alert(`Warning! Tab switching or leaving the window is strictly prohibited. Warning count: ${newWarnings}/2`);
           if (newWarnings >= 2) {
             handleAutoSubmit();
+          } else {
+            enforceFullscreen();
           }
           return newWarnings;
         });
@@ -175,6 +202,8 @@ export default function ExamTakePage() {
         alert(`Warning! You left the exam window or opened another app. Warning count: ${newWarnings}/2`);
         if (newWarnings >= 2) {
           handleAutoSubmit();
+        } else {
+          enforceFullscreen();
         }
         return newWarnings;
       });
@@ -187,6 +216,8 @@ export default function ExamTakePage() {
           alert(`Warning! You exited fullscreen mode. This is prohibited. Warning count: ${newWarnings}/2`);
           if (newWarnings >= 2) {
             handleAutoSubmit();
+          } else {
+            enforceFullscreen();
           }
           return newWarnings;
         });
@@ -209,17 +240,6 @@ export default function ExamTakePage() {
     document.addEventListener('copy', handleCopy);
     document.addEventListener('keydown', handleKeyDown);
 
-    // Enforce Fullscreen on mount if not already
-    const enforceFullscreen = async () => {
-      try {
-        if (!document.fullscreenElement) {
-          await document.documentElement.requestFullscreen();
-        }
-      } catch (err) {
-        console.log('User must interact first to enable fullscreen');
-      }
-    };
-    
     setTimeout(enforceFullscreen, 1000);
 
     return () => {
@@ -242,6 +262,9 @@ export default function ExamTakePage() {
       updatedAnswers[answerIndex] = { ...updatedAnswers[answerIndex], ...changes };
     }
     setAnswers(updatedAnswers);
+    if (attemptIdRef.current) {
+      localStorage.setItem(`attempt_answers_${attemptIdRef.current}`, JSON.stringify(updatedAnswers));
+    }
   };
 
   const navigateToQuestion = (index: number) => {
@@ -275,8 +298,12 @@ export default function ExamTakePage() {
     updateAnswerStatus(currentQuestionIndex, { selectedOptionIndex: optionIndex });
   };
 
+  const updateSubjectiveAnswer = (text: string) => {
+    updateAnswerStatus(currentQuestionIndex, { subjectiveAnswer: text });
+  };
+
   const clearResponse = () => {
-    updateAnswerStatus(currentQuestionIndex, { selectedOptionIndex: null, status: 'Visited' });
+    updateAnswerStatus(currentQuestionIndex, { selectedOptionIndex: null, subjectiveAnswer: null, status: 'Visited' });
   };
 
   const saveAndNext = () => {
@@ -284,7 +311,9 @@ export default function ExamTakePage() {
     const currentAnswer = answers.find(a => a.questionId === currentQId);
     
     let newStatus: QuestionStatus = 'Visited';
-    if (currentAnswer?.selectedOptionIndex !== undefined && currentAnswer?.selectedOptionIndex !== null) {
+    const isAnswered = (currentAnswer?.selectedOptionIndex !== undefined && currentAnswer?.selectedOptionIndex !== null) || 
+                       (currentAnswer?.subjectiveAnswer && currentAnswer.subjectiveAnswer.trim() !== '');
+    if (isAnswered) {
       newStatus = 'Answered';
     }
     
@@ -292,6 +321,8 @@ export default function ExamTakePage() {
     
     if (currentQuestionIndex < questions.length - 1) {
       navigateToQuestion(currentQuestionIndex + 1);
+    } else {
+      handleManualSubmit();
     }
   };
 
@@ -300,7 +331,9 @@ export default function ExamTakePage() {
     const currentAnswer = answers.find(a => a.questionId === currentQId);
     
     let newStatus: QuestionStatus = 'MarkedForReview';
-    if (currentAnswer?.selectedOptionIndex !== undefined && currentAnswer?.selectedOptionIndex !== null) {
+    const isAnswered = (currentAnswer?.selectedOptionIndex !== undefined && currentAnswer?.selectedOptionIndex !== null) || 
+                       (currentAnswer?.subjectiveAnswer && currentAnswer.subjectiveAnswer.trim() !== '');
+    if (isAnswered) {
       newStatus = 'AnsweredAndMarkedForReview';
     }
     
@@ -371,7 +404,7 @@ export default function ExamTakePage() {
             <span className="font-extrabold text-gray-700 text-lg">Question No. {currentQuestionIndex + 1}</span>
             <div className="flex items-center gap-4 text-sm font-bold text-gray-500">
               <span>Marks: <span className="text-green-600">+{currentQ.marks || 1}</span></span>
-              <span>Type: <span className="text-gray-700">{currentQ.type === 'MultipleChoice' ? 'Multiple Choice' : 'Single Choice'}</span></span>
+              <span>Type: <span className="text-gray-700">{currentQ.type === 'MultipleChoice' ? 'Multiple Choice' : currentQ.type === 'Subjective' ? 'Subjective' : 'Single Choice'}</span></span>
             </div>
           </div>
 
@@ -388,31 +421,42 @@ export default function ExamTakePage() {
             )}
 
             <div className="space-y-4">
-              {currentQ.options.map((opt: string, idx: number) => {
-                const isSelected = currentAnswer.selectedOptionIndex === idx;
-                return (
-                  <div 
-                    key={idx}
-                    onClick={() => selectOption(idx)}
-                    className={`flex items-start p-4 border rounded-lg cursor-pointer transition-all ${isSelected ? 'border-bsg-blue bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'}`}
-                  >
-                    <div className="flex-shrink-0 mr-4 mt-0.5">
-                      {isSelected ? (
-                        <div className="w-5 h-5 rounded-full border-4 border-bsg-blue bg-white flex items-center justify-center">
-                          <div className="w-2.5 h-2.5 rounded-full bg-bsg-blue"></div>
-                        </div>
-                      ) : (
-                        <div className="w-5 h-5 rounded-full border-2 border-gray-400 bg-white"></div>
-                      )}
+              {currentQ.type === 'Subjective' ? (
+                <div className="w-full">
+                  <textarea
+                    value={currentAnswer.subjectiveAnswer || ''}
+                    onChange={(e) => updateSubjectiveAnswer(e.target.value)}
+                    className="w-full min-h-[150px] p-4 border-2 border-gray-300 rounded-lg focus:border-bsg-blue focus:ring-4 focus:ring-bsg-blue/10 outline-none resize-y text-lg text-gray-900 font-medium"
+                    placeholder="Type your answer here..."
+                  />
+                </div>
+              ) : (
+                currentQ.options.map((opt: string, idx: number) => {
+                  const isSelected = currentAnswer.selectedOptionIndex === idx;
+                  return (
+                    <div 
+                      key={idx}
+                      onClick={() => selectOption(idx)}
+                      className={`flex items-start p-4 border rounded-lg cursor-pointer transition-all ${isSelected ? 'border-bsg-blue bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'}`}
+                    >
+                      <div className="flex-shrink-0 mr-4 mt-0.5">
+                        {isSelected ? (
+                          <div className="w-5 h-5 rounded-full border-4 border-bsg-blue bg-white flex items-center justify-center">
+                            <div className="w-2.5 h-2.5 rounded-full bg-bsg-blue"></div>
+                          </div>
+                        ) : (
+                          <div className="w-5 h-5 rounded-full border-2 border-gray-400 bg-white"></div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <span className={`text-base font-medium ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
+                          {opt}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <span className={`text-base font-medium ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
-                        {opt}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -421,9 +465,9 @@ export default function ExamTakePage() {
             <div className="flex flex-wrap gap-2">
               <button 
                 onClick={saveAndNext}
-                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded shadow-sm flex items-center gap-2 border border-green-700 transition-colors text-sm"
+                className={`px-5 py-2.5 ${currentQuestionIndex === questions.length - 1 ? 'bg-blue-600 hover:bg-blue-700 border-blue-700' : 'bg-green-600 hover:bg-green-700 border-green-700'} text-white font-bold rounded shadow-sm flex items-center gap-2 border transition-colors text-sm`}
               >
-                <Save size={16} /> Save & Next
+                <Save size={16} /> {currentQuestionIndex === questions.length - 1 ? 'Save & Submit' : 'Save & Next'}
               </button>
               <button 
                 onClick={clearResponse}

@@ -113,11 +113,7 @@ export default function CandidateDashboard() {
           </div>
         </div>
         
-        <div className="relative z-10 shrink-0 w-full sm:w-auto flex justify-center sm:justify-end">
-          <Link href="/profile" className="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 px-6 py-3 rounded-xl transition-all shadow-sm font-bold text-white w-full sm:w-auto justify-center">
-            <Settings size={18} /> Edit Profile
-          </Link>
-        </div>
+        {/* Removed Edit Profile button as requested */}
       </div>
 
       {/* Available Exams Section */}

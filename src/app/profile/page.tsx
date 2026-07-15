@@ -126,13 +126,23 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-bsg-blue hover:bg-bsg-blue-dark text-white font-extrabold py-4 rounded-xl shadow-md transition-colors disabled:opacity-50"
-              >
-                {loading ? 'Saving...' : 'Save Profile Changes'}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  disabled={loading}
+                  className="w-full sm:w-auto px-6 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-extrabold py-4 rounded-xl shadow-sm transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 w-full bg-bsg-blue hover:bg-bsg-blue-dark text-white font-extrabold py-4 rounded-xl shadow-md transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Saving...' : 'Save Profile Changes'}
+                </button>
+              </div>
             </form>
           </div>
         </div>

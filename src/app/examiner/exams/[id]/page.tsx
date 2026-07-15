@@ -56,11 +56,13 @@ export default function ExamDetails() {
     text: '',
     options: ['', '', '', ''],
     correctOptionIndex: 0,
+    acceptableAnswers: [''],
     category: '',
     marks: 1,
     type: 'SingleChoice',
     mediaUrl: ''
   });
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [manualError, setManualError] = useState('');
 
@@ -137,27 +139,49 @@ export default function ExamDetails() {
 
   const handleManualSave = async () => {
     if (!manualQuestion.text.trim()) return setManualError('Question text is required');
-    if (manualQuestion.options.some(opt => !opt.trim())) return setManualError('All 4 options are required');
+    if (manualQuestion.type !== 'Subjective' && manualQuestion.options.some(opt => !opt.trim())) return setManualError('All 4 options are required');
+    if (manualQuestion.type === 'Subjective' && manualQuestion.acceptableAnswers.some(ans => !ans.trim())) return setManualError('All acceptable answers must be filled');
 
     setIsSavingManual(true);
     setManualError('');
 
     try {
+      const formData = new FormData();
+      formData.append('text', manualQuestion.text);
+      formData.append('marks', manualQuestion.marks.toString());
+      formData.append('type', manualQuestion.type);
+      if (manualQuestion.category) formData.append('category', manualQuestion.category);
+      if (manualQuestion.mediaUrl) formData.append('mediaUrl', manualQuestion.mediaUrl);
+      
+      if (manualQuestion.type === 'Subjective') {
+        formData.append('acceptableAnswers', JSON.stringify(manualQuestion.acceptableAnswers.filter(a => a.trim() !== '')));
+      } else {
+        formData.append('options', JSON.stringify(manualQuestion.options));
+        formData.append('correctOptionIndex', manualQuestion.correctOptionIndex.toString());
+      }
+      
+      if (mediaFile) {
+        formData.append('media', mediaFile);
+      }
+
       await axios.post(
         `http://localhost:5000/api/exams/${examId}/questions`,
-        manualQuestion,
-        { withCredentials: true }
+        formData,
+        { 
+          withCredentials: true,
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
       );
       setShowManualModal(false);
-      setManualQuestion({
+      setManualQuestion(prev => ({
+        ...prev,
         text: '',
         options: ['', '', '', ''],
         correctOptionIndex: 0,
-        category: '',
-        marks: 1,
-        type: 'SingleChoice',
+        acceptableAnswers: [''],
         mediaUrl: ''
-      });
+      }));
+      setMediaFile(null);
       fetchExam();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -177,6 +201,16 @@ export default function ExamDetails() {
     } catch (err) {
       console.error("Publish Error:", err);
       alert("Failed to publish exam");
+    }
+  };
+
+  const handleUnpublish = async () => {
+    try {
+      await axios.put(`http://localhost:5000/api/exams/${examId}/status`, { status: 'Draft' }, { withCredentials: true });
+      fetchExam();
+    } catch (err) {
+      console.error("Unpublish Error:", err);
+      alert("Failed to unpublish exam");
     }
   };
 
@@ -306,13 +340,22 @@ export default function ExamDetails() {
           </div>
         </div>
         
-        {exam.status === 'Draft' && (
+        {exam.status === 'Draft' ? (
           <div className="p-4 border-t border-gray-100">
             <button 
               onClick={handlePublish}
               className="w-full bg-green-600 hover:bg-green-700 text-white font-black py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
               <CheckCircle size={18} /> Publish Test
+            </button>
+          </div>
+        ) : (
+          <div className="p-4 border-t border-gray-100">
+            <button 
+              onClick={handleUnpublish}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
+            >
+              <Trash2 size={18} /> Unpublish Test
             </button>
           </div>
         )}
@@ -541,16 +584,16 @@ export default function ExamDetails() {
 
       {/* Manual Question Modal */}
       {showManualModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl relative my-8 flex flex-col">
-            <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-3xl">
-              <h3 className="text-2xl font-black text-gray-900">Add Manual Question</h3>
-              <button onClick={() => setShowManualModal(false)} className="text-gray-400 hover:text-gray-900">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center sm:p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:rounded-3xl max-w-2xl shadow-2xl relative flex flex-col">
+            <div className="px-6 py-4 sm:px-8 sm:py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 sm:rounded-t-3xl shrink-0">
+              <h3 className="text-xl sm:text-2xl font-black text-gray-900">Add Manual Question</h3>
+              <button onClick={() => setShowManualModal(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
                 <Trash2 size={24} />
               </button>
             </div>
             
-            <div className="p-8 space-y-6 overflow-y-auto max-h-[70vh]">
+            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1">
               <div>
                 <label className="block text-sm font-black text-gray-700 mb-2">Question Text</label>
                 <textarea
@@ -595,27 +638,78 @@ export default function ExamDetails() {
                   >
                     <option value="SingleChoice">Single Choice</option>
                     <option value="MultipleChoice">Multiple Choice</option>
+                    <option value="Subjective">Short Answer (Subjective)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-black text-gray-700 mb-2">Media URL (Optional Image)</label>
+                  <label className="block text-sm font-black text-gray-700 mb-2">Media Upload (Optional Image)</label>
                   <input
-                    type="text"
-                    value={manualQuestion.mediaUrl}
-                    onChange={(e) => setManualQuestion({...manualQuestion, mediaUrl: e.target.value})}
-                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
-                    placeholder="https://example.com/image.jpg"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setMediaFile(e.target.files ? e.target.files[0] : null)}
+                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2 text-gray-900 font-medium focus:border-bsg-blue outline-none"
                   />
+                  {manualQuestion.mediaUrl && !mediaFile && (
+                    <div className="mt-2 text-xs text-blue-600 truncate">Current: {manualQuestion.mediaUrl}</div>
+                  )}
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <label className="block text-sm font-black text-gray-700">Options (Select the correct one)</label>
-                  <button type="button" onClick={addOption} className="text-bsg-blue text-sm font-bold hover:underline">+ Add Option</button>
+                  <label className="block text-sm font-black text-gray-700">
+                    {manualQuestion.type === 'Subjective' ? 'Acceptable Answers' : 'Options (Select the correct one)'}
+                  </label>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      if (manualQuestion.type === 'Subjective') {
+                        setManualQuestion({...manualQuestion, acceptableAnswers: [...manualQuestion.acceptableAnswers, '']});
+                      } else {
+                        addOption();
+                      }
+                    }} 
+                    className="text-bsg-blue text-sm font-bold hover:underline"
+                  >
+                    + Add {manualQuestion.type === 'Subjective' ? 'Answer' : 'Option'}
+                  </button>
                 </div>
                 <div className="space-y-3">
-                  {manualQuestion.options.map((opt, idx) => (
+                  {manualQuestion.type === 'Subjective' ? (
+                    manualQuestion.acceptableAnswers.map((ans, idx) => (
+                      <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border-2 border-gray-200 bg-white transition-all focus-within:border-bsg-blue">
+                        <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center font-black text-bsg-blue">
+                          {idx + 1}
+                        </span>
+                        <input
+                          type="text"
+                          value={ans}
+                          onChange={(e) => {
+                            const newAns = [...manualQuestion.acceptableAnswers];
+                            newAns[idx] = e.target.value;
+                            setManualQuestion({...manualQuestion, acceptableAnswers: newAns});
+                          }}
+                          className="flex-1 bg-transparent font-medium text-gray-900 outline-none"
+                          placeholder="e.g. Paris"
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            if (manualQuestion.acceptableAnswers.length <= 1) {
+                              setManualError('Must have at least 1 acceptable answer');
+                              return;
+                            }
+                            setManualQuestion({...manualQuestion, acceptableAnswers: manualQuestion.acceptableAnswers.filter((_, i) => i !== idx)});
+                          }}
+                          className="text-gray-400 hover:text-red-500 p-2"
+                          title="Remove answer"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    manualQuestion.options.map((opt, idx) => (
                     <div key={idx} className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${manualQuestion.correctOptionIndex === idx ? 'border-bsg-blue bg-blue-50/50' : 'border-gray-200 bg-white'}`}>
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
@@ -645,7 +739,7 @@ export default function ExamDetails() {
                         <Trash2 size={16} />
                       </button>
                     </div>
-                  ))}
+                  )))}
                 </div>
               </div>
 

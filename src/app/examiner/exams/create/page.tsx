@@ -9,6 +9,10 @@ export default function CreateExam() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(60);
+  const [durationUnit, setDurationUnit] = useState('min');
+  const [passingMarks, setPassingMarks] = useState(50);
+  const [scheduledStartDate, setScheduledStartDate] = useState('');
+  const [scheduledEndDate, setScheduledEndDate] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,7 +21,15 @@ export default function CreateExam() {
     try {
       const { data } = await axios.post(
         'http://localhost:5000/api/exams',
-        { title, description, durationMinutes },
+        { 
+          title, 
+          description, 
+          durationMinutes,
+          durationUnit,
+          passingMarks,
+          scheduledStartDate: scheduledStartDate || undefined,
+          scheduledEndDate: scheduledEndDate || undefined
+        },
         { withCredentials: true }
       );
       router.push(`/examiner/exams/${data._id}`); // Redirect to manage this exam
@@ -60,16 +72,64 @@ export default function CreateExam() {
         </div>
 
         <div>
-          <label htmlFor="durationMinutes" className="block text-sm font-medium text-gray-700">Duration (Minutes)</label>
+          <label htmlFor="durationMinutes" className="block text-sm font-medium text-gray-700">Duration</label>
+          <div className="mt-1 flex gap-2">
+            <input
+              type="number"
+              id="durationMinutes"
+              required
+              min="1"
+              className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-bsg-blue focus:border-bsg-blue sm:text-sm"
+              value={durationMinutes}
+              onChange={(e) => setDurationMinutes(parseInt(e.target.value) || 1)}
+            />
+            <select
+              value={durationUnit}
+              onChange={(e) => setDurationUnit(e.target.value)}
+              className="block w-32 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-bsg-blue focus:border-bsg-blue sm:text-sm"
+            >
+              <option value="sec">Seconds</option>
+              <option value="min">Minutes</option>
+              <option value="hour">Hours</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="passingMarks" className="block text-sm font-medium text-gray-700">Passing Marks (%)</label>
           <input
             type="number"
-            id="durationMinutes"
+            id="passingMarks"
             required
             min="1"
+            max="100"
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-bsg-blue focus:border-bsg-blue sm:text-sm"
-            value={durationMinutes}
-            onChange={(e) => setDurationMinutes(parseInt(e.target.value) || 60)}
+            value={passingMarks}
+            onChange={(e) => setPassingMarks(parseInt(e.target.value) || 50)}
           />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">Scheduled Start Date (Optional)</label>
+            <input
+              type="datetime-local"
+              id="startDate"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-bsg-blue focus:border-bsg-blue sm:text-sm"
+              value={scheduledStartDate}
+              onChange={(e) => setScheduledStartDate(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">Scheduled End Date (Optional)</label>
+            <input
+              type="datetime-local"
+              id="endDate"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-bsg-blue focus:border-bsg-blue sm:text-sm"
+              value={scheduledEndDate}
+              onChange={(e) => setScheduledEndDate(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="flex justify-end">

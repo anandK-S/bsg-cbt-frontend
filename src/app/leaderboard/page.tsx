@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
-import UnifiedLayout from '@/components/layout/UnifiedLayout';
 
 interface LeaderboardEntry {
   _id: string;
@@ -23,6 +22,8 @@ export default function LeaderboardPage() {
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
   const router = useRouter();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [exams, setExams] = useState<{_id: string, title: string}[]>([]);
+  const [selectedExamId, setSelectedExamId] = useState<string>('All');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,41 +33,63 @@ export default function LeaderboardPage() {
       return;
     }
 
-    const fetchLeaderboard = async () => {
+    const fetchLeaderboardAndExams = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/attempts/leaderboard', {
-          withCredentials: true,
-        });
-        setLeaderboard(data);
+        const [leaderboardRes, examsRes] = await Promise.all([
+          axios.get(`http://localhost:5000/api/attempts/leaderboard${selectedExamId !== 'All' ? `?examId=${selectedExamId}` : ''}`, { withCredentials: true }),
+          axios.get('http://localhost:5000/api/exams/available', { withCredentials: true })
+        ]);
+        setLeaderboard(leaderboardRes.data);
+        
+        // Only set exams if we haven't already or if we want to refresh
+        if (exams.length === 0) {
+          setExams(examsRes.data);
+        }
       } catch (error: any) {
         if (error.response?.status === 401 || error.response?.status === 403) {
           logout();
           router.push('/login');
         } else {
-          console.error('Failed to fetch leaderboard', error);
+          console.error('Failed to fetch leaderboard data', error);
         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLeaderboard();
-  }, [_hasHydrated, isAuthenticated, router, logout]);
+    fetchLeaderboardAndExams();
+  }, [_hasHydrated, isAuthenticated, router, logout, selectedExamId]);
 
   if (loading || !_hasHydrated) return <LoadingScreen text="Loading Leaderboard..." />;
   if (!isAuthenticated) return null;
 
   return (
-    <UnifiedLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
         {/* Premium Header */}
         <div className="bg-gradient-to-r from-bsg-gold to-yellow-500 rounded-3xl p-8 mb-8 text-bsg-blue-dark shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-20 blur-3xl pointer-events-none"></div>
-          <div className="relative z-10">
-            <h1 className="text-4xl font-black mb-2 tracking-tight flex items-center gap-3">
-              🏆 Global Leaderboard
-            </h1>
-            <p className="text-blue-900 text-lg font-medium">Top performing scouts across all examinations.</p>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between w-full">
+            <div>
+              <h1 className="text-4xl font-black mb-2 tracking-tight flex items-center gap-3">
+                🏆 Global Leaderboard
+              </h1>
+              <p className="text-blue-900 text-lg font-medium">Top performing scouts across all examinations.</p>
+            </div>
+            
+            <div className="mt-6 md:mt-0 md:ml-6 flex items-center gap-3 bg-white/20 backdrop-blur-sm p-3 rounded-2xl border border-white/30">
+              <label htmlFor="examFilter" className="text-bsg-blue-dark font-bold text-sm whitespace-nowrap">Filter by Exam:</label>
+              <select
+                id="examFilter"
+                value={selectedExamId}
+                onChange={(e) => setSelectedExamId(e.target.value)}
+                className="bg-white text-bsg-blue-dark font-bold text-sm rounded-xl border-none focus:ring-2 focus:ring-white p-2.5 shadow-sm outline-none w-full md:w-auto"
+              >
+                <option value="All">All Exams (Aggregate)</option>
+                {exams.map((exam) => (
+                  <option key={exam._id} value={exam._id}>{exam.title}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -128,6 +151,5 @@ export default function LeaderboardPage() {
           </div>
         )}
       </div>
-    </UnifiedLayout>
   );
 }

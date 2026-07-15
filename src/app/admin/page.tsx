@@ -794,25 +794,14 @@ export default function AdminDashboard() {
                               <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Candidate</th>
                               <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Exam Title</th>
                               <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Score</th>
+                              <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
                             {insightsData.attempts.map((attempt: any) => {
-                              const associatedExam = insightsData.exams.find(e => e._id === attempt.examId);
-                              let earned = 0;
-                              let total = 0;
-                              if (associatedExam) {
-                                attempt.answers.forEach((ans: any) => {
-                                  const examQ = associatedExam.questions.find((q: any) => q.questionId._id === ans.questionId);
-                                  if (examQ) {
-                                    total += examQ.marks;
-                                    const actualQ = examQ.questionId;
-                                    if (ans.selectedOptionIndex === actualQ.correctOptionIndex) {
-                                      earned += examQ.marks;
-                                    }
-                                  }
-                                });
-                              }
+                              const associatedExam = insightsData.exams.find((e: any) => e._id === attempt.examId);
+                              const earned = attempt.score || 0;
+                              const total = attempt.totalMarks || 0;
                               return (
                                 <tr key={attempt._id}>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
@@ -824,6 +813,26 @@ export default function AdminDashboard() {
                                     <span className={earned === total && total > 0 ? 'text-green-600' : 'text-blue-600'}>
                                       {earned} / {total || '-'}
                                     </span>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button 
+                                      onClick={async () => {
+                                        if(window.confirm('Are you sure you want to delete this attempt?')) {
+                                          try {
+                                            await axios.delete(`http://localhost:5000/api/attempts/${attempt._id}`, { withCredentials: true });
+                                            setInsightsData(prev => prev ? {
+                                              ...prev,
+                                              attempts: prev.attempts.filter(a => a._id !== attempt._id)
+                                            } : null);
+                                          } catch(e) {
+                                            alert('Failed to delete attempt');
+                                          }
+                                        }
+                                      }}
+                                      className="text-red-600 hover:text-red-900 font-bold"
+                                    >
+                                      Delete
+                                    </button>
                                   </td>
                                 </tr>
                               );

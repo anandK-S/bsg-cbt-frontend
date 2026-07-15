@@ -4,6 +4,7 @@ import "./globals.css";
 import "../i18n";
 import "@/utils/apiConfig";
 
+
 import UnifiedLayout from "@/components/layout/UnifiedLayout";
 
 const geistSans = Geist({
