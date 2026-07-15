@@ -59,6 +59,7 @@ export default function ExamDetails() {
 
   // Manual Question State
   const [showManualModal, setShowManualModal] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [manualQuestion, setManualQuestion] = useState({
     text: '',
     options: ['', '', '', ''],
@@ -194,30 +195,44 @@ export default function ExamDetails() {
         formData.append('media', mediaFile);
       }
 
-      await axios.post(
-        `http://localhost:5000/api/exams/${examId}/questions`,
-        formData,
-        { 
-          withCredentials: true,
-          headers: { 'Content-Type': 'multipart/form-data' }
-        }
-      );
+      if (editingQuestionId) {
+        await axios.put(
+          `http://localhost:5000/api/exams/${examId}/questions/${editingQuestionId}`,
+          formData,
+          { 
+            withCredentials: true,
+            headers: { 'Content-Type': 'multipart/form-data' }
+          }
+        );
+      } else {
+        await axios.post(
+          `http://localhost:5000/api/exams/${examId}/questions`,
+          formData,
+          { 
+            withCredentials: true,
+            headers: { 'Content-Type': 'multipart/form-data' }
+          }
+        );
+      }
       setShowManualModal(false);
-      setManualQuestion(prev => ({
-        ...prev,
+      setEditingQuestionId(null);
+      setManualQuestion({
         text: '',
         options: ['', '', '', ''],
         correctOptionIndex: 0,
         acceptableAnswers: [''],
+        category: '',
+        marks: 1,
+        type: 'SingleChoice',
         mediaUrl: ''
-      }));
+      });
       setMediaFile(null);
       fetchExam();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        setManualError(err.response?.data?.message || err.message || 'Failed to add question');
+        setManualError(err.response?.data?.message || err.message || 'Failed to save question');
       } else {
-        setManualError('Failed to add question');
+        setManualError('Failed to save question');
       }
     } finally {
       setIsSavingManual(false);
@@ -298,101 +313,77 @@ export default function ExamDetails() {
   if (!exam) return null;
 
   return (
-    <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)] bg-gray-50">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
       
-      {/* Test Manager Sidebar */}
-      <div className="w-full md:w-72 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
-        <div className="p-5 border-b border-gray-100 flex items-center gap-3">
-          <Link href="/examiner" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-bsg-blue hover:text-white transition-colors">
-            <ArrowLeft size={16} />
-          </Link>
-          <div className="flex-1 truncate">
-            <h2 className="text-sm font-black text-gray-900 truncate" title={exam.title}>{exam.title}</h2>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5">{exam.status}</p>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
-          {/* Test Configuration Section */}
-          <div>
-            <button 
-              onClick={() => setConfigExpanded(!configExpanded)}
-              className="w-full flex items-center justify-between text-xs font-black text-gray-500 uppercase tracking-wider mb-2 hover:text-gray-900 transition-colors"
-            >
-              Test Configuration
-              {configExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-            
-            {configExpanded && (
-              <div className="space-y-1">
-                <button 
-                  onClick={() => setActiveTab('basic')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-colors ${activeTab === 'basic' ? 'bg-bsg-blue/10 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}
-                >
-                  <Settings size={18} /> Basic Settings
-                </button>
-                <button 
-                  onClick={() => setActiveTab('questions')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-colors ${activeTab === 'questions' ? 'bg-bsg-blue/10 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}
-                >
-                  <ListChecks size={18} /> Question Manager
-                </button>
+      {/* Top Header & Horizontal Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header row */}
+          <div className="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Link href="/examiner" className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-bsg-blue hover:text-white transition-colors flex-shrink-0">
+                <ArrowLeft size={18} />
+              </Link>
+              <div>
+                <h1 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">{exam.title}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`px-2 py-0.5 text-xs font-bold uppercase rounded-full ${exam.status === 'Published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{exam.status}</span>
+                  <span className="text-sm font-medium text-gray-500">{exam.questions.length} Questions</span>
+                </div>
               </div>
-            )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              {exam.status === 'Draft' ? (
+                <button 
+                  onClick={handlePublish}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+                >
+                  <CheckCircle size={18} /> Publish Test
+                </button>
+              ) : (
+                <button 
+                  onClick={handleUnpublish}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+                >
+                  <Trash2 size={18} /> Unpublish
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Progress & Results Section */}
-          <div>
+          {/* Horizontal Tabs */}
+          <div className="flex space-x-8 overflow-x-auto custom-scrollbar mt-2">
             <button 
-              onClick={() => setProgressExpanded(!progressExpanded)}
-              className="w-full flex items-center justify-between text-xs font-black text-gray-500 uppercase tracking-wider mb-2 hover:text-gray-900 transition-colors"
+              onClick={() => setActiveTab('basic')}
+              className={`whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm ${activeTab === 'basic' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center gap-2`}
             >
-              Test Progress & Results
-              {progressExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <Settings size={18} /> Basic Settings
             </button>
-            
-            {progressExpanded && (
-              <div className="space-y-1">
-                <button 
-                  onClick={() => setActiveTab('results')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-colors ${activeTab === 'results' ? 'bg-bsg-blue/10 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}
-                >
-                  <Users size={18} /> Results Table
-                </button>
-                <button 
-                  onClick={() => setActiveTab('stats')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-colors ${activeTab === 'stats' ? 'bg-bsg-blue/10 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}
-                >
-                  <BarChart2 size={18} /> Statistics
-                </button>
-              </div>
-            )}
+            <button 
+              onClick={() => setActiveTab('questions')}
+              className={`whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm ${activeTab === 'questions' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center gap-2`}
+            >
+              <ListChecks size={18} /> Question Manager
+            </button>
+            <button 
+              onClick={() => setActiveTab('results')}
+              className={`whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm ${activeTab === 'results' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center gap-2`}
+            >
+              <Users size={18} /> Results Table
+            </button>
+            <button 
+              onClick={() => setActiveTab('stats')}
+              className={`whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm ${activeTab === 'stats' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center gap-2`}
+            >
+              <BarChart2 size={18} /> Statistics
+            </button>
           </div>
         </div>
-        
-        {exam.status === 'Draft' ? (
-          <div className="p-4 border-t border-gray-100">
-            <button 
-              onClick={handlePublish}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-black py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
-            >
-              <CheckCircle size={18} /> Publish Test
-            </button>
-          </div>
-        ) : (
-          <div className="p-4 border-t border-gray-100">
-            <button 
-              onClick={handleUnpublish}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
-            >
-              <Trash2 size={18} /> Unpublish Test
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-x-hidden p-6 md:p-10">
+      <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         
         {/* BASIC SETTINGS */}
         {activeTab === 'basic' && (
@@ -480,7 +471,22 @@ export default function ExamDetails() {
                       </div>
                     </label>
                   </div>
-                  <div className="pt-4 border-t border-gray-100 flex justify-end">
+                  <div className="pt-4 border-t border-gray-100 flex justify-between items-center mt-6">
+                    <button 
+                      onClick={async () => {
+                        if (confirm("Are you sure you want to permanently delete this exam? This action cannot be undone.")) {
+                          try {
+                            await axios.delete(`http://localhost:5000/api/exams/${examId}`, { withCredentials: true });
+                            router.push('/examiner');
+                          } catch (err) {
+                            alert('Failed to delete exam');
+                          }
+                        }
+                      }}
+                      className="text-red-600 hover:text-red-700 font-bold px-4 py-3 rounded-xl hover:bg-red-50 transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 size={18} /> Delete Exam
+                    </button>
                     <button 
                       onClick={handleSaveBasicSettings}
                       disabled={isSavingBasic}
@@ -508,7 +514,21 @@ export default function ExamDetails() {
                   <Upload size={18} /> AI Import
                 </button>
                 <button 
-                  onClick={() => setShowManualModal(true)}
+                  onClick={() => {
+                    setEditingQuestionId(null);
+                    setManualQuestion({
+                      text: '',
+                      options: ['', '', '', ''],
+                      correctOptionIndex: 0,
+                      acceptableAnswers: [''],
+                      category: '',
+                      marks: 1,
+                      type: 'SingleChoice',
+                      mediaUrl: ''
+                    });
+                    setMediaFile(null);
+                    setShowManualModal(true);
+                  }}
                   className="bg-bsg-blue text-white font-black px-5 py-2.5 rounded-xl hover:bg-bsg-blue-dark transition-colors shadow-sm flex items-center gap-2"
                 >
                   + Add Manual Question
@@ -542,6 +562,45 @@ export default function ExamDetails() {
                           </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => {
+                            setEditingQuestionId(q.questionId._id);
+                            setManualQuestion({
+                              text: q.questionId.text,
+                              options: q.questionId.options.length ? [...q.questionId.options] : ['', '', '', ''],
+                              correctOptionIndex: q.questionId.correctOptionIndex || 0,
+                              acceptableAnswers: q.questionId.acceptableAnswers?.length ? [...q.questionId.acceptableAnswers] : [''],
+                              category: q.questionId.category || '',
+                              marks: q.marks || 1,
+                              type: q.type || 'SingleChoice',
+                              mediaUrl: q.questionId.mediaUrl || ''
+                            });
+                            setMediaFile(null);
+                            setShowManualModal(true);
+                          }}
+                          className="p-2 text-gray-400 hover:text-bsg-blue hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit Question"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            if (confirm("Are you sure you want to delete this question?")) {
+                              try {
+                                await axios.delete(`http://localhost:5000/api/exams/${examId}/questions/${q.questionId._id}`, { withCredentials: true });
+                                fetchExam(); // refresh
+                              } catch (err) {
+                                alert('Failed to delete question');
+                              }
+                            }
+                          }}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Question"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                     <div className="p-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -569,13 +628,32 @@ export default function ExamDetails() {
           <div className="max-w-6xl">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <h1 className="text-3xl font-black text-gray-900">Results Database</h1>
-              <button 
-                onClick={handleExportToCSV}
-                disabled={results.length === 0}
-                className="bg-green-600 text-white font-black px-5 py-2.5 rounded-xl hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
-              >
-                <FileText size={18} /> Export to CSV
-              </button>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={async () => {
+                    if (confirm("Are you sure you want to clear ALL results for this exam? This cannot be undone.")) {
+                      try {
+                        await axios.delete(`http://localhost:5000/api/attempts/${examId}/results`, { withCredentials: true });
+                        const { data } = await axios.get(`http://localhost:5000/api/attempts/${examId}/result`, { withCredentials: true });
+                        setResults(Array.isArray(data) ? data : []);
+                      } catch (err) {
+                        alert('Failed to clear results');
+                      }
+                    }
+                  }}
+                  disabled={results.length === 0}
+                  className="bg-red-50 text-red-600 font-black px-5 py-2.5 rounded-xl hover:bg-red-100 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Trash2 size={18} /> Clear All Results
+                </button>
+                <button 
+                  onClick={handleExportToCSV}
+                  disabled={results.length === 0}
+                  className="bg-green-600 text-white font-black px-5 py-2.5 rounded-xl hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+                >
+                  <FileText size={18} /> Export to CSV
+                </button>
+              </div>
             </div>
             <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="overflow-x-auto">
@@ -616,10 +694,26 @@ export default function ExamDetails() {
                           <td className="px-8 py-5 whitespace-nowrap text-sm text-gray-500 font-medium">
                             {new Date(result.createdAt).toLocaleString()}
                           </td>
-                          <td className="px-8 py-5 whitespace-nowrap text-right">
-                            <Link href={`/exams/${result._id}/review`} className="text-bsg-blue hover:text-bsg-blue-dark font-black hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors flex items-center justify-end gap-2 ml-auto w-fit">
+                          <td className="px-8 py-5 whitespace-nowrap text-right flex items-center justify-end gap-3">
+                            <Link href={`/exams/${result._id}/review`} className="text-bsg-blue hover:text-bsg-blue-dark font-black hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors flex items-center gap-2">
                               <Eye size={16} /> Review
                             </Link>
+                            <button
+                              onClick={async () => {
+                                if (confirm("Are you sure you want to delete this candidate's result?")) {
+                                  try {
+                                    await axios.delete(`http://localhost:5000/api/attempts/result/${result._id}`, { withCredentials: true });
+                                    setResults(results.filter(r => r._id !== result._id));
+                                  } catch (err) {
+                                    alert('Failed to delete result');
+                                  }
+                                }
+                              }}
+                              className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                              title="Delete Result"
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           </td>
                         </tr>
                       ))
@@ -663,10 +757,10 @@ export default function ExamDetails() {
       {showManualModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center sm:p-4 bg-gray-900/60 backdrop-blur-sm">
           <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:rounded-3xl max-w-2xl shadow-2xl relative flex flex-col">
-            <div className="px-6 py-4 sm:px-8 sm:py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 sm:rounded-t-3xl shrink-0">
-              <h3 className="text-xl sm:text-2xl font-black text-gray-900">Add Manual Question</h3>
-              <button onClick={() => setShowManualModal(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
-                <Trash2 size={24} />
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50 rounded-t-3xl">
+              <h2 className="text-2xl font-black text-gray-900">{editingQuestionId ? 'Edit Question' : 'Add Question'}</h2>
+              <button onClick={() => setShowManualModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
+                <span className="text-gray-500 font-bold">×</span>
               </button>
             </div>
             
@@ -852,10 +946,10 @@ export default function ExamDetails() {
           <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden">
             <h3 className="text-2xl font-black text-gray-900 mb-6">AI Import Questions</h3>
             <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Upload File (.txt, .pdf, .docx)</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Upload File (.txt, .pdf, .docx, images)</label>
               <input 
                 type="file" 
-                accept=".txt,.pdf,.docx"
+                accept=".txt,.pdf,.docx,image/*"
                 onChange={(e) => setImportFile(e.target.files ? e.target.files[0] : null)}
                 className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-bsg-blue/10 file:text-bsg-blue hover:file:bg-bsg-blue/20"
               />

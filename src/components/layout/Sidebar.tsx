@@ -41,9 +41,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         ];
       case 'Examiner':
         return [
-          { name: 'Dashboard', href: '/examiner', icon: LayoutDashboard },
-          { name: 'My Exams', href: '/examiner/exams', icon: FileText },
-          { name: 'Respondents', href: '/examiner/respondents', icon: Users },
+          { name: 'Dashboard', href: '/examiner', icon: LayoutDashboard }
         ];
       case 'Candidate':
         return [
