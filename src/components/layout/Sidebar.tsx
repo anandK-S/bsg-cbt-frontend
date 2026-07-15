@@ -48,6 +48,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       case 'Candidate':
         return [
           { name: 'My Exams', href: '/dashboard', icon: LayoutDashboard },
+          { name: 'Past Results', href: '/past-results', icon: Activity },
           { name: 'Leaderboard', href: '/leaderboard', icon: Award },
           { name: 'Profile', href: '/profile', icon: UserIcon },
         ];

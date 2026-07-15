@@ -461,39 +461,61 @@ export default function ExamTakePage() {
           </div>
 
           {/* Bottom Action Bar */}
-          <div className="bg-gray-100 border-t border-gray-300 p-4 flex flex-wrap gap-3 justify-between items-center mt-auto shrink-0">
-            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              <button 
-                onClick={() => {
-                  if (currentQuestionIndex > 0) {
-                    setCurrentQuestionIndex(currentQuestionIndex - 1);
-                  }
-                }}
-                disabled={currentQuestionIndex === 0}
-                className="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-bold rounded shadow-sm flex items-center gap-2 border border-gray-300 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                &larr; Previous
-              </button>
-              
-              <button 
-                onClick={clearResponse}
-                className="px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 font-bold rounded shadow-sm flex items-center gap-2 border border-gray-300 transition-colors text-sm"
-              >
-                <Eraser size={16} /> Clear Response
-              </button>
-              <button 
-                onClick={markForReviewAndNext}
-                className="px-5 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded shadow-sm flex items-center gap-2 border border-yellow-600 transition-colors text-sm"
-              >
-                <BookmarkPlus size={16} /> Mark for Review
-              </button>
+          <div className="bg-white border-t border-gray-200 p-4 sm:px-6 flex flex-wrap gap-3 justify-between items-center mt-auto shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <div className="flex flex-wrap items-center gap-3 w-full justify-between sm:justify-start">
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => {
+                    if (currentQuestionIndex > 0) {
+                      setCurrentQuestionIndex(currentQuestionIndex - 1);
+                    }
+                  }}
+                  disabled={currentQuestionIndex === 0}
+                  className="px-4 py-2.5 sm:px-6 bg-white hover:bg-gray-50 text-gray-700 font-bold rounded-xl shadow-sm flex items-center gap-2 border border-gray-300 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  &larr; Prev
+                </button>
+                
+                <button 
+                  onClick={clearResponse}
+                  className="px-4 py-2.5 sm:px-6 bg-white hover:bg-red-50 text-red-600 font-bold rounded-xl shadow-sm flex items-center gap-2 border border-gray-300 hover:border-red-200 transition-all text-sm"
+                >
+                  <Eraser size={16} /> Clear
+                </button>
+              </div>
 
-              <button 
-                onClick={saveAndNext}
-                className={`px-5 py-2.5 ${currentQuestionIndex === questions.length - 1 ? 'bg-blue-600 hover:bg-blue-700 border-blue-700' : 'bg-green-600 hover:bg-green-700 border-green-700'} text-white font-bold rounded shadow-sm flex items-center gap-2 border transition-colors text-sm`}
-              >
-                <Save size={16} /> {currentQuestionIndex === questions.length - 1 ? 'Save & Submit' : 'Save & Next'}
-              </button>
+              <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 ml-auto">
+                <button 
+                  onClick={markForReviewAndNext}
+                  className={`px-4 py-2.5 sm:px-6 font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 border transition-all duration-300 text-sm flex-1 sm:flex-none ${
+                    currentAnswer.status === 'MarkedForReview' || currentAnswer.status === 'AnsweredAndMarkedForReview'
+                      ? 'bg-purple-100 text-purple-700 border-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                      : 'bg-white hover:bg-purple-50 text-purple-700 border-gray-300 hover:border-purple-300'
+                  }`}
+                >
+                  <BookmarkPlus size={16} className={currentAnswer.status === 'MarkedForReview' || currentAnswer.status === 'AnsweredAndMarkedForReview' ? 'animate-bounce' : ''} /> 
+                  Review
+                </button>
+
+                <button 
+                  onClick={saveAndNext}
+                  className={`px-6 py-2.5 sm:px-8 font-bold rounded-xl shadow-md flex items-center justify-center gap-2 border transition-all duration-300 text-sm flex-1 sm:flex-none ${
+                    currentQuestionIndex === questions.length - 1 
+                      ? 'bg-gradient-to-r from-bsg-blue to-bsg-blue-light hover:from-blue-700 hover:to-blue-600 text-white border-transparent hover:shadow-lg transform hover:-translate-y-0.5' 
+                      : 'bg-green-600 hover:bg-green-700 text-white border-green-700 hover:shadow-lg'
+                  }`}
+                >
+                  {currentQuestionIndex === questions.length - 1 ? (
+                    <>
+                      <CheckCircle2 size={18} /> Submit
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} /> Next
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

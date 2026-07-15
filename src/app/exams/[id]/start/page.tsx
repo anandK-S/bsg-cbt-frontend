@@ -126,7 +126,13 @@ export default function ExamStartPage() {
               <div className="mt-0.5 bg-yellow-50 text-yellow-600 p-1 rounded-full"><Target size={16} /></div>
               <div>
                 <p className="text-sm font-bold text-gray-800">Passing Criteria</p>
-                <p className="text-sm text-gray-600 mt-1">This examination contains <strong>{exam?.questions?.length || 0} questions</strong>. You must score at least <strong>{exam?.passingMarks || 50}%</strong> to successfully pass.</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  This examination contains <strong>{exam?.questions?.length || 0} questions</strong>. You must score at least <strong>{
+                    exam?.questions?.length 
+                      ? Math.round(((exam?.passingMarks || 0) / exam.questions.reduce((sum: number, q: any) => sum + (q.marks || 1), 0)) * 100) 
+                      : (exam?.passingMarks || 0)
+                  }%</strong> to successfully pass.
+                </p>
               </div>
             </div>
 

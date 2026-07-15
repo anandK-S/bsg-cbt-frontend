@@ -20,23 +20,14 @@ interface Exam {
   creatorName?: string;
 }
 
-interface PastResult {
-  _id: string;
-  totalMarks: number;
-  score: number;
-  createdAt: string;
-  examId?: {
-    _id: string;
-    title: string;
-  };
-}
+
 
 export default function CandidateDashboard() {
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
   const router = useRouter();
   
   const [availableExams, setAvailableExams] = useState<Exam[]>([]);
-  const [pastExams, setPastExams] = useState<PastResult[]>([]);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,10 +51,7 @@ export default function CandidateDashboard() {
     if (user?.role === 'Candidate') {
       const fetchCandidateData = async () => {
         try {
-          const [examsRes, resultsRes] = await Promise.all([
-            axios.get('http://localhost:5000/api/exams/available', { withCredentials: true }),
-            axios.get('http://localhost:5000/api/attempts/results/me', { withCredentials: true })
-          ]);
+          const examsRes = await axios.get('http://localhost:5000/api/exams/available', { withCredentials: true });
           
           const sortedExams = examsRes.data.sort((a: any, b: any) => {
             const dateA = new Date(a.scheduledStartDate || a.createdAt || Date.now()).getTime();
@@ -71,7 +59,6 @@ export default function CandidateDashboard() {
             return dateB - dateA;
           });
           setAvailableExams(sortedExams);
-          setPastExams(resultsRes.data);
         } catch (error: unknown) {
           if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
             logout();
@@ -121,9 +108,7 @@ export default function CandidateDashboard() {
         {/* Removed Edit Profile button as requested */}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2">
-          {/* Available Exams Section */}
+      {/* Available Exams Section */}
       <div className="mb-12">
         <div className="flex items-center mb-6">
           <h2 className="text-2xl font-extrabold text-gray-900">Available Exams</h2>
@@ -139,7 +124,7 @@ export default function CandidateDashboard() {
             <p className="text-gray-500">There are no new exams assigned to you at the moment.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {availableExams.map((exam: Exam) => (
               <div key={exam._id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 overflow-hidden flex flex-col transform hover:-translate-y-1 group">
                 <div className="p-6 flex-1 flex flex-col">
@@ -177,60 +162,6 @@ export default function CandidateDashboard() {
           </div>
         )}
       </div>
-
-        </div>
-
-        <div className="lg:col-span-1">
-          {/* Past Results Section */}
-      <div>
-        <h2 className="text-2xl font-extrabold text-gray-900 mb-6">Past Results</h2>
-        {pastExams.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center text-gray-500 flex flex-col items-center justify-center">
-            <span className="text-4xl mb-3">📊</span>
-            <p className="font-medium">You haven&apos;t completed any exams yet.</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-6 max-h-[500px] overflow-y-auto space-y-4 custom-scrollbar">
-              {pastExams.map((result: PastResult) => {
-                const percentage = result.totalMarks > 0 ? Math.round((result.score / result.totalMarks) * 100) : 0;
-                const isPassed = percentage >= 50;
-
-                return (
-                  <div key={result._id} className="bg-gray-50 p-5 rounded-xl border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white hover:shadow-md hover:border-gray-200 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-extrabold shrink-0 border-4 ${isPassed ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
-                        {percentage}%
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-bold text-gray-900 leading-tight mb-1">{result.examId?.title || 'Unknown Exam'}</h4>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          {new Date(result.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-3 mt-2 md:mt-0">
-                      <span className={`flex-1 md:flex-none flex items-center justify-center px-4 py-2 rounded-lg font-bold text-sm ${isPassed ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                        {isPassed ? 'PASSED' : 'FAILED'}
-                      </span>
-                      <Link href={`/exams/${result._id}/review`} className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-white text-gray-700 hover:bg-gray-50 hover:text-bsg-blue font-bold text-sm rounded-lg transition-colors border border-gray-200 shadow-sm">
-                        View Feedback
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            {pastExams.length > 5 && (
-              <div className="p-4 bg-gray-50 border-t border-gray-100 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
-                Scroll for more results ({pastExams.length} total)
-              </div>
-            )}
-          </div>
-        )}
-        </div>
-        </div>
       </div>
     </div>
   );
