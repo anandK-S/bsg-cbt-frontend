@@ -11,6 +11,7 @@ export default function CreateExam() {
   const [durationMinutes, setDurationMinutes] = useState(60);
   const [durationUnit, setDurationUnit] = useState('min');
   const [passingMarks, setPassingMarks] = useState<number | ''>(50);
+  const [allowMultipleAttempts, setAllowMultipleAttempts] = useState(false);
   const [scheduledStartDate, setScheduledStartDate] = useState('');
   const [scheduledEndDate, setScheduledEndDate] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,6 +28,7 @@ export default function CreateExam() {
           durationMinutes,
           durationUnit,
           passingMarks,
+          allowMultipleAttempts,
           scheduledStartDate: scheduledStartDate || undefined,
           scheduledEndDate: scheduledEndDate || undefined
         },
@@ -130,9 +132,26 @@ export default function CreateExam() {
               onChange={(e) => setScheduledEndDate(e.target.value)}
             />
           </div>
-        </div>
+                <div className="md:col-span-2 pt-2 border-t border-gray-100">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only"
+                        checked={allowMultipleAttempts}
+                        onChange={(e) => setAllowMultipleAttempts(e.target.checked)}
+                      />
+                      <div className={`block w-12 h-6 rounded-full transition-colors ${allowMultipleAttempts ? 'bg-bsg-blue' : 'bg-gray-300'}`}></div>
+                      <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${allowMultipleAttempts ? 'transform translate-x-6' : ''}`}></div>
+                    </div>
+                    <div>
+                      <span className="text-sm font-bold text-gray-700 block group-hover:text-bsg-blue transition-colors">Allow Multiple Attempts</span>
+                      <span className="text-xs text-gray-500">If enabled, candidates can take this exam more than once.</span>
+                    </div>
+                  </label>
+                </div>
 
-        <div className="flex justify-end">
+                <div className="md:col-span-2 pt-4 flex justify-end">
           <button
             type="button"
             onClick={() => router.back()}

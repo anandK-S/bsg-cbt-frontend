@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
+import { CheckCircle, AlertTriangle, Clock, Target, FileText, ChevronRight } from 'lucide-react';
 
 export default function ExamStartPage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -14,6 +15,8 @@ export default function ExamStartPage() {
   
   const [exam, setExam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [starting, setStarting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'Candidate') {
@@ -29,8 +32,7 @@ export default function ExamStartPage() {
         setExam(data);
       } catch (error) {
         console.error('Error fetching exam:', error);
-        alert("Failed to load exam. It might have been unpublished.");
-        router.push('/dashboard');
+        setErrorMsg("Failed to load exam. It might have been unpublished or removed.");
       } finally {
         setLoading(false);
       }
@@ -40,84 +42,125 @@ export default function ExamStartPage() {
   }, [isAuthenticated, user, router, examId]);
 
   const handleStartExam = async () => {
+    setStarting(true);
+    setErrorMsg(null);
     try {
+      // The API call to actually start and create the attempt happens on the /take page
+      // But we can test it here if we want to catch the 403 before redirecting.
+      // Wait, the original code just redirects to /take.
+      // If we redirect to /take, the /take page handles the API call and throws the alert.
+      // Let's change the architecture: we make the /start API call HERE, and if successful, redirect to /take.
+      const { data } = await axios.post(`http://localhost:5000/api/exams/${examId}/start`, {}, {
+        withCredentials: true,
+      });
+      // Assuming it succeeded, we redirect to take where it will fetch the active attempt
       router.push(`/exams/${examId}/take`);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Could not start exam');
+      if (err.response?.status === 403 && err.response?.data?.message) {
+        setErrorMsg(err.response.data.message);
+      } else {
+        setErrorMsg('An unexpected error occurred while trying to start the exam.');
+      }
+      setStarting(false);
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-bsg-blue font-semibold">Loading Exam Details...</div>;
-  if (!exam) return null;
+  if (loading) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-bsg-blue mb-4"></div>
+      <p className="text-gray-500 font-medium">Loading Assessment Details...</p>
+    </div>
+  );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-        <div className="bg-bsg-blue p-8 text-white relative overflow-hidden">
-          {/* Abstract background shapes */}
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
-          
-          <div className="relative z-10">
-            <Link href="/dashboard" className="text-blue-200 hover:text-white text-sm font-bold mb-4 inline-block transition-colors">&larr; Back to Dashboard</Link>
-            <h1 className="text-3xl font-extrabold mb-2 leading-tight">{exam.title}</h1>
-            <p className="text-blue-100 text-lg font-medium">{exam.description || 'Mandatory CBT Assessment'}</p>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+      <div className="mb-6">
+        <Link href="/dashboard" className="text-bsg-blue hover:text-blue-800 text-sm font-semibold transition-colors flex items-center gap-1">
+          &larr; Return to Dashboard
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* Header Section */}
+        <div className="p-8 border-b border-gray-100">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
+                {exam?.title || 'Assessment'}
+              </h1>
+              <p className="text-gray-500 font-medium">
+                {exam?.description || 'Please carefully review the instructions before proceeding.'}
+              </p>
+            </div>
           </div>
         </div>
-        
-        <div className="p-6 md:p-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
-            <div className="bg-blue-50 p-4 md:p-6 rounded-xl border border-blue-100 flex flex-col items-center justify-center">
-              <div className="text-2xl md:text-3xl mb-2">⏱️</div>
-              <h3 className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-wider">Duration</h3>
-              <p className="text-xl md:text-2xl font-extrabold text-bsg-blue">{exam.durationMinutes} Mins</p>
+
+        {/* Error State */}
+        {errorMsg && (
+          <div className="mx-8 mt-8 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+            <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={20} />
+            <div>
+              <h3 className="text-red-800 font-bold text-sm">Cannot Start Examination</h3>
+              <p className="text-red-600 text-sm mt-1">{errorMsg}</p>
             </div>
-            <div className="bg-yellow-50 p-4 md:p-6 rounded-xl border border-yellow-100 flex flex-col items-center justify-center">
-              <div className="text-2xl md:text-3xl mb-2">📋</div>
-              <h3 className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-wider">Questions</h3>
-              <p className="text-xl md:text-2xl font-extrabold text-yellow-700">{exam.questions?.length || 0}</p>
+          </div>
+        )}
+
+        {/* Instructions & Details */}
+        <div className="p-8">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <FileText size={20} className="text-bsg-blue" /> Examination Instructions
+          </h2>
+
+          <div className="space-y-4 mb-10">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 bg-blue-50 text-bsg-blue p-1 rounded-full"><Clock size={16} /></div>
+              <div>
+                <p className="text-sm font-bold text-gray-800">Duration Limit</p>
+                <p className="text-sm text-gray-600 mt-1">You will have exactly <strong>{exam?.durationMinutes || 0} minutes</strong> to complete this assessment. The timer will begin immediately after you click start.</p>
+              </div>
             </div>
-            <div className="bg-green-50 p-4 md:p-6 rounded-xl border border-green-100 flex flex-col items-center justify-center">
-              <div className="text-2xl md:text-3xl mb-2">🎯</div>
-              <h3 className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-wider">Passing</h3>
-              <p className="text-xl md:text-2xl font-extrabold text-green-700">50%</p>
+
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 bg-yellow-50 text-yellow-600 p-1 rounded-full"><Target size={16} /></div>
+              <div>
+                <p className="text-sm font-bold text-gray-800">Passing Criteria</p>
+                <p className="text-sm text-gray-600 mt-1">This examination contains <strong>{exam?.questions?.length || 0} questions</strong>. You must score at least <strong>{exam?.passingMarks || 50} marks</strong> to successfully pass.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 bg-green-50 text-green-600 p-1 rounded-full"><ShieldCheck size={16} /></div>
+              <div>
+                <p className="text-sm font-bold text-gray-800">Academic Integrity</p>
+                <p className="text-sm text-gray-600 mt-1">This is a proctored examination environment. Leaving the fullscreen window, switching tabs, or copying text will be recorded as a warning. Multiple warnings will lead to automatic submission and disqualification.</p>
+              </div>
             </div>
           </div>
 
-          <div className="bg-red-50 p-6 md:p-8 rounded-2xl border border-red-200 mb-8 shadow-sm">
-            <h3 className="text-lg font-extrabold text-red-900 mb-4 flex items-center gap-2">
-              <span className="text-2xl">⚠️</span> Strict Anti-Cheat Rules
-            </h3>
-            <ul className="space-y-4 text-red-800 font-medium text-sm md:text-base">
-              <li className="flex items-start gap-3">
-                <span className="mt-1 font-bold">•</span>
-                <span><strong>Fullscreen is Enforced:</strong> The exam will lock your screen. Exiting fullscreen will issue a warning.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 font-bold">•</span>
-                <span><strong>No Leaving the Window:</strong> If you switch tabs, minimize the browser, open another app, or get a notification that covers the screen, you will get a warning.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 font-bold">•</span>
-                <span><strong>Strict 1-Warning Policy:</strong> You get exactly 1 warning. On your 2nd violation, the exam will instantly terminate and submit your current score.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 font-bold">•</span>
-                <span><strong>No Copying:</strong> Copying text, right-clicking, and keyboard shortcuts are disabled.</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="flex justify-center">
-            <button 
+          <div className="border-t border-gray-100 pt-8 flex justify-end">
+            <button
               onClick={handleStartExam}
-              className="bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark font-extrabold text-lg px-8 py-4 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 w-full flex items-center justify-center gap-2"
+              disabled={starting || !!errorMsg}
+              className="inline-flex items-center gap-2 px-8 py-3 bg-bsg-blue hover:bg-blue-800 text-white font-bold rounded-lg transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
             >
-              I Understand, Start Exam &rarr;
+              {starting ? 'Initializing...' : 'I understand, start exam'}
+              {!starting && <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />}
             </button>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+// Inline fallback for icon if ShieldCheck wasn't imported properly from lucide
+function ShieldCheck(props: any) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
   );
 }

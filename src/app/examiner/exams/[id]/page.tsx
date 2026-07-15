@@ -81,6 +81,7 @@ export default function ExamDetails() {
         description: data.description,
         category: data.category,
         durationMinutes: data.durationMinutes,
+        allowMultipleAttempts: data.allowMultipleAttempts,
         scheduledStartDate: data.scheduledStartDate ? new Date(data.scheduledStartDate).toISOString().slice(0,16) : '',
         scheduledEndDate: data.scheduledEndDate ? new Date(data.scheduledEndDate).toISOString().slice(0,16) : '',
       });
@@ -457,6 +458,24 @@ export default function ExamDetails() {
                       rows={4}
                       className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none resize-none transition-all"
                     />
+                  </div>
+                  <div className="pt-2">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div className="relative">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only"
+                          checked={editForm.allowMultipleAttempts || false}
+                          onChange={(e) => setEditForm({...editForm, allowMultipleAttempts: e.target.checked})}
+                        />
+                        <div className={`block w-12 h-6 rounded-full transition-colors ${editForm.allowMultipleAttempts ? 'bg-bsg-blue' : 'bg-gray-300'}`}></div>
+                        <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${editForm.allowMultipleAttempts ? 'transform translate-x-6' : ''}`}></div>
+                      </div>
+                      <div>
+                        <span className="text-sm font-bold text-gray-700 block group-hover:text-bsg-blue transition-colors">Allow Multiple Attempts</span>
+                        <span className="text-xs text-gray-500">If enabled, candidates can take this exam more than once.</span>
+                      </div>
+                    </label>
                   </div>
                   <div className="pt-4 border-t border-gray-100 flex justify-end">
                     <button 
