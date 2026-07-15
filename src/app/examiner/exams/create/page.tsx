@@ -10,7 +10,7 @@ export default function CreateExam() {
   const [description, setDescription] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(60);
   const [durationUnit, setDurationUnit] = useState('min');
-  const [passingMarks, setPassingMarks] = useState(50);
+  const [passingMarks, setPassingMarks] = useState<number | ''>(50);
   const [scheduledStartDate, setScheduledStartDate] = useState('');
   const [scheduledEndDate, setScheduledEndDate] = useState('');
   const [loading, setLoading] = useState(false);
@@ -105,7 +105,7 @@ export default function CreateExam() {
             max="100"
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-bsg-blue focus:border-bsg-blue sm:text-sm"
             value={passingMarks}
-            onChange={(e) => setPassingMarks(parseInt(e.target.value) || 50)}
+            onChange={(e) => setPassingMarks(e.target.value === '' ? '' : parseInt(e.target.value))}
           />
         </div>
 

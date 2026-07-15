@@ -55,8 +55,8 @@ export default function ExamReviewPage() {
       <div className="max-w-5xl mx-auto space-y-6">
         
         {/* Navigation */}
-        <Link href="/dashboard" className="inline-flex items-center text-gray-500 hover:text-gray-900 transition-colors font-medium">
-          <ArrowLeft size={16} className="mr-2" /> Back to Dashboard
+        <Link href={user?.role === 'Candidate' ? '/dashboard' : `/examiner/exams/${exam._id}`} className="inline-flex items-center text-gray-500 hover:text-gray-900 transition-colors font-medium">
+          <ArrowLeft size={16} className="mr-2" /> {user?.role === 'Candidate' ? 'Back to Dashboard' : 'Back to Results Database'}
         </Link>
 
         {/* Header Summary */}

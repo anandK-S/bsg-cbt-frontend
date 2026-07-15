@@ -15,6 +15,8 @@ interface ExamDetailsData {
   status: string;
   category?: string;
   questions: any[];
+  scheduledStartDate?: string;
+  scheduledEndDate?: string;
 }
 
 interface ResultData {
@@ -35,6 +37,8 @@ export default function ExamDetails() {
   const examId = params.id as string;
   
   const [exam, setExam] = useState<ExamDetailsData | null>(null);
+  const [editForm, setEditForm] = useState<Partial<ExamDetailsData>>({});
+  const [isSavingBasic, setIsSavingBasic] = useState(false);
   const [loading, setLoading] = useState(true);
   
   const [activeTab, setActiveTab] = useState<'basic' | 'questions' | 'results' | 'stats'>('questions');
@@ -72,11 +76,33 @@ export default function ExamDetails() {
         withCredentials: true,
       });
       setExam(data);
+      setEditForm({
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        durationMinutes: data.durationMinutes,
+        scheduledStartDate: data.scheduledStartDate ? new Date(data.scheduledStartDate).toISOString().slice(0,16) : '',
+        scheduledEndDate: data.scheduledEndDate ? new Date(data.scheduledEndDate).toISOString().slice(0,16) : '',
+      });
     } catch (error) {
       console.error('Error fetching exam:', error);
       router.push('/examiner');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveBasicSettings = async () => {
+    setIsSavingBasic(true);
+    try {
+      await axios.put(`http://localhost:5000/api/exams/${examId}`, editForm, { withCredentials: true });
+      fetchExam();
+      alert('Basic settings updated successfully');
+    } catch (error) {
+      console.error('Error updating exam:', error);
+      alert('Failed to update basic settings');
+    } finally {
+      setIsSavingBasic(false);
     }
   };
 
@@ -377,9 +403,9 @@ export default function ExamDetails() {
                     <label className="block text-sm font-bold text-gray-700 mb-1">Test Name</label>
                     <input 
                       type="text" 
-                      value={exam.title}
-                      readOnly
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:outline-none"
+                      value={editForm.title || ''}
+                      onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -387,33 +413,62 @@ export default function ExamDetails() {
                       <label className="block text-sm font-bold text-gray-700 mb-1">Category</label>
                       <input 
                         type="text" 
-                        value={exam.category || 'Uncategorized'}
-                        readOnly
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:outline-none"
+                        value={editForm.category || ''}
+                        onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                        placeholder="e.g. Science, Math"
+                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1">Duration (Minutes)</label>
                       <input 
                         type="number" 
-                        value={exam.durationMinutes}
-                        readOnly
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:outline-none"
+                        value={editForm.durationMinutes || ''}
+                        onChange={(e) => setEditForm({...editForm, durationMinutes: parseInt(e.target.value)})}
+                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Scheduled Start Date</label>
+                      <input 
+                        type="datetime-local" 
+                        value={editForm.scheduledStartDate || ''}
+                        onChange={(e) => setEditForm({...editForm, scheduledStartDate: e.target.value})}
+                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Scheduled End Date</label>
+                      <input 
+                        type="datetime-local" 
+                        value={editForm.scheduledEndDate || ''}
+                        onChange={(e) => setEditForm({...editForm, scheduledEndDate: e.target.value})}
+                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
                       />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
                     <textarea 
-                      value={exam.description}
-                      readOnly
+                      value={editForm.description || ''}
+                      onChange={(e) => setEditForm({...editForm, description: e.target.value})}
                       rows={4}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:outline-none resize-none"
+                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none resize-none transition-all"
                     />
+                  </div>
+                  <div className="pt-4 border-t border-gray-100 flex justify-end">
+                    <button 
+                      onClick={handleSaveBasicSettings}
+                      disabled={isSavingBasic}
+                      className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-black px-8 py-3 rounded-xl transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isSavingBasic ? 'Saving...' : <><Save size={18} /> Save Configuration</>}
+                    </button>
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-500 font-medium italic">* Editing basic settings is restricted after exam creation to maintain data integrity.</p>
             </div>
           </div>
         )}
@@ -540,9 +595,9 @@ export default function ExamDetails() {
                             {new Date(result.createdAt).toLocaleString()}
                           </td>
                           <td className="px-8 py-5 whitespace-nowrap text-right">
-                            <button className="text-bsg-blue hover:text-bsg-blue-dark font-black hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ml-auto">
+                            <Link href={`/exams/${result._id}/review`} className="text-bsg-blue hover:text-bsg-blue-dark font-black hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors flex items-center justify-end gap-2 ml-auto w-fit">
                               <Eye size={16} /> Review
-                            </button>
+                            </Link>
                           </td>
                         </tr>
                       ))
@@ -584,7 +639,7 @@ export default function ExamDetails() {
 
       {/* Manual Question Modal */}
       {showManualModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center sm:p-4 bg-gray-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center sm:p-4 bg-gray-900/60 backdrop-blur-sm">
           <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:rounded-3xl max-w-2xl shadow-2xl relative flex flex-col">
             <div className="px-6 py-4 sm:px-8 sm:py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 sm:rounded-t-3xl shrink-0">
               <h3 className="text-xl sm:text-2xl font-black text-gray-900">Add Manual Question</h3>
@@ -771,8 +826,8 @@ export default function ExamDetails() {
 
       {/* AI Import Modal (Simplified for brevity in UI rewrite) */}
       {showAiModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden">
             <h3 className="text-2xl font-black text-gray-900 mb-6">AI Import Questions</h3>
             <div className="mb-6">
               <label className="block text-sm font-bold text-gray-700 mb-2">Upload File (.txt, .pdf, .docx)</label>
