@@ -33,7 +33,7 @@ export default function Home() {
     );
   }
 
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1,
@@ -41,7 +41,7 @@ export default function Home() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
   };
