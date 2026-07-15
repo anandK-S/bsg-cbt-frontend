@@ -1,69 +1,182 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { ShieldCheck, Zap, Brain, ArrowRight } from 'lucide-react';
 
 export default function Home() {
+  const { isAuthenticated, user, _hasHydrated } = useAuthStore();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (_hasHydrated && isAuthenticated && user) {
+      if (user.role === 'Admin') router.push('/admin');
+      else if (user.role === 'Examiner') router.push('/examiner');
+      else router.push('/dashboard');
+    }
+  }, [isAuthenticated, user, _hasHydrated, router]);
+
+  // Prevent flash of landing page while checking auth
+  if (!mounted || (_hasHydrated && isAuthenticated)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-bsg-blue"></div>
+      </div>
+    );
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="bg-bsg-blue text-white py-20 text-center px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Mock Logo Space */}
-          <div className="w-24 h-24 bg-bsg-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-md border-4 border-white">
-            <span className="text-bsg-blue font-bold text-3xl">BSG</span>
+    <div className="min-h-screen bg-slate-900 font-sans selection:bg-bsg-gold selection:text-slate-900 overflow-hidden relative">
+      {/* Dynamic Background Elements */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-blue/30 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
+      
+      {/* Navbar (Standalone for Landing Page) */}
+      <header className="absolute top-0 w-full z-50 px-6 py-6 flex justify-between items-center max-w-7xl mx-auto left-0 right-0">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-3"
+        >
+          <div className="w-12 h-12 bg-gradient-to-br from-bsg-gold to-yellow-600 rounded-xl flex items-center justify-center shadow-lg border border-white/20">
+            <span className="text-slate-900 font-black text-xl tracking-tighter">BSG</span>
           </div>
-          
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
-            Bharat Scouts and Guides (BSG)
-          </h1>
-          <p className="text-xl md:text-2xl text-bsg-gold font-semibold mb-8">
-            Computer Based Test (CBT) Portal
-          </p>
-          <p className="text-md md:text-lg max-w-2xl mx-auto text-gray-200 mb-10 leading-relaxed">
-            Welcome to the official online examination platform for BSG proficiency badges and certification exams. Secure, robust, and accessible.
-          </p>
-          
-          <div className="flex justify-center gap-4">
+          <span className="text-white font-black text-xl tracking-tight hidden sm:block">
+            CBT Portal
+          </span>
+        </motion.div>
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex gap-4"
+        >
+          <Link 
+            href="/login" 
+            className="text-gray-300 hover:text-white font-medium px-4 py-2 transition-colors"
+          >
+            Sign In
+          </Link>
+          <Link 
+            href="/register" 
+            className="bg-white/10 hover:bg-white/20 border border-white/10 text-white font-medium px-6 py-2 rounded-full backdrop-blur-md transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]"
+          >
+            Register
+          </Link>
+        </motion.div>
+      </header>
+
+      {/* Hero Section */}
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 pt-20 pb-12 text-center">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="max-w-4xl mx-auto flex flex-col items-center"
+        >
+          <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-bsg-gold text-sm font-semibold mb-8 backdrop-blur-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bsg-gold opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-bsg-gold"></span>
+            </span>
+            Next-Generation Assessment Platform
+          </motion.div>
+
+          <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-black text-white tracking-tight leading-[1.1] mb-6">
+            Elevate Your <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-bsg-gold via-yellow-400 to-bsg-gold">Testing Experience</span>
+          </motion.h1>
+
+          <motion.p variants={itemVariants} className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-12 leading-relaxed font-light">
+            The official, highly secure, and intelligent Computer Based Test (CBT) portal for Bharat Scouts and Guides proficiency badges and certifications.
+          </motion.p>
+
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <Link 
               href="/login" 
-              className="bg-bsg-gold text-bsg-blue hover:bg-bsg-gold-light font-bold px-8 py-3 rounded-lg shadow-md transition-colors"
+              className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-slate-900 bg-bsg-gold rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(253,203,88,0.4)]"
             >
-              Sign In to Exam
+              <span className="relative z-10 flex items-center gap-2">
+                Start Examination <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </span>
+              <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
             </Link>
+            
             <Link 
               href="/register" 
-              className="bg-transparent border-2 border-white hover:bg-white hover:text-bsg-blue text-white font-bold px-8 py-3 rounded-lg transition-colors"
+              className="inline-flex items-center justify-center px-8 py-4 font-bold text-white bg-white/5 border border-white/10 rounded-full backdrop-blur-md hover:bg-white/10 transition-all"
             >
-              Register Candidate
+              Candidate Registration
             </Link>
-          </div>
-        </div>
-      </section>
+          </motion.div>
+        </motion.div>
 
-      {/* Info Section */}
-      <section className="max-w-7xl mx-auto py-16 px-4 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
-          <div className="text-3xl mb-4">🔒</div>
-          <h3 className="text-xl font-bold text-bsg-blue mb-2">Anti-Cheat Tech</h3>
-          <p className="text-gray-600 text-sm">
-            Enforced fullscreen, copy/paste prevention, and tab-switching monitoring to ensure clean exams.
-          </p>
-        </div>
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
-          <div className="text-3xl mb-4">📶</div>
-          <h3 className="text-xl font-bold text-bsg-blue mb-2">Offline Resilient</h3>
-          <p className="text-gray-600 text-sm">
-            Saves state instantly using IndexedDB. If the browser crashes, you can resume exactly where you left off.
-          </p>
-        </div>
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
-          <div className="text-3xl mb-4">🧠</div>
-          <h3 className="text-xl font-bold text-bsg-blue mb-2">AI-Powered Feedback</h3>
-          <p className="text-gray-600 text-sm">
-            Receive detailed, qualitative reports from our Google Gemini tutor after submitting your test.
-          </p>
-        </div>
-      </section>
+        {/* Feature Cards Grid */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.8, type: 'spring' }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-24 max-w-6xl mx-auto w-full px-4"
+        >
+          <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-8 rounded-3xl hover:bg-white/10 transition-colors group text-left">
+            <div className="w-14 h-14 bg-blue-500/20 text-blue-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <ShieldCheck size={28} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3">Enterprise Security</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Military-grade anti-cheat technology with fullscreen enforcement, focus tracking, and strict clipboard monitoring.
+            </p>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-8 rounded-3xl hover:bg-white/10 transition-colors group text-left">
+            <div className="w-14 h-14 bg-bsg-gold/20 text-bsg-gold rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Zap size={28} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3">Offline Resilience</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Auto-saving mechanism powered by IndexedDB ensures no data loss even during severe network interruptions.
+            </p>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-8 rounded-3xl hover:bg-white/10 transition-colors group text-left">
+            <div className="w-14 h-14 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Brain size={28} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3">AI-Powered Insights</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Post-exam qualitative analysis and personalized feedback generated by advanced Google Gemini models.
+            </p>
+          </div>
+        </motion.div>
+      </main>
+      
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+      `}} />
     </div>
   );
 }

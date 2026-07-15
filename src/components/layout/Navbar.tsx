@@ -75,7 +75,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
           
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0 flex items-center gap-2 group">
+            <Link href={user?.role === 'Admin' ? '/admin' : user?.role === 'Examiner' ? '/examiner' : '/dashboard'} className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
                 <span className="text-white font-extrabold text-xs">BSG</span>
               </div>
