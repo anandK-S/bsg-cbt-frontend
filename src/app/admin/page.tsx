@@ -60,6 +60,16 @@ export default function AdminDashboard() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
+  // Filtering State
+  const [roleFilter, setRoleFilter] = useState('All');
+  const [sectionFilter, setSectionFilter] = useState('All');
+
+  // Insights State
+  const [showInsightsModal, setShowInsightsModal] = useState(false);
+  const [selectedExaminer, setSelectedExaminer] = useState<User | null>(null);
+  const [insightsData, setInsightsData] = useState<{ exams: any[], attempts: any[] } | null>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+
   useEffect(() => {
     if (!_hasHydrated) return;
     
@@ -230,6 +240,23 @@ export default function AdminDashboard() {
     setShowDeleteModal(true);
   };
 
+  const fetchExaminerInsights = async (examiner: User) => {
+    setSelectedExaminer(examiner);
+    setShowInsightsModal(true);
+    setLoadingInsights(true);
+    setInsightsData(null);
+    try {
+      const { data } = await axios.get(`http://localhost:5000/api/users/examiner/${examiner._id}/insights`, {
+        withCredentials: true,
+      });
+      setInsightsData(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
   if (loading || !_hasHydrated) return <div className="min-h-[60vh] flex items-center justify-center text-primary font-semibold">Loading Admin Dashboard...</div>;
   if (!isAuthenticated || user?.role !== 'Admin') return null;
 
@@ -237,6 +264,12 @@ export default function AdminDashboard() {
   const activeUsers = users.filter(u => u.status === 'Active').length;
   const blockedUsers = users.filter(u => u.status === 'Blocked').length;
   const totalExaminers = users.filter(u => u.role === 'Examiner').length;
+
+  const filteredUsers = users.filter((u) => {
+    const matchRole = roleFilter === 'All' || u.role === roleFilter;
+    const matchSection = sectionFilter === 'All' || u.section === sectionFilter;
+    return matchRole && matchSection;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
@@ -298,14 +331,38 @@ export default function AdminDashboard() {
 
       {activeTab === 'users' ? (
         <div className="bg-white shadow-sm overflow-hidden sm:rounded-3xl border border-gray-100 mb-10">
-          <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+          <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <h3 className="text-xl font-black text-gray-900">User Directory</h3>
-            <button
-              onClick={() => setShowExaminerModal(true)}
-              className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md transition-all"
-            >
-              + Add Examiner
-            </button>
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-bsg-blue focus:border-bsg-blue block p-2.5 font-bold shadow-sm"
+              >
+                <option value="All">All Roles</option>
+                <option value="Candidate">Candidate</option>
+                <option value="Examiner">Examiner</option>
+                <option value="Admin">Admin</option>
+              </select>
+              <select
+                value={sectionFilter}
+                onChange={(e) => setSectionFilter(e.target.value)}
+                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-bsg-blue focus:border-bsg-blue block p-2.5 font-bold shadow-sm"
+              >
+                <option value="All">All Sections</option>
+                <option value="Scout">Scout</option>
+                <option value="Guide">Guide</option>
+                <option value="Rover">Rover</option>
+                <option value="Ranger">Ranger</option>
+                <option value="Leader">Leader</option>
+              </select>
+              <button
+                onClick={() => setShowExaminerModal(true)}
+                className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all whitespace-nowrap ml-auto md:ml-0"
+              >
+                + Add Examiner
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
@@ -319,7 +376,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-50">
-                {users.map((u: User) => (
+                {filteredUsers.map((u: User) => (
                   <tr key={u._id} className="hover:bg-blue-50/50 transition-colors group">
                     <td className="px-8 py-5 whitespace-nowrap">
                       <div className="text-sm font-black text-gray-900 group-hover:text-bsg-blue transition-colors">{u.name}</div>
@@ -363,6 +420,14 @@ export default function AdminDashboard() {
                             >
                               Perm Delete
                             </button>
+                            {u.role === 'Examiner' && (
+                              <button
+                                onClick={() => fetchExaminerInsights(u)}
+                                className="px-4 py-2 rounded-xl font-black transition-all shadow-sm border border-purple-200 text-purple-600 hover:bg-purple-600 hover:text-white"
+                              >
+                                Insights
+                              </button>
+                            )}
                           </>
                         )}
                       </div>
@@ -383,6 +448,7 @@ export default function AdminDashboard() {
               <thead className="bg-gray-50">
                 <tr>
                   <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Exam Title</th>
+                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Examiner</th>
                   <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Duration</th>
                   <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-8 py-4 text-right text-xs font-black text-gray-400 uppercase tracking-wider">Actions</th>
@@ -394,6 +460,12 @@ export default function AdminDashboard() {
                     <td className="px-8 py-5">
                       <div className="text-sm font-black text-gray-900 group-hover:text-bsg-blue transition-colors">{exam.title}</div>
                       <div className="text-sm font-medium text-gray-500 truncate max-w-xs">{exam.description || 'No description'}</div>
+                    </td>
+                    <td className="px-8 py-5 whitespace-nowrap">
+                      <div className="text-sm font-bold text-gray-900">
+                        {/* @ts-ignore */}
+                        {exam.creatorId?.name || 'Unknown'}
+                      </div>
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap text-sm font-bold text-gray-600 flex items-center gap-1.5">
                       ⏱️ {exam.durationMinutes} mins
@@ -619,6 +691,122 @@ export default function AdminDashboard() {
               >
                 {isDeleting ? 'Deleting...' : 'Delete Permanently'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Examiner Insights Modal */}
+      {showInsightsModal && selectedExaminer && (
+        <div className="fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowInsightsModal(false)}></div>
+            <div className="relative inline-block bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-4xl w-full">
+              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-6 flex justify-between items-center">
+                <h3 className="text-2xl font-black text-white" id="modal-title">
+                  Examiner Insights: {selectedExaminer.name}
+                </h3>
+                <button onClick={() => setShowInsightsModal(false)} className="text-white hover:text-gray-200 text-2xl font-bold">&times;</button>
+              </div>
+              <div className="px-8 py-6 bg-gray-50 max-h-[70vh] overflow-y-auto">
+                {loadingInsights ? (
+                  <div className="flex justify-center items-center h-40">
+                    <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : insightsData ? (
+                  <div className="space-y-8">
+                    <div>
+                      <h4 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">📝 Prepared Exams</h4>
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-100">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Exam Title</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Questions</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {insightsData.exams.map((exam: any) => (
+                              <tr key={exam._id}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{exam.title}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.questions?.length || 0} questions</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${exam.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                    {exam.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                            {insightsData.exams.length === 0 && (
+                              <tr>
+                                <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">No exams created by this examiner.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">🎓 Candidate Results (For their exams)</h4>
+                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-100">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Candidate</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Exam Title</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Score</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {insightsData.attempts.map((attempt: any) => {
+                              // Find the associated exam
+                              const associatedExam = insightsData.exams.find(e => e._id === attempt.examId);
+                              
+                              // Calculate score
+                              let earned = 0;
+                              let total = 0;
+                              if (associatedExam) {
+                                attempt.answers.forEach((ans: any) => {
+                                  const examQ = associatedExam.questions.find((q: any) => q.questionId._id === ans.questionId);
+                                  if (examQ) {
+                                    total += examQ.marks;
+                                    const actualQ = examQ.questionId;
+                                    if (ans.selectedOptionIndex === actualQ.correctOptionIndex) {
+                                      earned += examQ.marks;
+                                    }
+                                  }
+                                });
+                              }
+
+                              return (
+                                <tr key={attempt._id}>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                    {attempt.candidateId?.name || 'Unknown'}
+                                    <div className="text-xs text-gray-500 font-normal">{attempt.candidateId?.section}</div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{associatedExam?.title || 'Unknown Exam'}</td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
+                                    <span className={earned === total && total > 0 ? 'text-green-600' : 'text-blue-600'}>
+                                      {earned} / {total || '-'}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            {insightsData.attempts.length === 0 && (
+                              <tr>
+                                <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">No completed attempts for these exams yet.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>

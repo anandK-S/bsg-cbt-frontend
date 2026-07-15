@@ -13,6 +13,12 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileName, setProfileName] = useState('');
+  const [profileImage, setProfileImage] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState('');
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -25,6 +31,35 @@ export default function Navbar() {
     }
     logout();
     window.location.href = '/';
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleProfileUpdate = async () => {
+    setIsUpdating(true);
+    setUpdateMessage('');
+    try {
+      const { data } = await axios.put('http://localhost:5000/api/auth/me/profile', {
+        name: profileName,
+        profileImage
+      }, { withCredentials: true });
+      useAuthStore.getState().login(data); // update zustand state
+      setUpdateMessage('Profile updated successfully!');
+      setTimeout(() => setShowProfileModal(false), 1500);
+    } catch (err) {
+      setUpdateMessage('Failed to update profile.');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
@@ -52,8 +87,17 @@ export default function Navbar() {
             </Link>
           )}
           
-          <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 border-l border-border pl-4 ml-2">
-            <UserIcon size={16} />
+          <div 
+            onClick={() => { setProfileName(user?.name || ''); setProfileImage(user?.profileImage || ''); setUpdateMessage(''); setShowProfileModal(true); }}
+            className="hidden md:flex items-center gap-2 text-sm text-gray-700 border-l border-border pl-4 ml-2 cursor-pointer hover:text-bsg-blue transition-colors font-bold group"
+          >
+            {user?.profileImage ? (
+              <img src={user.profileImage} alt="Profile" className="w-8 h-8 rounded-full object-cover border-2 border-transparent group-hover:border-bsg-blue transition-all" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:text-bsg-blue group-hover:bg-blue-50 transition-colors">
+                <UserIcon size={16} />
+              </div>
+            )}
             <span className="truncate max-w-[120px]">{user?.name}</span>
           </div>
           
@@ -116,10 +160,21 @@ export default function Navbar() {
           >
             <div className="px-4 pt-2 pb-6 space-y-4 flex flex-col items-start shadow-inner">
               {isAuthenticated && _hasHydrated && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 py-2 border-b border-border w-full">
-                  <UserIcon size={16} />
-                  <span className="font-medium text-foreground">{user?.name}</span>
-                  <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">{user?.role}</span>
+                <div 
+                  onClick={() => { setIsMobileMenuOpen(false); setProfileName(user?.name || ''); setProfileImage(user?.profileImage || ''); setUpdateMessage(''); setShowProfileModal(true); }}
+                  className="flex items-center gap-3 text-sm text-gray-700 py-3 border-b border-border w-full cursor-pointer hover:bg-gray-50 rounded-lg px-2 transition-colors"
+                >
+                  {user?.profileImage ? (
+                    <img src={user.profileImage} alt="Profile" className="w-10 h-10 rounded-full object-cover border-2 border-bsg-blue" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                      <UserIcon size={20} />
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="font-bold text-foreground text-base">{user?.name}</span>
+                    <span className="text-xs text-bsg-blue font-semibold uppercase tracking-wider">{user?.role}</span>
+                  </div>
                 </div>
               )}
               <div className="flex flex-col space-y-3 w-full" onClick={() => setIsMobileMenuOpen(false)}>
@@ -129,6 +184,60 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Edit Profile Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
+            <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors">
+              <X size={24} />
+            </button>
+            <h3 className="text-2xl font-black text-gray-900 mb-6 text-center">Edit Profile</h3>
+            
+            <div className="flex flex-col items-center gap-4 mb-6">
+              <div className="relative group cursor-pointer">
+                {profileImage ? (
+                  <img src={profileImage} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-bsg-blue/20" />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border-4 border-transparent">
+                    <UserIcon size={40} />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-white text-xs font-bold">Change</span>
+                </div>
+                <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+              </div>
+              <p className="text-xs text-gray-500">Click image to upload new picture</p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Display Name</label>
+              <input
+                type="text"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue outline-none transition-all font-medium"
+              />
+            </div>
+
+            {updateMessage && (
+              <div className={`mb-4 p-3 rounded-xl text-sm font-bold text-center ${updateMessage.includes('success') ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                {updateMessage}
+              </div>
+            )}
+
+            <button
+              onClick={handleProfileUpdate}
+              disabled={isUpdating}
+              className="w-full bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-70"
+            >
+              {isUpdating ? 'Saving...' : 'Save Profile'}
+            </button>
+          </div>
+        </div>
+      )}
+
     </nav>
   );
 }
