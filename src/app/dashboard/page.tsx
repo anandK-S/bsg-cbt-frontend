@@ -162,7 +162,6 @@ export default function CandidateDashboard() {
           </div>
         )}
       </div>
-      </div>
     </div>
   );
 }
