@@ -18,7 +18,9 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [bsgId, setBsgId] = useState('');
-  const [role, setRole] = useState('Candidate');
+  const [section, setSection] = useState('Scout');
+  const [adminCode, setAdminCode] = useState('');
+  const [showAdminCode, setShowAdminCode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
@@ -34,7 +36,7 @@ export default function Register() {
     try {
       const { data } = await axios.post(
         'http://localhost:5000/api/auth/register',
-        { name, email, password, role, bsgId },
+        { name, email, password, bsgId, section, adminCode },
         { withCredentials: true }
       );
       
@@ -61,6 +63,13 @@ export default function Register() {
   if (!mounted || !_hasHydrated) return null;
 
   return (
+    <>
+    {loading && (
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-300">
+        <div className="w-16 h-16 border-4 border-bsg-blue/30 border-t-bsg-blue rounded-full animate-spin shadow-lg"></div>
+        <p className="mt-4 text-lg font-bold text-bsg-blue animate-pulse">Creating your account...</p>
+      </div>
+    )}
     <div className="flex-1 bg-background flex flex-col py-6 sm:py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/20 dark:bg-bsg-blue/30 blur-[100px] pointer-events-none" />
@@ -107,7 +116,7 @@ export default function Register() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="md:col-span-2">
-                <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-1.5">Full Name</label>
+                <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-1.5">Surname and First Name</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                     <User size={18} />
@@ -117,7 +126,7 @@ export default function Register() {
                     type="text"
                     required
                     className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="John Doe"
+                    placeholder="Surname First Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
@@ -143,7 +152,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label htmlFor="bsgId" className="block text-sm font-semibold text-foreground mb-1.5">BSG ID (Optional)</label>
+                <label htmlFor="bsgId" className="block text-sm font-semibold text-foreground mb-1.5">BSG ID</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                     <BadgeInfo size={18} />
@@ -151,8 +160,9 @@ export default function Register() {
                   <input
                     id="bsgId"
                     type="text"
+                    required
                     className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="Scout ID"
+                    placeholder="BSG-xxxx"
                     value={bsgId}
                     onChange={(e) => setBsgId(e.target.value)}
                   />
@@ -160,20 +170,23 @@ export default function Register() {
               </div>
 
               <div>
-                <label htmlFor="role" className="block text-sm font-semibold text-foreground mb-1.5">Role</label>
+                <label htmlFor="section" className="block text-sm font-semibold text-foreground mb-1.5">Section</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                     <ShieldCheck size={18} />
                   </div>
                   <select
-                    id="role"
+                    id="section"
+                    required
                     className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm appearance-none"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
+                    value={section}
+                    onChange={(e) => setSection(e.target.value)}
                   >
-                    <option value="Candidate">Candidate</option>
-                    <option value="Examiner">Examiner</option>
-                    <option value="Admin">Admin</option>
+                    <option value="Scout">Scout</option>
+                    <option value="Guide">Guide</option>
+                    <option value="Rover">Rover</option>
+                    <option value="Ranger">Ranger</option>
+                    <option value="Leader">Leader</option>
                   </select>
                 </div>
               </div>
@@ -201,6 +214,31 @@ export default function Register() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+              </div>
+
+              {/* Admin Code Toggle (Hidden unless clicked) */}
+              <div className="md:col-span-2">
+                {showAdminCode ? (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label htmlFor="adminCode" className="block text-sm font-semibold text-red-500 mb-1.5">Admin Secret Code (Optional)</label>
+                    <input
+                      id="adminCode"
+                      type="password"
+                      className="block w-full px-3 py-2.5 border border-red-500/50 rounded-xl bg-red-500/5 text-foreground placeholder-red-400/50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all sm:text-sm"
+                      placeholder="Enter secret code to register as Admin"
+                      value={adminCode}
+                      onChange={(e) => setAdminCode(e.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <button 
+                    type="button" 
+                    onClick={() => setShowAdminCode(true)}
+                    className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    Register as Admin?
+                  </button>
+                )}
               </div>
             </div>
 
@@ -234,5 +272,6 @@ export default function Register() {
         </motion.div>
       </div>
     </div>
+    </>
   );
 }

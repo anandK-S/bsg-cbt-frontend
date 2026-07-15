@@ -42,6 +42,15 @@ export default function AdminDashboard() {
   const [resetSuccess, setResetSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Create Examiner Modal State
+  const [showExaminerModal, setShowExaminerModal] = useState(false);
+  const [examinerName, setExaminerName] = useState('');
+  const [examinerEmail, setExaminerEmail] = useState('');
+  const [examinerPassword, setExaminerPassword] = useState('');
+  const [isCreatingExaminer, setIsCreatingExaminer] = useState(false);
+  const [examinerError, setExaminerError] = useState('');
+  const [examinerSuccess, setExaminerSuccess] = useState('');
+
   useEffect(() => {
     if (!_hasHydrated) return;
     
@@ -128,6 +137,52 @@ export default function AdminDashboard() {
     setShowPasswordModal(true);
   };
 
+  const handleCreateExaminer = async () => {
+    if (!examinerName || !examinerEmail || !examinerPassword) {
+      setExaminerError('All fields are required');
+      return;
+    }
+    if (examinerPassword.length < 6) {
+      setExaminerError('Password must be at least 6 characters');
+      return;
+    }
+
+    setIsCreatingExaminer(true);
+    setExaminerError('');
+    setExaminerSuccess('');
+
+    try {
+      await axios.post('http://localhost:5000/api/auth/create-examiner', {
+        name: examinerName,
+        email: examinerEmail,
+        password: examinerPassword
+      }, {
+        withCredentials: true,
+      });
+      setExaminerSuccess('Examiner created successfully!');
+      
+      // Refresh user list
+      const usersRes = await axios.get('http://localhost:5000/api/users', { withCredentials: true });
+      setUsers(usersRes.data);
+
+      setTimeout(() => {
+        setShowExaminerModal(false);
+        setExaminerName('');
+        setExaminerEmail('');
+        setExaminerPassword('');
+        setExaminerSuccess('');
+      }, 2000);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setExaminerError(error.response?.data?.message || 'Failed to create examiner');
+      } else {
+        setExaminerError('Failed to create examiner');
+      }
+    } finally {
+      setIsCreatingExaminer(false);
+    }
+  };
+
   if (loading || !_hasHydrated) return <div className="min-h-[60vh] flex items-center justify-center text-primary font-semibold">Loading Admin Dashboard...</div>;
   if (!isAuthenticated || user?.role !== 'Admin') return null;
 
@@ -188,8 +243,14 @@ export default function AdminDashboard() {
 
       {activeTab === 'users' ? (
         <div className="bg-white shadow-sm overflow-hidden sm:rounded-3xl border border-gray-100 mb-10">
-          <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50">
+          <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
             <h3 className="text-xl font-black text-gray-900">User Directory</h3>
+            <button
+              onClick={() => setShowExaminerModal(true)}
+              className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md transition-all"
+            >
+              + Add Examiner
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
@@ -370,6 +431,73 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Create Examiner Modal */}
+      {showExaminerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+            <h2 className="text-2xl font-black text-gray-900 mb-6">Create Examiner</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Name</label>
+                <input 
+                  type="text" 
+                  value={examinerName} 
+                  onChange={e => setExaminerName(e.target.value)} 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-bsg-blue focus:border-transparent outline-none transition-all"
+                  placeholder="Examiner Name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
+                <input 
+                  type="email" 
+                  value={examinerEmail} 
+                  onChange={e => setExaminerEmail(e.target.value)} 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-bsg-blue focus:border-transparent outline-none transition-all"
+                  placeholder="examiner@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
+                <input 
+                  type="password" 
+                  value={examinerPassword} 
+                  onChange={e => setExaminerPassword(e.target.value)} 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-bsg-blue focus:border-transparent outline-none transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            {examinerError && <p className="mt-4 text-red-500 font-semibold text-sm bg-red-50 p-3 rounded-xl">{examinerError}</p>}
+            {examinerSuccess && <p className="mt-4 text-green-500 font-semibold text-sm bg-green-50 p-3 rounded-xl">{examinerSuccess}</p>}
+            
+            <div className="mt-8 flex justify-end gap-3">
+              <button 
+                onClick={() => {
+                  setShowExaminerModal(false);
+                  setExaminerError('');
+                  setExaminerSuccess('');
+                }} 
+                className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                disabled={isCreatingExaminer}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleCreateExaminer} 
+                className="px-6 py-2.5 rounded-xl font-bold bg-bsg-blue hover:bg-bsg-blue-dark text-white shadow-md transition-all flex items-center gap-2"
+                disabled={isCreatingExaminer}
+              >
+                {isCreatingExaminer ? 'Creating...' : 'Create Examiner'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

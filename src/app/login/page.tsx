@@ -58,6 +58,13 @@ export default function Login() {
   if (!mounted || !_hasHydrated) return null;
 
   return (
+    <>
+    {loading && (
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-300">
+        <div className="w-16 h-16 border-4 border-bsg-blue/30 border-t-bsg-blue rounded-full animate-spin shadow-lg"></div>
+        <p className="mt-4 text-lg font-bold text-bsg-blue animate-pulse">Logging in...</p>
+      </div>
+    )}
     <div className="flex-1 bg-background flex flex-col py-6 sm:py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/20 dark:bg-bsg-blue/30 blur-[100px] pointer-events-none" />
@@ -183,5 +190,6 @@ export default function Login() {
         </motion.div>
       </div>
     </div>
+    </>
   );
 }
