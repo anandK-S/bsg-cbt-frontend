@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
+import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2 } from 'lucide-react';
 
 interface ExamDetailsData {
   _id: string;
@@ -36,7 +37,10 @@ export default function ExamDetails() {
   const [exam, setExam] = useState<ExamDetailsData | null>(null);
   const [loading, setLoading] = useState(true);
   
-  const [activeTab, setActiveTab] = useState<'questions' | 'results'>('questions');
+  const [activeTab, setActiveTab] = useState<'basic' | 'questions' | 'results' | 'stats'>('questions');
+  const [configExpanded, setConfigExpanded] = useState(true);
+  const [progressExpanded, setProgressExpanded] = useState(true);
+
   const [results, setResults] = useState<ResultData[]>([]);
   const [loadingResults, setLoadingResults] = useState(false);
   
@@ -53,7 +57,9 @@ export default function ExamDetails() {
     options: ['', '', '', ''],
     correctOptionIndex: 0,
     category: '',
-    marks: 1
+    marks: 1,
+    type: 'SingleChoice',
+    mediaUrl: ''
   });
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [manualError, setManualError] = useState('');
@@ -77,12 +83,11 @@ export default function ExamDetails() {
       router.push('/');
       return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchExam();
   }, [isAuthenticated, user, router, examId]);
 
   useEffect(() => {
-    if (activeTab === 'results') {
+    if (activeTab === 'results' || activeTab === 'stats') {
       const fetchResults = async () => {
         setLoadingResults(true);
         try {
@@ -105,7 +110,6 @@ export default function ExamDetails() {
       setAiError('Please select a file to import (.txt, .pdf, .docx).');
       return;
     }
-    
     setIsImporting(true);
     setAiError('');
     
@@ -113,17 +117,13 @@ export default function ExamDetails() {
     formData.append('file', importFile);
     
     try {
-      await axios.post(
-        `http://localhost:5000/api/exams/${examId}/questions/import`,
-        formData,
-        { 
-          withCredentials: true,
-          headers: { 'Content-Type': 'multipart/form-data' }
-        }
-      );
+      await axios.post(`http://localhost:5000/api/exams/${examId}/questions/import`, formData, { 
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       setShowAiModal(false);
       setImportFile(null);
-      fetchExam(); // Refresh questions
+      fetchExam();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setAiError(err.response?.data?.message || 'Failed to import questions. Ensure Gemini API key is valid.');
@@ -138,7 +138,6 @@ export default function ExamDetails() {
   const handleManualSave = async () => {
     if (!manualQuestion.text.trim()) return setManualError('Question text is required');
     if (manualQuestion.options.some(opt => !opt.trim())) return setManualError('All 4 options are required');
-    // Removed category requirement as it's optional in the DB
 
     setIsSavingManual(true);
     setManualError('');
@@ -155,7 +154,9 @@ export default function ExamDetails() {
         options: ['', '', '', ''],
         correctOptionIndex: 0,
         category: '',
-        marks: 1
+        marks: 1,
+        type: 'SingleChoice',
+        mediaUrl: ''
       });
       fetchExam();
     } catch (err: unknown) {
@@ -179,369 +180,530 @@ export default function ExamDetails() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-bsg-blue font-semibold">Loading Exam Details...</div>;
+  const handleExportToCSV = () => {
+    if (results.length === 0) return;
+
+    const headers = ['Candidate Name', 'BSG ID', 'Score', 'Total Marks', 'Date'];
+    const csvContent = [
+      headers.join(','),
+      ...results.map(r => [
+        `"${r.candidateId?.name || 'Unknown'}"`,
+        `"${r.candidateId?.bsgId || 'N/A'}"`,
+        r.score,
+        r.totalMarks,
+        `"${new Date(r.createdAt).toLocaleString()}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${exam?.title?.replace(/\s+/g, '_') || 'exam'}_results.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const updateOptionText = (index: number, text: string) => {
+    const newOptions = [...manualQuestion.options];
+    newOptions[index] = text;
+    setManualQuestion({ ...manualQuestion, options: newOptions });
+  };
+
+  const addOption = () => {
+    setManualQuestion({ ...manualQuestion, options: [...manualQuestion.options, ''] });
+  };
+
+  const removeOption = (index: number) => {
+    if (manualQuestion.options.length <= 2) {
+      setManualError('A question must have at least 2 options');
+      return;
+    }
+    const newOptions = manualQuestion.options.filter((_, i) => i !== index);
+    let newCorrectIndex = manualQuestion.correctOptionIndex;
+    if (newCorrectIndex === index) {
+      newCorrectIndex = 0;
+    } else if (newCorrectIndex > index) {
+      newCorrectIndex -= 1;
+    }
+    setManualQuestion({ ...manualQuestion, options: newOptions, correctOptionIndex: newCorrectIndex });
+  };
+
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-bsg-blue font-semibold text-xl">Loading configuration...</div>;
   if (!exam) return null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
-        <div>
-          <Link href={user?.role === 'Admin' ? '/admin' : '/examiner/dashboard'} className="text-bsg-blue hover:text-bsg-blue-light font-semibold mb-6 inline-block">
-            &larr; Back to Dashboard
+    <div className="flex flex-col md:flex-row min-h-[calc(100vh-64px)] bg-gray-50">
+      
+      {/* Test Manager Sidebar */}
+      <div className="w-full md:w-72 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+        <div className="p-5 border-b border-gray-100 flex items-center gap-3">
+          <Link href="/examiner" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-bsg-blue hover:text-white transition-colors">
+            <ArrowLeft size={16} />
           </Link>
-          <h1 className="text-3xl font-extrabold text-gray-900">{exam.title}</h1>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <span className="px-3 py-1 rounded-full bg-bsg-blue text-white text-xs font-bold uppercase tracking-wide">
-              {exam.category}
-            </span>
-            <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-800 text-xs font-bold uppercase tracking-wide">
-              {exam.durationMinutes} Minutes
-            </span>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${exam.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-              {exam.status}
-            </span>
+          <div className="flex-1 truncate">
+            <h2 className="text-sm font-black text-gray-900 truncate" title={exam.title}>{exam.title}</h2>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5">{exam.status}</p>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          {exam.status === 'Draft' && (
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          {/* Test Configuration Section */}
+          <div>
             <button 
-              onClick={handlePublish}
-              className="bg-green-600 text-white font-bold px-6 py-2 rounded-lg shadow-sm hover:bg-green-500 transition-colors"
+              onClick={() => setConfigExpanded(!configExpanded)}
+              className="w-full flex items-center justify-between text-xs font-black text-gray-500 uppercase tracking-wider mb-2 hover:text-gray-900 transition-colors"
             >
-              🚀 Publish Exam
+              Test Configuration
+              {configExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
-          )}
-          <button 
-            onClick={() => setShowAiModal(true)}
-            className="bg-bsg-gold text-bsg-blue-dark font-bold px-6 py-2 rounded-lg shadow-sm hover:bg-yellow-500 transition-colors flex items-center justify-center gap-2"
-          >
-            <span className="text-xl">✨</span> AI Import Questions
-          </button>
-          <button 
-            onClick={() => setShowManualModal(true)}
-            className="bg-bsg-blue text-white font-bold px-6 py-2 rounded-lg shadow-sm hover:bg-bsg-blue-light transition-colors"
-          >
-            + Manual Question
-          </button>
-        </div>
-      </div>
+            
+            {configExpanded && (
+              <div className="space-y-1">
+                <button 
+                  onClick={() => setActiveTab('basic')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-colors ${activeTab === 'basic' ? 'bg-bsg-blue/10 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <Settings size={18} /> Basic Settings
+                </button>
+                <button 
+                  onClick={() => setActiveTab('questions')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-colors ${activeTab === 'questions' ? 'bg-bsg-blue/10 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <ListChecks size={18} /> Question Manager
+                </button>
+              </div>
+            )}
+          </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-6">
-        <button
-          onClick={() => setActiveTab('questions')}
-          className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors ${activeTab === 'questions' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-        >
-          Manage Questions
-        </button>
-        <button
-          onClick={() => setActiveTab('results')}
-          className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors ${activeTab === 'results' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-        >
-          Candidate Results & Analytics
-        </button>
-      </div>
-
-      {activeTab === 'questions' ? (
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-800">Questions ({exam.questions.length})</h3>
+          {/* Progress & Results Section */}
+          <div>
+            <button 
+              onClick={() => setProgressExpanded(!progressExpanded)}
+              className="w-full flex items-center justify-between text-xs font-black text-gray-500 uppercase tracking-wider mb-2 hover:text-gray-900 transition-colors"
+            >
+              Test Progress & Results
+              {progressExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            
+            {progressExpanded && (
+              <div className="space-y-1">
+                <button 
+                  onClick={() => setActiveTab('results')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-colors ${activeTab === 'results' ? 'bg-bsg-blue/10 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <Users size={18} /> Results Table
+                </button>
+                <button 
+                  onClick={() => setActiveTab('stats')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-colors ${activeTab === 'stats' ? 'bg-bsg-blue/10 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <BarChart2 size={18} /> Statistics
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         
-        {exam.questions.length === 0 ? (
-          <div className="p-12 text-center text-gray-500 flex flex-col items-center">
-            <div className="text-4xl mb-4">📄</div>
-            <p className="text-lg font-medium">No questions added yet.</p>
-            <p className="text-sm mt-1">Use the AI Import button to instantly generate questions from a syllabus or past paper!</p>
+        {exam.status === 'Draft' && (
+          <div className="p-4 border-t border-gray-100">
+            <button 
+              onClick={handlePublish}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-black py-3 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm"
+            >
+              <CheckCircle size={18} /> Publish Test
+            </button>
           </div>
-        ) : (
-          <ul className="divide-y divide-gray-100">
-            {exam.questions.map((q: any, idx: number) => {
-              const qData = q.questionId;
-              if (!qData) return null; // Prevent crash if a question was deleted from the DB but still referenced
-              
-              return (
-                <li key={qData._id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex flex-col md:flex-row md:justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-start gap-3">
-                        <span className="bg-gray-200 text-gray-700 font-bold rounded-full w-8 h-8 flex items-center justify-center shrink-0 mt-1">
+        )}
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-x-hidden p-6 md:p-10">
+        
+        {/* BASIC SETTINGS */}
+        {activeTab === 'basic' && (
+          <div className="max-w-3xl">
+            <h1 className="text-3xl font-black text-gray-900 mb-6">Basic Settings</h1>
+            
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-8">
+              <div>
+                <h3 className="text-lg font-black text-gray-900 mb-4 border-b border-gray-100 pb-2">Initial Settings</h3>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Test Name</label>
+                    <input 
+                      type="text" 
+                      value={exam.title}
+                      readOnly
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:outline-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Category</label>
+                      <input 
+                        type="text" 
+                        value={exam.category || 'Uncategorized'}
+                        readOnly
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Duration (Minutes)</label>
+                      <input 
+                        type="number" 
+                        value={exam.durationMinutes}
+                        readOnly
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
+                    <textarea 
+                      value={exam.description}
+                      readOnly
+                      rows={4}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:outline-none resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 font-medium italic">* Editing basic settings is restricted after exam creation to maintain data integrity.</p>
+            </div>
+          </div>
+        )}
+
+        {/* QUESTION MANAGER */}
+        {activeTab === 'questions' && (
+          <div className="max-w-5xl">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <h1 className="text-3xl font-black text-gray-900">Question Manager</h1>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setShowAiModal(true)}
+                  className="bg-bsg-gold text-bsg-blue-dark font-black px-5 py-2.5 rounded-xl hover:bg-yellow-500 transition-colors shadow-sm flex items-center gap-2"
+                >
+                  <Upload size={18} /> AI Import
+                </button>
+                <button 
+                  onClick={() => setShowManualModal(true)}
+                  className="bg-bsg-blue text-white font-black px-5 py-2.5 rounded-xl hover:bg-bsg-blue-dark transition-colors shadow-sm flex items-center gap-2"
+                >
+                  + Add Manual Question
+                </button>
+              </div>
+            </div>
+
+            {exam.questions.length === 0 ? (
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-16 text-center">
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400">
+                  <FileText size={40} />
+                </div>
+                <h3 className="text-xl font-black text-gray-900 mb-2">No questions yet</h3>
+                <p className="text-gray-500 mb-6">Start building your test by manually adding questions or importing them using our AI engine.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {exam.questions.map((q, idx) => (
+                  <div key={q.questionId._id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-start">
+                      <div className="flex items-start gap-4">
+                        <span className="w-8 h-8 rounded-lg bg-bsg-blue/10 text-bsg-blue font-black flex items-center justify-center flex-shrink-0">
                           {idx + 1}
                         </span>
                         <div>
-                          <p className="text-lg font-semibold text-gray-900 leading-snug">{qData.text}</p>
-                          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {qData.options.map((opt: string, oIdx: number) => (
-                              <div 
-                                key={oIdx} 
-                                className={`px-4 py-3 rounded-lg border text-sm font-medium ${qData.correctOptionIndex === oIdx ? 'bg-green-50 border-green-200 text-green-800' : 'bg-white border-gray-200 text-gray-600'}`}
-                              >
-                                {String.fromCharCode(65 + oIdx)}. {opt}
-                                {qData.correctOptionIndex === oIdx && <span className="ml-2 inline-block">✓</span>}
-                              </div>
-                            ))}
+                          <p className="text-gray-900 font-bold text-lg">{q.questionId.text}</p>
+                          <div className="flex flex-wrap gap-3 mt-2">
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-md">Category: {q.questionId.category || 'General'}</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-md">Type: {q.type || 'SingleChoice'}</span>
+                            <span className="text-xs font-bold text-bsg-blue uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-md">Marks: {q.marks || 1}</span>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-2 shrink-0">
-                      <span className="text-sm font-bold text-bsg-blue bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
-                        {q.marks} Marks
-                      </span>
-                      <button className="text-gray-400 hover:text-red-500 font-medium text-sm transition-colors mt-2">
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-      ) : (
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-800">Candidate Performance</h3>
-        </div>
-        {loadingResults ? (
-          <div className="p-12 text-center text-gray-500 font-medium">Loading results...</div>
-        ) : results.length === 0 ? (
-          <div className="p-12 text-center text-gray-500 flex flex-col items-center">
-            <div className="text-4xl mb-4">📊</div>
-            <p className="text-lg font-medium">No results yet.</p>
-            <p className="text-sm mt-1">Candidates have not yet completed this exam.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Candidate Name</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">BSG ID</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Score</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Percentage</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date Taken</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {results.map((res: ResultData) => {
-                  const percentage = res.totalMarks > 0 ? ((res.score / res.totalMarks) * 100).toFixed(0) : 0;
-                  const isPassed = Number(percentage) >= 50;
-                  return (
-                    <tr key={res._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {res.candidateId?.name || 'Unknown User'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {res.candidateId?.bsgId || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                        {res.score} / {res.totalMarks}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${isPassed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {percentage}%
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(res.createdAt).toLocaleString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-      )}
-
-      {/* AI Import Modal */}
-      {showAiModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden p-4" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          {/* Background Overlay */}
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" onClick={() => !isImporting && setShowAiModal(false)}></div>
-          
-          {/* Modal Panel */}
-          <div className="relative bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all w-full max-w-2xl z-10 my-8">
-            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div className="sm:flex sm:items-start">
-                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-bsg-gold text-white sm:mx-0 sm:h-10 sm:w-10 text-xl shadow-inner">
-                  ✨
-                </div>
-                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                  <h3 className="text-lg leading-6 font-extrabold text-gray-900" id="modal-title">
-                    AI Question Import (Gemini 2.5)
-                  </h3>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500 mb-4">
-                      Upload your syllabus, reading material, or old question paper below (PDF, Word, or TXT). Our AI will automatically extract text and generate multiple-choice questions!
-                    </p>
-                    {aiError && (
-                      <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-                        {aiError}
-                      </div>
-                    )}
-                    <div className="flex items-center justify-center w-full">
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <svg className="w-8 h-8 mb-3 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                          </svg>
-                          <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                          <p className="text-xs text-gray-500">PDF, DOCX, TXT (MAX. 10MB)</p>
-                        </div>
-                        <input 
-                          type="file" 
-                          className="hidden" 
-                          accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-                          onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-                          disabled={isImporting}
-                        />
-                      </label>
-                    </div>
-                    {importFile && (
-                      <div className="mt-3 text-sm text-green-700 font-medium flex items-center justify-center bg-green-50 p-2 rounded border border-green-200">
-                        Selected File: {importFile.name}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6 flex flex-col sm:flex-row-reverse gap-2">
-              <button
-                type="button"
-                onClick={handleAiImport}
-                disabled={isImporting}
-                className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-6 py-2 bg-bsg-blue text-base font-bold text-white hover:bg-bsg-blue-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
-              >
-                {isImporting ? 'Generating...' : 'Generate Questions'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowAiModal(false)}
-                disabled={isImporting}
-                className="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Manual Question Modal */}
-      {showManualModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden p-4" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" onClick={() => !isSavingManual && setShowManualModal(false)}></div>
-          <div className="relative bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all w-full max-w-2xl z-10 my-8">
-            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div className="sm:flex sm:items-start">
-                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 text-blue-600 sm:mx-0 sm:h-10 sm:w-10 text-xl shadow-inner">
-                  ➕
-                </div>
-                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                  <h3 className="text-lg leading-6 font-extrabold text-gray-900" id="modal-title">
-                    Add Manual Question
-                  </h3>
-                  <div className="mt-4 space-y-4">
-                    {manualError && (
-                      <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-                        {manualError}
-                      </div>
-                    )}
-                    
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Question Text</label>
-                      <textarea
-                        rows={2}
-                        className="w-full border border-gray-300 rounded-lg shadow-sm p-3 text-sm focus:ring-bsg-blue focus:border-bsg-blue resize-none"
-                        placeholder="e.g., What is the capital of France?"
-                        value={manualQuestion.text}
-                        onChange={(e) => setManualQuestion({ ...manualQuestion, text: e.target.value })}
-                      ></textarea>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1">Category (Optional)</label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-300 rounded-lg shadow-sm p-2 text-sm focus:ring-bsg-blue focus:border-bsg-blue"
-                          placeholder="e.g., Geography"
-                          value={manualQuestion.category}
-                          onChange={(e) => setManualQuestion({ ...manualQuestion, category: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1">Marks</label>
-                        <input
-                          type="number"
-                          min="1"
-                          className="w-full border border-gray-300 rounded-lg shadow-sm p-2 text-sm focus:ring-bsg-blue focus:border-bsg-blue"
-                          value={manualQuestion.marks}
-                          onChange={(e) => setManualQuestion({ ...manualQuestion, marks: parseInt(e.target.value) || 1 })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-2">
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Options (Select the correct one)</label>
-                      <div className="space-y-3">
-                        {manualQuestion.options.map((opt, idx) => (
-                          <div key={idx} className={`flex items-center gap-3 p-2 rounded-lg border ${manualQuestion.correctOptionIndex === idx ? 'border-green-400 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
-                            <input
-                              type="radio"
-                              name="correctOption"
-                              checked={manualQuestion.correctOptionIndex === idx}
-                              onChange={() => setManualQuestion({ ...manualQuestion, correctOptionIndex: idx })}
-                              className="w-5 h-5 text-green-600 focus:ring-green-500 border-gray-300 ml-2"
-                            />
-                            <span className="font-bold text-gray-500 w-6 text-center">{String.fromCharCode(65 + idx)}.</span>
-                            <input
-                              type="text"
-                              className="flex-1 border-0 bg-transparent focus:ring-0 text-sm font-medium"
-                              placeholder={`Option ${idx + 1}`}
-                              value={opt}
-                              onChange={(e) => {
-                                const newOpts = [...manualQuestion.options];
-                                newOpts[idx] = e.target.value;
-                                setManualQuestion({ ...manualQuestion, options: newOpts });
-                              }}
-                            />
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {q.questionId.options.map((opt: string, optIdx: number) => (
+                          <div key={optIdx} className={`px-4 py-3 rounded-xl border-2 flex items-center gap-3 ${q.questionId.correctOptionIndex === optIdx ? 'border-green-500 bg-green-50' : 'border-gray-100 bg-white'}`}>
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${q.questionId.correctOptionIndex === optIdx ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                              {['A', 'B', 'C', 'D'][optIdx]}
+                            </span>
+                            <span className={`font-medium ${q.questionId.correctOptionIndex === optIdx ? 'text-green-900 font-bold' : 'text-gray-700'}`}>
+                              {opt}
+                            </span>
                           </div>
                         ))}
                       </div>
                     </div>
-
                   </div>
-                </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* RESULTS TABLE */}
+        {activeTab === 'results' && (
+          <div className="max-w-6xl">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <h1 className="text-3xl font-black text-gray-900">Results Database</h1>
+              <button 
+                onClick={handleExportToCSV}
+                disabled={results.length === 0}
+                className="bg-green-600 text-white font-black px-5 py-2.5 rounded-xl hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+              >
+                <FileText size={18} /> Export to CSV
+              </button>
+            </div>
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-8 py-5 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Candidate Details</th>
+                      <th className="px-8 py-5 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Score</th>
+                      <th className="px-8 py-5 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Date & Time</th>
+                      <th className="px-8 py-5 text-right text-xs font-black text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {loadingResults ? (
+                      <tr>
+                        <td colSpan={4} className="px-8 py-10 text-center font-bold text-gray-500">Loading results...</td>
+                      </tr>
+                    ) : results.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-8 py-16 text-center">
+                          <div className="text-4xl mb-4">📭</div>
+                          <p className="font-bold text-gray-900 text-lg">No attempts recorded yet.</p>
+                          <p className="text-gray-500">Candidates have not yet completed this exam.</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      results.map((result) => (
+                        <tr key={result._id} className="hover:bg-gray-50 transition-colors group">
+                          <td className="px-8 py-5 whitespace-nowrap">
+                            <div className="text-sm font-black text-gray-900">{result.candidateId?.name || 'Unknown Candidate'}</div>
+                            <div className="text-sm text-gray-500 font-medium mt-0.5">BSG ID: {result.candidateId?.bsgId || 'N/A'}</div>
+                          </td>
+                          <td className="px-8 py-5 whitespace-nowrap">
+                            <span className="px-4 py-1.5 inline-flex text-sm font-black rounded-full bg-blue-50 text-bsg-blue border border-blue-100">
+                              {result.score} / {result.totalMarks}
+                            </span>
+                          </td>
+                          <td className="px-8 py-5 whitespace-nowrap text-sm text-gray-500 font-medium">
+                            {new Date(result.createdAt).toLocaleString()}
+                          </td>
+                          <td className="px-8 py-5 whitespace-nowrap text-right">
+                            <button className="text-bsg-blue hover:text-bsg-blue-dark font-black hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ml-auto">
+                              <Eye size={16} /> Review
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6 flex flex-col sm:flex-row-reverse gap-2">
-              <button
-                type="button"
-                onClick={handleManualSave}
-                disabled={isSavingManual}
-                className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-6 py-2 bg-bsg-blue text-base font-bold text-white hover:bg-bsg-blue-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
-              >
-                {isSavingManual ? 'Saving...' : 'Save Question'}
+          </div>
+        )}
+
+        {/* STATISTICS */}
+        {activeTab === 'stats' && (
+          <div className="max-w-5xl">
+            <h1 className="text-3xl font-black text-gray-900 mb-6">Test Statistics</h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-200">
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Total Participants</p>
+                <p className="text-5xl font-black text-gray-900">{results.length}</p>
+              </div>
+              <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-200">
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Average Score</p>
+                <p className="text-5xl font-black text-bsg-blue">
+                  {results.length > 0 
+                    ? Math.round(results.reduce((acc, curr) => acc + (curr.score / curr.totalMarks * 100), 0) / results.length) 
+                    : 0}%
+                </p>
+              </div>
+            </div>
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-16 text-center text-gray-500">
+              <BarChart2 size={48} className="mx-auto mb-4 text-gray-300" />
+              <p className="font-bold text-xl text-gray-900 mb-2">Advanced Analytics</p>
+              <p>Question-by-question analysis will be available here when more data is collected.</p>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* Manual Question Modal */}
+      {showManualModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl relative my-8 flex flex-col">
+            <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-3xl">
+              <h3 className="text-2xl font-black text-gray-900">Add Manual Question</h3>
+              <button onClick={() => setShowManualModal(false)} className="text-gray-400 hover:text-gray-900">
+                <Trash2 size={24} />
               </button>
+            </div>
+            
+            <div className="p-8 space-y-6 overflow-y-auto max-h-[70vh]">
+              <div>
+                <label className="block text-sm font-black text-gray-700 mb-2">Question Text</label>
+                <textarea
+                  value={manualQuestion.text}
+                  onChange={(e) => setManualQuestion({...manualQuestion, text: e.target.value})}
+                  className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue focus:ring-4 focus:ring-bsg-blue/10 outline-none resize-none"
+                  rows={3}
+                  placeholder="e.g., What is the capital of France?"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-black text-gray-700 mb-2">Category (Optional)</label>
+                  <input
+                    type="text"
+                    value={manualQuestion.category}
+                    onChange={(e) => setManualQuestion({...manualQuestion, category: e.target.value})}
+                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
+                    placeholder="e.g., Geography"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-black text-gray-700 mb-2">Marks</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={manualQuestion.marks}
+                    onChange={(e) => setManualQuestion({...manualQuestion, marks: parseInt(e.target.value) || 1})}
+                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-black text-gray-700 mb-2">Question Type</label>
+                  <select
+                    value={manualQuestion.type}
+                    onChange={(e) => setManualQuestion({...manualQuestion, type: e.target.value})}
+                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
+                  >
+                    <option value="SingleChoice">Single Choice</option>
+                    <option value="MultipleChoice">Multiple Choice</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-black text-gray-700 mb-2">Media URL (Optional Image)</label>
+                  <input
+                    type="text"
+                    value={manualQuestion.mediaUrl}
+                    onChange={(e) => setManualQuestion({...manualQuestion, mediaUrl: e.target.value})}
+                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <label className="block text-sm font-black text-gray-700">Options (Select the correct one)</label>
+                  <button type="button" onClick={addOption} className="text-bsg-blue text-sm font-bold hover:underline">+ Add Option</button>
+                </div>
+                <div className="space-y-3">
+                  {manualQuestion.options.map((opt, idx) => (
+                    <div key={idx} className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${manualQuestion.correctOptionIndex === idx ? 'border-bsg-blue bg-blue-50/50' : 'border-gray-200 bg-white'}`}>
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type={manualQuestion.type === 'MultipleChoice' ? 'checkbox' : 'radio'}
+                          name="correctOption"
+                          checked={manualQuestion.correctOptionIndex === idx}
+                          onChange={() => setManualQuestion({...manualQuestion, correctOptionIndex: idx})}
+                          className="w-5 h-5 text-bsg-blue focus:ring-bsg-blue border-gray-300"
+                        />
+                        <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-black text-gray-500">
+                          {String.fromCharCode(65 + idx)}
+                        </span>
+                      </label>
+                      <input
+                        type="text"
+                        value={opt}
+                        onChange={(e) => updateOptionText(idx, e.target.value)}
+                        className="flex-1 bg-transparent font-medium text-gray-900 outline-none"
+                        placeholder={`Option ${idx + 1}`}
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => removeOption(idx)}
+                        className="text-gray-400 hover:text-red-500 p-2"
+                        title="Remove option"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {manualError && (
+                <div className="p-4 rounded-xl bg-red-50 text-red-600 text-sm font-bold border border-red-100">
+                  {manualError}
+                </div>
+              )}
+            </div>
+
+            <div className="px-8 py-6 border-t border-gray-100 bg-gray-50 rounded-b-3xl flex justify-end gap-4">
               <button
-                type="button"
                 onClick={() => setShowManualModal(false)}
-                disabled={isSavingManual}
-                className="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
+                className="px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-200 transition-colors"
               >
                 Cancel
+              </button>
+              <button
+                onClick={handleManualSave}
+                disabled={isSavingManual}
+                className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-8 py-3 rounded-xl font-black shadow-md transition-all flex items-center gap-2 disabled:opacity-70"
+              >
+                {isSavingManual ? 'Saving...' : <><Save size={18} /> Save Question</>}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* AI Import Modal (Simplified for brevity in UI rewrite) */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+            <h3 className="text-2xl font-black text-gray-900 mb-6">AI Import Questions</h3>
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Upload File (.txt, .pdf, .docx)</label>
+              <input 
+                type="file" 
+                accept=".txt,.pdf,.docx"
+                onChange={(e) => setImportFile(e.target.files ? e.target.files[0] : null)}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-bsg-blue/10 file:text-bsg-blue hover:file:bg-bsg-blue/20"
+              />
+            </div>
+            {aiError && <div className="mb-6 text-sm font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-100">{aiError}</div>}
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowAiModal(false)} className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100">Cancel</button>
+              <button 
+                onClick={handleAiImport} 
+                disabled={isImporting || !importFile}
+                className="bg-bsg-gold text-bsg-blue-dark hover:bg-yellow-500 px-6 py-2.5 rounded-xl font-black shadow-md transition-all disabled:opacity-50"
+              >
+                {isImporting ? 'Processing AI...' : 'Import'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

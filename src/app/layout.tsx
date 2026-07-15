@@ -4,7 +4,7 @@ import "./globals.css";
 import "../i18n";
 import "@/utils/apiConfig";
 
-import Navbar from "@/components/layout/Navbar";
+import UnifiedLayout from "@/components/layout/UnifiedLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,11 +34,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col transition-colors duration-300`}>
-        <Navbar />
-        <main className="flex-grow flex flex-col relative z-10">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen transition-colors duration-300`}>
+        <UnifiedLayout>
           {children}
-        </main>
+        </UnifiedLayout>
       </body>
     </html>
   );

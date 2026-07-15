@@ -7,11 +7,12 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, User as UserIcon, LogOut, LayoutDashboard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function Navbar() {
+export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { user, logout, isAuthenticated, _hasHydrated } = useAuthStore();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // We no longer need local isMobileMenuOpen state because UnifiedLayout handles it
+
 
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileName, setProfileName] = useState('');
@@ -67,54 +68,6 @@ export default function Navbar() {
 
   if (isTakeExamPage) return null;
 
-  const NavLinks = () => (
-    <>
-      {isAuthenticated && _hasHydrated ? (
-        <>
-          {user?.role === 'Admin' && (
-            <Link href="/admin" className="hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2">
-              <LayoutDashboard size={18} /> Admin Dashboard
-            </Link>
-          )}
-          {user?.role === 'Examiner' && (
-            <Link href="/examiner" className="hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2">
-              <LayoutDashboard size={18} /> Examiner Dashboard
-            </Link>
-          )}
-          {user?.role === 'Candidate' && (
-            <Link href="/dashboard" className="hover:text-primary transition-colors px-3 py-2 rounded-md text-sm font-medium flex items-center gap-2">
-              <LayoutDashboard size={18} /> My Exams
-            </Link>
-          )}
-          
-          <div 
-            onClick={() => { setProfileName(user?.name || ''); setProfileImage(user?.profileImage || ''); setUpdateMessage(''); setShowProfileModal(true); }}
-            className="hidden md:flex items-center gap-2 text-sm text-gray-700 border-l border-border pl-4 ml-2 cursor-pointer hover:text-bsg-blue transition-colors font-bold group"
-          >
-            {user?.profileImage ? (
-              <img src={user.profileImage} alt="Profile" className="w-8 h-8 rounded-full object-cover border-2 border-transparent group-hover:border-bsg-blue transition-all" />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:text-bsg-blue group-hover:bg-blue-50 transition-colors">
-                <UserIcon size={16} />
-              </div>
-            )}
-            <span className="truncate max-w-[120px]">{user?.name}</span>
-          </div>
-          
-          <button onClick={handleLogout} className="bg-red-500/10 hover:bg-red-500/20 text-red-600 px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 border border-red-500/20">
-            <LogOut size={16} /> Logout
-          </button>
-        </>
-      ) : (
-        !isAuthPage && _hasHydrated && (
-          <Link href="/login" className="bg-primary text-primary-foreground hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg">
-            Login
-          </Link>
-        )
-      )}
-    </>
-  );
-
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -132,58 +85,37 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav - Reduced to only Login if unauthenticated */}
           <div className="hidden md:flex items-center space-x-2">
-            <NavLinks />
+            {!isAuthenticated && !isAuthPage && _hasHydrated && (
+              <Link href="/login" className="bg-primary text-primary-foreground hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg">
+                Login
+              </Link>
+            )}
+            {/* If authenticated, Sidebar has the main nav, so we don't need it here unless we want profile on top */}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Shown only for authenticated users OR on mobile for everyone? Wait, if they are authenticated, they can use the Sidebar. If unauthenticated, maybe they need the Login button? We will just show Login button on mobile if unauthenticated. */}
           <div className="flex md:hidden items-center gap-2">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-foreground"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={onMenuClick}
+                className="p-2 text-foreground"
+              >
+                <Menu size={24} />
+              </button>
+            ) : (
+              !isAuthPage && _hasHydrated && (
+                <Link href="/login" className="text-primary font-bold text-sm">
+                  Login
+                </Link>
+              )
+            )}
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-b border-border bg-background overflow-hidden"
-          >
-            <div className="px-4 pt-2 pb-6 space-y-4 flex flex-col items-start shadow-inner">
-              {isAuthenticated && _hasHydrated && (
-                <div 
-                  onClick={() => { setIsMobileMenuOpen(false); setProfileName(user?.name || ''); setProfileImage(user?.profileImage || ''); setUpdateMessage(''); setShowProfileModal(true); }}
-                  className="flex items-center gap-3 text-sm text-gray-700 py-3 border-b border-border w-full cursor-pointer hover:bg-gray-50 rounded-lg px-2 transition-colors"
-                >
-                  {user?.profileImage ? (
-                    <img src={user.profileImage} alt="Profile" className="w-10 h-10 rounded-full object-cover border-2 border-bsg-blue" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
-                      <UserIcon size={20} />
-                    </div>
-                  )}
-                  <div className="flex flex-col">
-                    <span className="font-bold text-foreground text-base">{user?.name}</span>
-                    <span className="text-xs text-bsg-blue font-semibold uppercase tracking-wider">{user?.role}</span>
-                  </div>
-                </div>
-              )}
-              <div className="flex flex-col space-y-3 w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                <NavLinks />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* Edit Profile Modal */}
       {showProfileModal && (

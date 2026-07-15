@@ -7,6 +7,7 @@ import Link from 'next/link';
 import axios from 'axios';
 import { UserCircle, Settings } from 'lucide-react';
 import '@/utils/apiConfig';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface Exam {
   _id: string;
@@ -82,7 +83,7 @@ export default function CandidateDashboard() {
     }
   }, [_hasHydrated, isAuthenticated, user, router, logout]);
 
-  if (loading || !_hasHydrated) return <div className="min-h-[60vh] flex items-center justify-center text-primary font-semibold">Loading your CBT Portal...</div>;
+  if (loading || !_hasHydrated) return <LoadingScreen text="Loading your CBT Portal..." />;
   if (!isAuthenticated || user?.role !== 'Candidate') return null;
 
   return (

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import '@/utils/apiConfig';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface User {
   _id: string;
@@ -69,6 +70,12 @@ export default function AdminDashboard() {
   const [selectedExaminer, setSelectedExaminer] = useState<User | null>(null);
   const [insightsData, setInsightsData] = useState<{ exams: any[], attempts: any[] } | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
+
+  // Bulk Import State
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
+  const [bulkImportFile, setBulkImportFile] = useState<File | null>(null);
+  const [isBulkImporting, setIsBulkImporting] = useState(false);
+  const [bulkImportResult, setBulkImportResult] = useState<{ message: string, createdCount?: number, errors?: string[] } | null>(null);
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -257,7 +264,31 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading || !_hasHydrated) return <div className="min-h-[60vh] flex items-center justify-center text-primary font-semibold">Loading Admin Dashboard...</div>;
+  const handleBulkImport = async () => {
+    if (!bulkImportFile) return;
+    setIsBulkImporting(true);
+    setBulkImportResult(null);
+
+    const formData = new FormData();
+    formData.append('file', bulkImportFile);
+
+    try {
+      const { data } = await axios.post('http://localhost:5000/api/users/bulk-import', formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setBulkImportResult(data);
+      // Refresh user list
+      const usersRes = await axios.get('http://localhost:5000/api/users', { withCredentials: true });
+      setUsers(usersRes.data);
+    } catch (error: any) {
+      setBulkImportResult({ message: error.response?.data?.message || 'Failed to import users' });
+    } finally {
+      setIsBulkImporting(false);
+    }
+  };
+
+  if (loading || !_hasHydrated) return <LoadingScreen text="Loading Admin Dashboard..." />;
   if (!isAuthenticated || user?.role !== 'Admin') return null;
 
   const totalUsers = users.length;
@@ -356,6 +387,12 @@ export default function AdminDashboard() {
                 <option value="Ranger">Ranger</option>
                 <option value="Leader">Leader</option>
               </select>
+              <button
+                onClick={() => setShowBulkImportModal(true)}
+                className="bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark px-4 py-2.5 rounded-xl font-black text-sm shadow-md transition-all whitespace-nowrap"
+              >
+                📥 Bulk Import
+              </button>
               <button
                 onClick={() => setShowExaminerModal(true)}
                 className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all whitespace-nowrap ml-auto md:ml-0"
@@ -761,10 +798,7 @@ export default function AdminDashboard() {
                           </thead>
                           <tbody className="divide-y divide-gray-100">
                             {insightsData.attempts.map((attempt: any) => {
-                              // Find the associated exam
                               const associatedExam = insightsData.exams.find(e => e._id === attempt.examId);
-                              
-                              // Calculate score
                               let earned = 0;
                               let total = 0;
                               if (associatedExam) {
@@ -779,7 +813,6 @@ export default function AdminDashboard() {
                                   }
                                 });
                               }
-
                               return (
                                 <tr key={attempt._id}>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
@@ -797,7 +830,7 @@ export default function AdminDashboard() {
                             })}
                             {insightsData.attempts.length === 0 && (
                               <tr>
-                                <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">No completed attempts for these exams yet.</td>
+                                <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">No attempts recorded for these exams yet.</td>
                               </tr>
                             )}
                           </tbody>
@@ -805,8 +838,76 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="text-center py-10 text-gray-500">Failed to load insights.</div>
+                )}
               </div>
+              <div className="bg-white px-4 py-3 border-t border-gray-100 sm:px-6 flex flex-row-reverse">
+                <button
+                  type="button"
+                  onClick={() => setShowInsightsModal(false)}
+                  className="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-6 py-2.5 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 sm:w-auto sm:text-sm"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Import Modal */}
+      {showBulkImportModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
+            <h2 className="text-2xl font-black text-gray-900 mb-2">Bulk Import Users</h2>
+            <p className="text-gray-500 text-sm mb-6">Upload a CSV file with columns: <code className="bg-gray-100 px-2 py-0.5 rounded text-gray-800 font-bold">name, email, password, role, bsgId, section, state</code></p>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Select CSV File</label>
+              <input 
+                type="file" 
+                accept=".csv"
+                onChange={(e) => setBulkImportFile(e.target.files ? e.target.files[0] : null)}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-bsg-blue/10 file:text-bsg-blue hover:file:bg-bsg-blue/20"
+              />
+            </div>
+            
+            {bulkImportResult && (
+              <div className={`mb-6 p-4 rounded-xl border ${bulkImportResult.errors?.length ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'}`}>
+                <p className={`font-bold ${bulkImportResult.errors?.length ? 'text-orange-800' : 'text-green-800'}`}>
+                  {bulkImportResult.message}
+                </p>
+                {bulkImportResult.createdCount !== undefined && (
+                  <p className="text-sm font-medium mt-1 text-gray-700">Users created: {bulkImportResult.createdCount}</p>
+                )}
+                {bulkImportResult.errors && bulkImportResult.errors.length > 0 && (
+                  <div className="mt-2 max-h-32 overflow-y-auto text-xs text-red-600 bg-white p-2 rounded border border-red-100">
+                    {bulkImportResult.errors.map((e, idx) => <div key={idx}>{e}</div>)}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => {
+                  setShowBulkImportModal(false);
+                  setBulkImportFile(null);
+                  setBulkImportResult(null);
+                }} 
+                className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                disabled={isBulkImporting}
+              >
+                Close
+              </button>
+              <button 
+                onClick={handleBulkImport} 
+                className="px-6 py-2.5 rounded-xl font-bold bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+                disabled={isBulkImporting || !bulkImportFile}
+              >
+                {isBulkImporting ? 'Importing...' : 'Start Import'}
+              </button>
             </div>
           </div>
         </div>
