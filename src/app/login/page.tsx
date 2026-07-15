@@ -58,7 +58,7 @@ export default function Login() {
   if (!mounted || !_hasHydrated) return null;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="flex-1 bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/20 dark:bg-bsg-blue/30 blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-gold/10 dark:bg-bsg-gold/20 blur-[100px] pointer-events-none" />

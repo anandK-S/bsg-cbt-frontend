@@ -36,7 +36,7 @@ export default function RootLayout({
     >
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col transition-colors duration-300`}>
         <Navbar />
-        <main className="flex-grow relative z-10">
+        <main className="flex-grow flex flex-col relative z-10">
           {children}
         </main>
       </body>
