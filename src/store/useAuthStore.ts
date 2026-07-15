@@ -8,6 +8,7 @@ interface User {
   role: 'Candidate' | 'Examiner' | 'Admin';
   bsgId?: string;
   profileImage?: string;
+  token?: string;
 }
 
 interface AuthState {
