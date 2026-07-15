@@ -19,8 +19,6 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [bsgId, setBsgId] = useState('');
   const [section, setSection] = useState('Scout');
-  const [adminCode, setAdminCode] = useState('');
-  const [showAdminCode, setShowAdminCode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
@@ -36,7 +34,7 @@ export default function Register() {
     try {
       const { data } = await axios.post(
         'http://localhost:5000/api/auth/register',
-        { name, email, password, bsgId, section, adminCode },
+        { name, email, password, bsgId, section },
         { withCredentials: true }
       );
       
@@ -216,29 +214,6 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Admin Code Toggle (Hidden unless clicked) */}
-              <div className="md:col-span-2">
-                {showAdminCode ? (
-                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label htmlFor="adminCode" className="block text-sm font-semibold text-red-500 mb-1.5">Admin Secret Code (Optional)</label>
-                    <input
-                      id="adminCode"
-                      type="password"
-                      className="block w-full px-3 py-2.5 border border-red-500/50 rounded-xl bg-red-500/5 text-foreground placeholder-red-400/50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all sm:text-sm"
-                      placeholder="Enter secret code to register as Admin"
-                      value={adminCode}
-                      onChange={(e) => setAdminCode(e.target.value)}
-                    />
-                  </div>
-                ) : (
-                  <button 
-                    type="button" 
-                    onClick={() => setShowAdminCode(true)}
-                    className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                  >
-                    Register as Admin?
-                  </button>
-                )}
               </div>
             </div>
 

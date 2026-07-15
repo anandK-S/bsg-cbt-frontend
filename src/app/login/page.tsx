@@ -19,6 +19,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -157,6 +158,15 @@ export default function Login() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                <div className="flex justify-end mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(true)}
+                    className="text-sm font-semibold text-bsg-blue hover:text-bsg-blue-dark transition-colors"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -189,6 +199,28 @@ export default function Login() {
         </div>
         </motion.div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-6">
+              <Mail className="h-8 w-8 text-bsg-blue" />
+            </div>
+            <h3 className="text-2xl font-black text-center text-gray-900 mb-2">Forgot Password?</h3>
+            <p className="text-center text-gray-600 mb-8 leading-relaxed">
+              Please contact your <strong className="text-gray-900">Administrator</strong> to have your password reset. They can generate a new password for you from the Admin Dashboard.
+            </p>
+            <button
+              onClick={() => setShowForgotModal(false)}
+              className="w-full bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all active:scale-95"
+            >
+              Got it, thanks!
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
     </>
   );

@@ -11,6 +11,7 @@ interface User {
   name: string;
   email: string;
   bsgId: string;
+  section?: string;
   role: string;
   status: string;
 }
@@ -50,6 +51,14 @@ export default function AdminDashboard() {
   const [isCreatingExaminer, setIsCreatingExaminer] = useState(false);
   const [examinerError, setExaminerError] = useState('');
   const [examinerSuccess, setExaminerSuccess] = useState('');
+  const [showExaminerPassword, setShowExaminerPassword] = useState(false);
+
+  // Permanent Delete Modal State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [adminPasswordForDelete, setAdminPasswordForDelete] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -183,12 +192,51 @@ export default function AdminDashboard() {
     }
   };
 
+  const handlePermanentDelete = async () => {
+    if (!adminPasswordForDelete) {
+      setDeleteError('Admin password is required');
+      return;
+    }
+    if (!userToDelete) return;
+
+    setIsDeleting(true);
+    setDeleteError('');
+
+    try {
+      await axios.delete(`http://localhost:5000/api/users/${userToDelete._id}`, {
+        data: { adminPassword: adminPasswordForDelete },
+        withCredentials: true,
+      });
+      
+      setUsers(users.filter(u => u._id !== userToDelete._id));
+      setShowDeleteModal(false);
+      setUserToDelete(null);
+      setAdminPasswordForDelete('');
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setDeleteError(error.response?.data?.message || 'Failed to delete user');
+      } else {
+        setDeleteError('Failed to delete user');
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const openDeleteModal = (u: User) => {
+    setUserToDelete(u);
+    setAdminPasswordForDelete('');
+    setDeleteError('');
+    setShowDeleteModal(true);
+  };
+
   if (loading || !_hasHydrated) return <div className="min-h-[60vh] flex items-center justify-center text-primary font-semibold">Loading Admin Dashboard...</div>;
   if (!isAuthenticated || user?.role !== 'Admin') return null;
 
   const totalUsers = users.length;
   const activeUsers = users.filter(u => u.status === 'Active').length;
   const blockedUsers = users.filter(u => u.status === 'Blocked').length;
+  const totalExaminers = users.filter(u => u.role === 'Examiner').length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
@@ -202,7 +250,7 @@ export default function AdminDashboard() {
       </div>
       
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-10">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-10">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center transform hover:scale-105 transition-transform duration-300">
           <div className="p-4 rounded-xl bg-blue-50 text-bsg-blue mr-5 text-3xl shadow-inner">👥</div>
           <div>
@@ -222,6 +270,13 @@ export default function AdminDashboard() {
           <div>
             <dt className="text-sm font-bold text-gray-400 uppercase tracking-wider">Blocked Users</dt>
             <dd className="mt-1 text-4xl font-black text-gray-900">{blockedUsers}</dd>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center transform hover:scale-105 transition-transform duration-300">
+          <div className="p-4 rounded-xl bg-purple-50 text-purple-600 mr-5 text-3xl shadow-inner">📝</div>
+          <div>
+            <dt className="text-sm font-bold text-gray-400 uppercase tracking-wider">Examiners</dt>
+            <dd className="mt-1 text-4xl font-black text-gray-900">{totalExaminers}</dd>
           </div>
         </div>
       </div>
@@ -258,6 +313,7 @@ export default function AdminDashboard() {
                 <tr>
                   <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Name / BSG ID</th>
                   <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Role</th>
+                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Section</th>
                   <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-8 py-4 text-right text-xs font-black text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -278,6 +334,9 @@ export default function AdminDashboard() {
                       </span>
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-700">{u.section || '-'}</div>
+                    </td>
+                    <td className="px-8 py-5 whitespace-nowrap">
                       <span className={`px-4 py-1.5 inline-flex text-xs font-black uppercase tracking-wider rounded-full w-max ${u.status === 'Active' ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}`}>
                         {u.status}
                       </span>
@@ -294,9 +353,15 @@ export default function AdminDashboard() {
                             </button>
                             <button
                               onClick={() => toggleBlockStatus(u._id, u.status)}
-                              className={`px-4 py-2 rounded-xl font-black transition-all shadow-sm border ${u.status === 'Active' ? 'border-red-200 text-red-600 hover:bg-red-600 hover:text-white' : 'border-green-200 text-green-600 hover:bg-green-600 hover:text-white'}`}
+                              className={`px-4 py-2 rounded-xl font-black transition-all shadow-sm border ${u.status === 'Active' ? 'border-orange-200 text-orange-600 hover:bg-orange-600 hover:text-white' : 'border-green-200 text-green-600 hover:bg-green-600 hover:text-white'}`}
                             >
-                              {u.status === 'Active' ? 'Block' : 'Unblock'}
+                              {u.status === 'Active' ? 'Soft Delete' : 'Unblock'}
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(u)}
+                              className="px-4 py-2 rounded-xl font-black transition-all shadow-sm border border-red-200 text-red-600 hover:bg-red-600 hover:text-white"
+                            >
+                              Perm Delete
                             </button>
                           </>
                         )}
@@ -461,13 +526,22 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
-                <input 
-                  type="password" 
-                  value={examinerPassword} 
-                  onChange={e => setExaminerPassword(e.target.value)} 
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-bsg-blue focus:border-transparent outline-none transition-all"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input 
+                    type={showExaminerPassword ? "text" : "password"}
+                    value={examinerPassword} 
+                    onChange={e => setExaminerPassword(e.target.value)} 
+                    className="w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-bsg-blue focus:border-transparent outline-none transition-all"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                    onClick={() => setShowExaminerPassword(!showExaminerPassword)}
+                  >
+                    {showExaminerPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -492,6 +566,58 @@ export default function AdminDashboard() {
                 disabled={isCreatingExaminer}
               >
                 {isCreatingExaminer ? 'Creating...' : 'Create Examiner'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permanent Delete Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative border-t-8 border-red-500">
+            <div className="flex items-center gap-3 mb-4 text-red-500">
+              <div className="text-3xl">⚠️</div>
+              <h2 className="text-2xl font-black">Permanent Delete</h2>
+            </div>
+            
+            <p className="text-gray-600 font-medium mb-6">
+              You are about to permanently delete <strong className="text-gray-900">{userToDelete?.name}</strong>. This action cannot be undone. Please enter your Admin password to confirm.
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Your Admin Password</label>
+                <input 
+                  type="password" 
+                  value={adminPasswordForDelete} 
+                  onChange={e => setAdminPasswordForDelete(e.target.value)} 
+                  className="w-full px-4 py-3 rounded-xl border border-red-200 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Verify your password"
+                />
+              </div>
+            </div>
+
+            {deleteError && <p className="mt-4 text-red-500 font-semibold text-sm bg-red-50 p-3 rounded-xl border border-red-100">{deleteError}</p>}
+            
+            <div className="mt-8 flex justify-end gap-3">
+              <button 
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteError('');
+                  setAdminPasswordForDelete('');
+                }} 
+                className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handlePermanentDelete} 
+                className="px-6 py-2.5 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white shadow-md transition-all flex items-center gap-2"
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Permanently'}
               </button>
             </div>
           </div>
