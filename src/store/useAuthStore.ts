@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface User {
   _id: string;
@@ -33,7 +33,8 @@ export const useAuthStore = create<AuthState>()(
       setHasHydrated: (state) => set({ _hasHydrated: state }),
     }),
     {
-      name: 'auth-storage', // stored in localStorage by default, sufficient for auth metadata
+      name: 'auth-storage', 
+      storage: createJSONStorage(() => sessionStorage), // Use sessionStorage so tabs don't overwrite each other's logins
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.setHasHydrated(true);

@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
-import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2 } from 'lucide-react';
+import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2, Edit2 } from 'lucide-react';
 
 interface ExamDetailsData {
   _id: string;
