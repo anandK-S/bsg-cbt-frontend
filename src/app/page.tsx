@@ -206,17 +206,20 @@ export default function Home() {
               </p>
               
               <div className="pt-4 flex items-center justify-center md:justify-start">
-                <a 
-                  href="https://anandkumar.online" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl shadow-md transition-all hover:-translate-y-1"
-                >
-                  Visit Portfolio <ChevronRight size={18} />
-                </a>
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* Footer Links */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 0.8 }}
+          className="mt-16 text-center text-sm font-medium text-gray-500 space-x-6"
+        >
+          <a href="/terms" className="hover:text-bsg-blue transition-colors">Terms & Conditions</a>
+          <a href="/privacy" className="hover:text-bsg-blue transition-colors">Privacy Policy</a>
         </motion.div>
       </main>
       

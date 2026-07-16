@@ -9,7 +9,7 @@ import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { 
   Users, ShieldCheck, UserX, UserCheck, Search, Filter, 
-  Trash2, ChevronRight, Database, Plus, List, UserCog, Key, Settings as SettingsIcon, TrendingUp, X, Menu, LogOut
+  Trash2, ChevronRight, Database, Plus, List, UserCog, Key, Settings as SettingsIcon, TrendingUp, X, Menu, LogOut, Edit2
 } from 'lucide-react';
 
 interface User {
@@ -72,6 +72,12 @@ export default function AdminDashboard() {
   const [resetMsg, setResetMsg] = useState({ text: '', type: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [editFormData, setEditFormData] = useState({ name: '', email: '', bsgId: '', section: '', rank: '' });
+  const [editMsg, setEditMsg] = useState({ text: '', type: '' });
+  const [isEditing, setIsEditing] = useState(false);
 
   const [showExaminerModal, setShowExaminerModal] = useState(false);
   const [examinerData, setExaminerData] = useState({ name: '', email: '', password: '', bsgId: '', section: '', rank: '' });
@@ -143,6 +149,23 @@ export default function AdminDashboard() {
       setUsers(users.map(u => u._id === userId ? { ...u, status: currentStatus === 'Active' ? 'Blocked' : 'Active' } : u));
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    setIsEditing(true);
+    try {
+      const { data } = await axios.put(`${API_URL}/api/users/${userToEdit?._id}/update`, editFormData, { withCredentials: true });
+      setUsers(users.map(u => u._id === userToEdit?._id ? data.user : u));
+      setEditMsg({ text: 'User updated successfully!', type: 'success' });
+      setTimeout(() => {
+        setShowEditModal(false);
+        setEditMsg({ text: '', type: '' });
+      }, 1500);
+    } catch (error: any) {
+      setEditMsg({ text: error.response?.data?.message || 'Failed to update user', type: 'error' });
+    } finally {
+      setIsEditing(false);
     }
   };
 
@@ -344,6 +367,12 @@ export default function AdminDashboard() {
                         <div className="flex justify-end gap-1 sm:gap-2">
                           {u.role !== 'Admin' && (
                             <>
+                              <button onClick={() => { 
+                                setUserToEdit(u); 
+                                setEditFormData({ name: u.name, email: u.email, bsgId: u.bsgId || '', section: u.section || '', rank: u.rank || '' });
+                                setEditMsg({ text: '', type: '' });
+                                setShowEditModal(true); 
+                              }} className="text-gray-400 hover:text-blue-500 p-2 rounded-lg hover:bg-blue-50" title="Edit"><Edit2 size={16} /></button>
                               <button onClick={() => { setSelectedUser(u); setNewPassword(''); setResetMsg({text:'',type:''}); setShowPasswordModal(true); }} className="text-gray-400 hover:text-bsg-blue p-2 rounded-lg hover:bg-blue-50" title="Reset Password"><Key size={16} /></button>
                               <button onClick={() => toggleBlockStatus(u._id, u.status)} className={`p-2 rounded-lg ${u.status === 'Active' ? 'text-gray-400 hover:text-orange-500' : 'text-orange-500 hover:text-emerald-500'}`} title={u.status === 'Active' ? 'Block' : 'Unblock'}><ShieldCheck size={16} /></button>
                               <button onClick={() => { setUserToDelete(u); setAdminPasswordForDelete(''); setDeleteError(''); setShowDeleteModal(true); }} className="text-gray-400 hover:text-rose-500 p-2 rounded-lg hover:bg-rose-50" title="Delete"><Trash2 size={16} /></button>
@@ -485,19 +514,10 @@ export default function AdminDashboard() {
                     {/* Security Section */}
                     <div className="col-span-1 md:col-span-2">
                       <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4 border-b pb-2 mt-2">Security & Access</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <label className="block text-sm font-bold text-gray-700 mb-1">Max Failed Login Attempts</label>
                           <input type="number" min="1" max="20" value={settingsForm.maxFailedLoginAttempts} onChange={e => setSettingsForm({...settingsForm, maxFailedLoginAttempts: parseInt(e.target.value)})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
                           <p className="text-[11px] text-gray-500 mt-1">Locks account for 15 mins after threshold.</p>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-bold text-gray-700 mb-1">Default Proctoring Level</label>
-                          <select value={settingsForm.defaultProctoringLevel} onChange={e => setSettingsForm({...settingsForm, defaultProctoringLevel: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50">
-                            <option value="None">None</option>
-                            <option value="Webcam">Webcam Recording</option>
-                            <option value="AI Live">AI Live Proctoring</option>
-                          </select>
                         </div>
                         
                         <label className="flex items-start gap-3 cursor-pointer bg-gray-50 p-4 rounded-xl border border-gray-200">
@@ -509,20 +529,13 @@ export default function AdminDashboard() {
                         </label>
                         
                         <label className="flex items-start gap-3 cursor-pointer bg-gray-50 p-4 rounded-xl border border-gray-200">
-                          <input type="checkbox" checked={settingsForm.require2FA} onChange={e => setSettingsForm({...settingsForm, require2FA: e.target.checked})} className="mt-1 w-5 h-5 text-bsg-blue rounded" />
+                          <input type="checkbox" checked={settingsForm.maintenanceMode} onChange={e => setSettingsForm({...settingsForm, maintenanceMode: e.target.checked})} className="mt-1 w-5 h-5 text-bsg-blue rounded" />
                           <div>
-                            <span className="block text-sm font-bold text-gray-900">Enforce 2FA (Coming Soon)</span>
-                            <span className="block text-xs text-gray-500 mt-0.5">Require Two-Factor Auth for all accounts.</span>
+                            <span className="block text-sm font-bold text-gray-900">Maintenance Mode</span>
+                            <span className="block text-xs text-gray-500 mt-0.5">Blocks candidates and examiners from logging in.</span>
                           </div>
                         </label>
-
-                        <label className="flex items-start gap-3 cursor-pointer bg-amber-50 p-4 rounded-xl border border-amber-200 md:col-span-2">
-                          <input type="checkbox" checked={settingsForm.strictBrowserLockdown} onChange={e => setSettingsForm({...settingsForm, strictBrowserLockdown: e.target.checked})} className="mt-1 w-5 h-5 text-amber-600 rounded" />
-                          <div>
-                            <span className="block text-sm font-bold text-amber-900">Strict Browser Lockdown</span>
-                            <span className="block text-xs text-amber-700 mt-0.5">Forces fullscreen, disables right-click, and auto-submits/warns if the candidate leaves the exam tab.</span>
-                          </div>
-                        </label>
+                        
                       </div>
                     </div>
                   </div>
@@ -545,55 +558,27 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden text-gray-900">
-      {/* Sidebar Overlay (Mobile) */}
-      {isSidebarOpen && (
-        <div className="fixed inset-0 bg-gray-900/50 z-20 lg:hidden" onClick={() => setIsSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-30 transform transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-black text-gray-900">Admin</h2>
-            <p className="text-xs font-bold text-bsg-blue">Workspace</p>
-          </div>
-          <button className="lg:hidden text-gray-500" onClick={() => setIsSidebarOpen(false)}><X size={24} /></button>
-        </div>
-        
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          <button onClick={() => {setActiveTab('users'); setIsSidebarOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-colors ${activeTab === 'users' ? 'bg-blue-50 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}>
-            <Users size={20} /> User Management
-          </button>
-          <button onClick={() => {setActiveTab('exams'); setIsSidebarOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-colors ${activeTab === 'exams' ? 'bg-blue-50 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}>
-            <List size={20} /> Platform Exams
-          </button>
-          <button onClick={() => {setActiveTab('settings'); setIsSidebarOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-colors ${activeTab === 'settings' ? 'bg-blue-50 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}>
-            <SettingsIcon size={20} /> Global Settings
-          </button>
-          <button onClick={() => {setActiveTab('profile'); setIsSidebarOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-colors ${activeTab === 'profile' ? 'bg-blue-50 text-bsg-blue' : 'text-gray-600 hover:bg-gray-100'}`}>
-            <UserCog size={20} /> Admin Profile
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-gray-100">
-          <button onClick={logout} className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 font-bold py-3 px-4 rounded-xl transition-colors text-sm">
-            <LogOut size={18} /> Sign Out
-          </button>
-        </div>
-      </aside>
-
+    <div className="flex h-screen bg-gray-50 overflow-hidden text-gray-900 w-full">
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Mobile Header */}
-        <div className="lg:hidden bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-           <div>
-            <h2 className="text-lg font-black text-gray-900">Admin Workspace</h2>
-          </div>
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2 bg-gray-100 rounded-lg text-gray-700"><Menu size={24}/></button>
-        </div>
+      <main className="flex-1 flex flex-col h-screen overflow-hidden w-full">
         
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
+          
+          {/* Top Tabs */}
+          <div className="mb-6 bg-white p-2 rounded-2xl shadow-sm border border-gray-200 flex flex-wrap gap-2 justify-center sm:justify-start">
+            <button onClick={() => setActiveTab('users')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'users' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
+              <Users size={18} /> User Management
+            </button>
+            <button onClick={() => setActiveTab('exams')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'exams' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
+              <List size={18} /> Platform Exams
+            </button>
+            <button onClick={() => setActiveTab('settings')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'settings' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
+              <SettingsIcon size={18} /> Global Settings
+            </button>
+            <button onClick={() => setActiveTab('profile')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'profile' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
+              <UserCog size={18} /> Admin Profile
+            </button>
+          </div>
           
           {/* Stats Grid - Only show on users or exams tab */}
           {(activeTab === 'users' || activeTab === 'exams') && (
@@ -620,6 +605,51 @@ export default function AdminDashboard() {
           {renderContent()}
         </div>
       </main>
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl my-8">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-xl font-bold text-gray-900">Edit User Profile</h2>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600"><X size={20}/></button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Full Name</label>
+                <input type="text" value={editFormData.name} onChange={e => setEditFormData({...editFormData, name: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
+                <input type="email" value={editFormData.email} onChange={e => setEditFormData({...editFormData, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">BSG ID</label>
+                <input type="text" value={editFormData.bsgId} onChange={e => setEditFormData({...editFormData, bsgId: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Section</label>
+                <select value={editFormData.section} onChange={e => setEditFormData({...editFormData, section: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50">
+                  <option value="">None</option>
+                  <option value="Scout">Scout</option>
+                  <option value="Guide">Guide</option>
+                  <option value="Rover">Rover</option>
+                  <option value="Ranger">Ranger</option>
+                  <option value="Leader">Leader</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Rank / Designation</label>
+                <input type="text" value={editFormData.rank} onChange={e => setEditFormData({...editFormData, rank: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
+              </div>
+            </div>
+            {editMsg.text && <p className={`mt-4 text-xs font-bold p-2 rounded-lg ${editMsg.type === 'error' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>{editMsg.text}</p>}
+            <button onClick={handleEditSubmit} disabled={isEditing} className="w-full mt-5 bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-2.5 rounded-lg text-sm transition-colors">
+              {isEditing ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modals from before */}
       {/* Password Reset Modal */}
