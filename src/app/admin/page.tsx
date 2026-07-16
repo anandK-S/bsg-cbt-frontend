@@ -527,18 +527,8 @@ export default function AdminDashboard() {
                             <span className="block text-xs text-gray-500 mt-0.5">Blocks candidates and examiners from logging in.</span>
                           </div>
                         </label>
-                        
-                        <label className="flex items-start gap-3 cursor-pointer bg-gray-50 p-4 rounded-xl border border-gray-200">
-                          <input type="checkbox" checked={settingsForm.maintenanceMode} onChange={e => setSettingsForm({...settingsForm, maintenanceMode: e.target.checked})} className="mt-1 w-5 h-5 text-bsg-blue rounded" />
-                          <div>
-                            <span className="block text-sm font-bold text-gray-900">Maintenance Mode</span>
-                            <span className="block text-xs text-gray-500 mt-0.5">Blocks candidates and examiners from logging in.</span>
-                          </div>
-                        </label>
-                        
                       </div>
                     </div>
-                  </div>
 
                   {settingsMsg.text && <div className={`p-3 rounded-lg text-sm font-bold ${settingsMsg.type === 'error' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>{settingsMsg.text}</div>}
                   

@@ -192,11 +192,11 @@ export default function Home() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60 pointer-events-none"></div>
             
             <div className="relative z-10 md:w-1/3 flex justify-center">
-              <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-bsg-blue/20 shadow-2xl relative group bg-white flex items-center justify-center p-4">
+              <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-bsg-blue/20 shadow-2xl relative group bg-white flex items-center justify-center">
                 <img 
-                  src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Bharat_Scouts_and_Guides_Logo.svg/1200px-Bharat_Scouts_and_Guides_Logo.svg.png" 
-                  alt="BSG Logo" 
-                  className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                  src="/anandkumar-scout.jpg" 
+                  alt="Anandkumar Sharma Scout" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-bsg-blue/5 group-hover:bg-transparent transition-colors duration-300"></div>
               </div>
