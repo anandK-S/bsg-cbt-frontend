@@ -417,7 +417,7 @@ export default function ExamTakePage() {
 
             {currentQ.mediaUrl && (
               <div className="mb-8 rounded-lg overflow-hidden border border-gray-200 inline-block max-w-full">
-                <img src={currentQ.mediaUrl} alt="Question Graphic" className="max-h-[300px] object-contain" />
+                <img src={currentQ.mediaUrl.startsWith('http') ? currentQ.mediaUrl : `${API_URL}${currentQ.mediaUrl}`} alt="Question Graphic" className="max-h-[300px] object-contain" />
               </div>
             )}
 

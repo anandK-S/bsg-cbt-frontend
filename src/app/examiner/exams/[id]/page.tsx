@@ -961,14 +961,28 @@ export default function ExamDetails() {
                 </div>
                 <div>
                   <label className="block text-sm font-black text-gray-700 mb-2">Media Upload (Optional Image)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setMediaFile(e.target.files ? e.target.files[0] : null)}
-                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2 text-gray-900 font-medium focus:border-bsg-blue outline-none"
-                  />
+                  <div className="relative group cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setMediaFile(e.target.files ? e.target.files[0] : null)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className={`w-full bg-gray-50 border-2 border-dashed ${mediaFile ? 'border-bsg-blue bg-blue-50' : 'border-gray-300 group-hover:border-bsg-blue group-hover:bg-blue-50'} rounded-xl px-4 py-6 text-center transition-all flex flex-col items-center justify-center`}>
+                      <span className="text-3xl mb-2">{mediaFile ? '🖼️' : '📁'}</span>
+                      <span className={`text-sm font-bold ${mediaFile ? 'text-bsg-blue' : 'text-gray-500 group-hover:text-bsg-blue'}`}>
+                        {mediaFile ? mediaFile.name : 'Click or drag image to upload'}
+                      </span>
+                      {!mediaFile && <span className="text-xs text-gray-400 mt-1 font-medium">JPEG, PNG up to 5MB</span>}
+                    </div>
+                  </div>
                   {manualQuestion.mediaUrl && !mediaFile && (
-                    <div className="mt-2 text-xs text-blue-600 truncate">Current: {manualQuestion.mediaUrl}</div>
+                    <div className="mt-3 relative rounded-lg overflow-hidden border border-gray-200 inline-block max-w-[200px]">
+                      <img src={manualQuestion.mediaUrl.startsWith('http') ? manualQuestion.mediaUrl : `${API_URL}${manualQuestion.mediaUrl}`} alt="Current Media" className="w-full object-cover" />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-2 py-1 truncate font-bold text-center">
+                        Current Image
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
