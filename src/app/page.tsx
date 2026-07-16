@@ -66,12 +66,8 @@ export default function Home() {
           transition={{ duration: 0.5 }}
           className="flex items-center gap-3"
         >
-          <div className="w-12 h-12 flex items-center justify-center">
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Bharat_Scouts_and_Guides_Logo.svg/1200px-Bharat_Scouts_and_Guides_Logo.svg.png" 
-              alt="BSG Logo" 
-              className="w-full h-full object-contain"
-            />
+          <div className="w-10 h-10 bg-gradient-to-br from-bsg-blue to-blue-800 rounded-xl flex items-center justify-center text-white shadow-md">
+            <ShieldCheck size={22} strokeWidth={2.5} />
           </div>
           <span className="text-bsg-blue font-extrabold text-xl tracking-tight hidden sm:block">
             CBT Portal
@@ -238,16 +234,20 @@ export default function Home() {
             className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-bsg-blue to-bsg-gold"></div>
-            <div className="w-20 h-20 mx-auto mb-6 bg-blue-50 rounded-full flex items-center justify-center">
+            <div className="w-28 h-28 mx-auto mb-4 rounded-full overflow-hidden border-4 border-bsg-blue/20 shadow-md">
               <img 
-                src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Bharat_Scouts_and_Guides_Logo.svg/1200px-Bharat_Scouts_and_Guides_Logo.svg.png" 
-                alt="BSG Logo" 
-                className="w-12 h-12 object-contain"
+                src="/anandkumar-scout.jpg" 
+                alt="Developer" 
+                className="w-full h-full object-cover"
               />
             </div>
-            <h2 className="text-2xl font-black text-gray-900 mb-3">Welcome to BSG CBT Portal</h2>
+            <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full bg-blue-100 text-bsg-blue text-xs font-bold uppercase tracking-widest">
+              Developer & Architect
+            </div>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">Anandkumar Sharma</h2>
             <p className="text-gray-600 font-medium leading-relaxed mb-8 text-sm">
-              The official, highly secure Computer Based Test platform for Bharat Scouts and Guides proficiency badges and certifications.
+              Rover of 33rd NAIR, B.P Group, Vadodara Division, Western Railway.<br/>
+              Engineered the BSG CBT Portal for a secure examination experience.
             </p>
             <button 
               onClick={() => setShowWelcomeModal(false)}
