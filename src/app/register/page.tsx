@@ -23,13 +23,22 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ message: string, platformName?: string, supportEmail?: string } | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [globalSettings, setGlobalSettings] = useState<any>(null);
 
   useEffect(() => {
     setMounted(true);
+    axios.get(`${API_URL}/api/settings`).then((res) => {
+      setGlobalSettings(res.data);
+    }).catch(console.error);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (globalSettings?.termsUrl && !agreeTerms) {
+      setError({ message: 'You must agree to the Terms & Privacy Policy to register.' });
+      return;
+    }
     
     const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
     if (!passwordRegex.test(password)) {
@@ -234,6 +243,36 @@ export default function Register() {
                 </div>
                 <p className="text-[10px] text-gray-500 mt-1">Min 6 chars, 1 letter, 1 number, 1 special char.</p>
               </div>
+
+              {(globalSettings?.termsUrl || globalSettings?.privacyUrl) && (
+                <div className="md:col-span-2 flex items-start mt-2">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="terms"
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="w-4 h-4 text-bsg-blue bg-gray-100 border-gray-300 rounded focus:ring-bsg-blue focus:ring-2"
+                    />
+                  </div>
+                  <div className="ml-2 text-sm">
+                    <label htmlFor="terms" className="font-medium text-gray-700">
+                      I agree to the{' '}
+                      {globalSettings?.termsUrl && (
+                        <a href={globalSettings.termsUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
+                          Terms & Conditions
+                        </a>
+                      )}
+                      {globalSettings?.termsUrl && globalSettings?.privacyUrl && ' and '}
+                      {globalSettings?.privacyUrl && (
+                        <a href={globalSettings.privacyUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
+                          Privacy Policy
+                        </a>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <button

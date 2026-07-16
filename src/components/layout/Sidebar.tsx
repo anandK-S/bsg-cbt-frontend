@@ -63,8 +63,12 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64 shadow-xl shadow-bsg-blue/5 z-40">
       <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-b from-gray-50 to-white">
         <Link href={user?.role === 'Admin' ? '/admin' : user?.role === 'Examiner' ? '/examiner' : '/dashboard'} className="flex items-center gap-2 group" onClick={onClose}>
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-            <span className="text-white font-extrabold text-xs">BSG</span>
+          <div className="w-10 h-10 flex items-center justify-center">
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Bharat_Scouts_and_Guides_Logo.svg/1200px-Bharat_Scouts_and_Guides_Logo.svg.png" 
+              alt="BSG Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-bsg-blue to-bsg-gold tracking-tight">
             CBT

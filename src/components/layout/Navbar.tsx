@@ -12,8 +12,6 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { user, logout, isAuthenticated, _hasHydrated } = useAuthStore();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  // We no longer need local isMobileMenuOpen state because UnifiedLayout handles it
-
 
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileName, setProfileName] = useState('');
@@ -77,26 +75,29 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
           {/* Logo */}
           <div className="flex items-center">
             <Link href={user?.role === 'Admin' ? '/admin' : user?.role === 'Examiner' ? '/examiner' : '/dashboard'} className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-                <span className="text-white font-extrabold text-xs">BSG</span>
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Bharat_Scouts_and_Guides_Logo.svg/1200px-Bharat_Scouts_and_Guides_Logo.svg.png" 
+                  alt="BSG Logo" 
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-bsg-blue to-bsg-gold tracking-tight">
+              <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-bsg-blue to-bsg-gold tracking-tight hidden sm:block">
                 CBT Portal
               </span>
             </Link>
           </div>
 
-          {/* Desktop Nav - Reduced to only Login if unauthenticated */}
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-2">
             {!isAuthenticated && !isAuthPage && _hasHydrated && (
               <Link href="/login" className="bg-primary text-primary-foreground hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg">
                 Login
               </Link>
             )}
-            {/* If authenticated, Sidebar has the main nav, so we don't need it here unless we want profile on top */}
           </div>
 
-          {/* Mobile Menu Button - Shown only for authenticated users OR on mobile for everyone? Wait, if they are authenticated, they can use the Sidebar. If unauthenticated, maybe they need the Login button? We will just show Login button on mobile if unauthenticated. */}
+          {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
             {isAuthenticated ? (
               <button
@@ -115,8 +116,6 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
           </div>
         </div>
       </div>
-
-
 
       {/* Edit Profile Modal */}
       {showProfileModal && (
@@ -170,7 +169,6 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
           </div>
         </div>
       )}
-
     </nav>
   );
 }

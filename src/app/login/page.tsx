@@ -21,13 +21,22 @@ export default function Login() {
   const [error, setError] = useState<{ message: string, platformName?: string, supportEmail?: string } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [globalSettings, setGlobalSettings] = useState<any>(null);
 
   useEffect(() => {
     setMounted(true);
+    axios.get(`${API_URL}/api/settings`).then((res) => {
+      setGlobalSettings(res.data);
+    }).catch(console.error);
   }, []);
 
   const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) => {
     if (e) e.preventDefault();
+    if (globalSettings?.termsUrl && !agreeTerms) {
+      setError({ message: 'You must agree to the Terms & Privacy Policy to login.' });
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -126,7 +135,7 @@ export default function Login() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">
-                  Email Address
+                  Email Address or BSG ID
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
@@ -134,11 +143,11 @@ export default function Login() {
                   </div>
                   <input
                     id="email"
-                    type="email"
+                    type="text"
                     required
                     autoComplete="email"
                     className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="you@example.com"
+                    placeholder="you@example.com or BSG ID"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -181,6 +190,36 @@ export default function Login() {
                   </button>
                 </div>
               </div>
+              
+              {(globalSettings?.termsUrl || globalSettings?.privacyUrl) && (
+                <div className="flex items-start mt-4">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="terms"
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="w-4 h-4 text-bsg-blue bg-gray-100 border-gray-300 rounded focus:ring-bsg-blue focus:ring-2"
+                    />
+                  </div>
+                  <div className="ml-2 text-sm">
+                    <label htmlFor="terms" className="font-medium text-gray-700">
+                      I agree to the{' '}
+                      {globalSettings?.termsUrl && (
+                        <a href={globalSettings.termsUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
+                          Terms & Conditions
+                        </a>
+                      )}
+                      {globalSettings?.termsUrl && globalSettings?.privacyUrl && ' and '}
+                      {globalSettings?.privacyUrl && (
+                        <a href={globalSettings.privacyUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
+                          Privacy Policy
+                        </a>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
