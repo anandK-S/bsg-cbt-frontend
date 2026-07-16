@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import { Menu, X, CheckCircle2, Circle, Clock, UserCircle, Save, Eraser, BookmarkPlus } from 'lucide-react';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
@@ -49,7 +50,7 @@ export default function ExamTakePage() {
 
     const startAttempt = async () => {
       try {
-        const { data } = await axios.post(`http://localhost:5000/api/exams/${examId}/start`, {}, {
+        const { data } = await axios.post(`${API_URL}/api/exams/${examId}/start`, {}, {
           withCredentials: true,
         });
         
@@ -100,7 +101,7 @@ export default function ExamTakePage() {
     setIsSubmitting(true);
     
     try {
-      await axios.post(`http://localhost:5000/api/attempts/${attemptIdRef.current}/submit`, {
+      await axios.post(`${API_URL}/api/attempts/${attemptIdRef.current}/submit`, {
         answers: answersRef.current,
         timeRemaining: timeRemainingRef.current
       }, {
@@ -147,7 +148,7 @@ export default function ExamTakePage() {
 
     const syncInterval = setInterval(async () => {
       try {
-        await axios.post(`http://localhost:5000/api/attempts/${attemptIdRef.current}/heartbeat`, {
+        await axios.post(`${API_URL}/api/attempts/${attemptIdRef.current}/heartbeat`, {
           answers: answersRef.current,
           timeRemaining: timeRemainingRef.current,
           warnings: warningsRef.current

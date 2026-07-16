@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface PastResult {
@@ -45,7 +46,7 @@ export default function PastResultsPage() {
     if (user?.role === 'Candidate') {
       const fetchCandidateData = async () => {
         try {
-          const resultsRes = await axios.get('http://localhost:5000/api/attempts/results/me', { withCredentials: true });
+          const resultsRes = await axios.get(`${API_URL}/api/attempts/results/me`, { withCredentials: true });
           // Sort past results by date descending
           const sortedResults = resultsRes.data.sort((a: any, b: any) => {
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();

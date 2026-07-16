@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import Link from 'next/link';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import '@/utils/apiConfig';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, LogIn, ShieldCheck } from 'lucide-react';
@@ -31,7 +32,7 @@ export default function Login() {
     setError('');
     try {
       const { data } = await axios.post(
-        'http://localhost:5000/api/auth/login',
+        `${API_URL}/api/auth/login`,
         { email, password },
         { withCredentials: true }
       );

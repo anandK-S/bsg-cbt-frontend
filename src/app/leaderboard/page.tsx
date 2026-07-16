@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
@@ -36,8 +37,8 @@ export default function LeaderboardPage() {
     const fetchLeaderboardAndExams = async () => {
       try {
         const [leaderboardRes, examsRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/attempts/leaderboard${selectedExamId !== 'All' ? `?examId=${selectedExamId}` : ''}`, { withCredentials: true }),
-          axios.get('http://localhost:5000/api/exams/available', { withCredentials: true })
+          axios.get(`${API_URL}/api/attempts/leaderboard${selectedExamId !== 'All' ? `?examId=${selectedExamId}` : ''}`, { withCredentials: true }),
+          axios.get(`${API_URL}/api/exams/available`, { withCredentials: true })
         ]);
         setLeaderboard(leaderboardRes.data);
         

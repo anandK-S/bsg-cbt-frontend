@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import { usePathname } from 'next/navigation';
 import { Menu, X, User as UserIcon, LogOut, LayoutDashboard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +27,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/logout', {}, { withCredentials: true });
+      await axios.post(`${API_URL}/api/auth/logout`, {}, { withCredentials: true });
     } catch (e) {
       console.error('Logout failed on backend', e);
     }
@@ -49,7 +50,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
     setIsUpdating(true);
     setUpdateMessage('');
     try {
-      const { data } = await axios.put('http://localhost:5000/api/auth/me/profile', {
+      const { data } = await axios.put(`${API_URL}/api/auth/me/profile`, {
         name: profileName,
         profileImage
       }, { withCredentials: true });

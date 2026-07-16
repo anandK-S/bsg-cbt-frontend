@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
-import { LayoutDashboard, Users, Database, Settings, HelpCircle, FileText, Activity, Search } from 'lucide-react';
+import { Search, FileText, Activity, Users, Settings, LogOut, CheckCircle, Clock } from 'lucide-react';
 import { API_URL } from '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
@@ -17,13 +17,15 @@ interface Exam {
   status: string;
   category?: string;
   questions?: unknown[];
+  questionCount?: number;
+  attemptCount?: number;
 }
 
 interface LiveAttempt {
   _id: string;
   candidateId: { name: string; bsgId: string; section: string };
   examId: { title: string };
-  status: string;
+  startTime: string;
   timeRemaining: number;
   warnings: number;
   updatedAt: string;
@@ -237,10 +239,18 @@ export default function ExaminerDashboard() {
                       <h3 className="text-xl font-black text-gray-900 mb-2 line-clamp-2">{exam.title}</h3>
                       <p className="text-gray-500 text-sm font-medium line-clamp-2 mb-4">{exam.description || 'No description provided.'}</p>
                       
-                      <div className="flex items-center gap-4 mt-auto">
-                        <div className="flex items-center gap-2 text-sm font-bold text-gray-600">
-                          <Activity size={16} className="text-bsg-blue" />
+                      <div className="flex flex-wrap items-center gap-4 mt-auto">
+                        <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
+                          <Clock size={16} className="text-bsg-blue" />
                           {exam.durationMinutes} mins
+                        </div>
+                        <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
+                          <FileText size={16} className="text-bsg-gold" />
+                          {exam.questionCount || 0} Qs
+                        </div>
+                        <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
+                          <Users size={16} className="text-green-600" />
+                          {exam.attemptCount || 0} Taken
                         </div>
                       </div>
                     </div>

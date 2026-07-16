@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import Link from 'next/link';
 import { CheckCircle, AlertTriangle, Clock, Target, FileText, ChevronRight } from 'lucide-react';
 
@@ -26,7 +27,7 @@ export default function ExamStartPage() {
 
     const fetchExamDetails = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:5000/api/exams/${examId}`, {
+        const { data } = await axios.get(`${API_URL}/api/exams/${examId}`, {
           withCredentials: true,
         });
         setExam(data);
@@ -50,7 +51,7 @@ export default function ExamStartPage() {
       // Wait, the original code just redirects to /take.
       // If we redirect to /take, the /take page handles the API call and throws the alert.
       // Let's change the architecture: we make the /start API call HERE, and if successful, redirect to /take.
-      const { data } = await axios.post(`http://localhost:5000/api/exams/${examId}/start`, {}, {
+      const { data } = await axios.post(`${API_URL}/api/exams/${examId}/start`, {}, {
         withCredentials: true,
       });
       // Assuming it succeeded, we redirect to take where it will fetch the active attempt

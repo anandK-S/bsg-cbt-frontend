@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import { useRouter } from 'next/navigation';
 import { UserCircle, Link as LinkIcon, Camera } from 'lucide-react';
 import Link from 'next/link';
@@ -32,7 +33,7 @@ export default function ProfilePage() {
     setMessage({ type: '', text: '' });
 
     try {
-      const { data } = await axios.put('http://localhost:5000/api/auth/me/profile', {
+      const { data } = await axios.put(`${API_URL}/api/auth/me/profile`, {
         name,
         profileImage,
         password: password || undefined,

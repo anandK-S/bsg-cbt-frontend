@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { CheckCircle2, XCircle, ArrowLeft, BrainCircuit, Circle } from 'lucide-react';
@@ -26,7 +27,7 @@ export default function ExamReviewPage() {
 
     const fetchDetailedResult = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/attempts/results/${resultId}/detailed`, {
+        const response = await axios.get(`${API_URL}/api/attempts/results/${resultId}/detailed`, {
           withCredentials: true,
         });
         setData(response.data);

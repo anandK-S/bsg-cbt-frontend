@@ -29,7 +29,7 @@ export function useExamEngine(examId: string) {
   useEffect(() => {
     const initExam = async () => {
       try {
-        const { data } = await axios.post(`http://localhost:5000/api/exams/${examId}/start`, {}, { withCredentials: true });
+        const { data } = await axios.post(`${API_URL}/api/exams/${examId}/start`, {}, { withCredentials: true });
         
         // Setup IndexedDB
         const db = await openDB('bsg-cbt', 1, {
@@ -80,7 +80,7 @@ export function useExamEngine(examId: string) {
     if (timerRef.current) clearInterval(timerRef.current);
     
     try {
-      await axios.post(`http://localhost:5000/api/attempts/${attempt._id}/submit`, {}, { withCredentials: true });
+      await axios.post(`${API_URL}/api/attempts/${attempt._id}/submit`, {}, { withCredentials: true });
       
       // Clear IDB
       const db = await openDB('bsg-cbt', 1);
@@ -125,7 +125,7 @@ export function useExamEngine(examId: string) {
         }, examId);
 
         // Sync with Server
-        await axios.post(`http://localhost:5000/api/attempts/${attempt._id}/heartbeat`, {
+        await axios.post(`${API_URL}/api/attempts/${attempt._id}/heartbeat`, {
           timeRemaining,
           answers: attempt.answers,
           warnings,

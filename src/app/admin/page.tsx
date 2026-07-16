@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
@@ -88,8 +89,8 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const [usersRes, examsRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/users', { withCredentials: true }),
-          axios.get('http://localhost:5000/api/exams', { withCredentials: true })
+          axios.get(`${API_URL}/api/users`, { withCredentials: true }),
+          axios.get(`${API_URL}/api/exams`, { withCredentials: true })
         ]);
         setUsers(usersRes.data);
         setExams(examsRes.data);
@@ -111,7 +112,7 @@ export default function AdminDashboard() {
   const toggleBlockStatus = async (userId: string, currentStatus: string) => {
     try {
       const action = currentStatus === 'Active' ? 'block' : 'unblock';
-      await axios.put(`http://localhost:5000/api/users/${userId}/${action}`, {}, {
+      await axios.put(`${API_URL}/api/users/${userId}/${action}`, {}, {
         withCredentials: true,
       });
       setUsers(users.map((u: User) => u._id === userId ? { ...u, status: currentStatus === 'Active' ? 'Blocked' : 'Active' } : u));
@@ -132,7 +133,7 @@ export default function AdminDashboard() {
 
     try {
       if (!selectedUser) return;
-      await axios.put(`http://localhost:5000/api/users/${selectedUser._id}/password`, {
+      await axios.put(`${API_URL}/api/users/${selectedUser._id}/password`, {
         newPassword
       }, {
         withCredentials: true,
@@ -178,7 +179,7 @@ export default function AdminDashboard() {
     setExaminerSuccess('');
 
     try {
-      await axios.post('http://localhost:5000/api/auth/create-examiner', {
+      await axios.post(`${API_URL}/api/auth/create-examiner`, {
         name: examinerName,
         email: examinerEmail,
         password: examinerPassword
@@ -188,7 +189,7 @@ export default function AdminDashboard() {
       setExaminerSuccess('Examiner created successfully!');
       
       // Refresh user list
-      const usersRes = await axios.get('http://localhost:5000/api/users', { withCredentials: true });
+      const usersRes = await axios.get(`${API_URL}/api/users`, { withCredentials: true });
       setUsers(usersRes.data);
 
       setTimeout(() => {
@@ -220,7 +221,7 @@ export default function AdminDashboard() {
     setDeleteError('');
 
     try {
-      await axios.delete(`http://localhost:5000/api/users/${userToDelete._id}`, {
+      await axios.delete(`${API_URL}/api/users/${userToDelete._id}`, {
         data: { adminPassword: adminPasswordForDelete },
         withCredentials: true,
       });
@@ -253,7 +254,7 @@ export default function AdminDashboard() {
     setLoadingInsights(true);
     setInsightsData(null);
     try {
-      const { data } = await axios.get(`http://localhost:5000/api/users/examiner/${examiner._id}/insights`, {
+      const { data } = await axios.get(`${API_URL}/api/users/examiner/${examiner._id}/insights`, {
         withCredentials: true,
       });
       setInsightsData(data);
@@ -273,13 +274,13 @@ export default function AdminDashboard() {
     formData.append('file', bulkImportFile);
 
     try {
-      const { data } = await axios.post('http://localhost:5000/api/users/bulk-import', formData, {
+      const { data } = await axios.post(`${API_URL}/api/users/bulk-import`, formData, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setBulkImportResult(data);
       // Refresh user list
-      const usersRes = await axios.get('http://localhost:5000/api/users', { withCredentials: true });
+      const usersRes = await axios.get(`${API_URL}/api/users`, { withCredentials: true });
       setUsers(usersRes.data);
     } catch (error: any) {
       setBulkImportResult({ message: error.response?.data?.message || 'Failed to import users' });
@@ -819,7 +820,7 @@ export default function AdminDashboard() {
                                       onClick={async () => {
                                         if(window.confirm('Are you sure you want to delete this attempt?')) {
                                           try {
-                                            await axios.delete(`http://localhost:5000/api/attempts/${attempt._id}`, { withCredentials: true });
+                                            await axios.delete(`${API_URL}/api/attempts/${attempt._id}`, { withCredentials: true });
                                             setInsightsData(prev => prev ? {
                                               ...prev,
                                               attempts: prev.attempts.filter(a => a._id !== attempt._id)

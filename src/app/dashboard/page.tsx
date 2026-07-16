@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import { UserCircle, Settings } from 'lucide-react';
 import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
@@ -51,7 +52,7 @@ export default function CandidateDashboard() {
     if (user?.role === 'Candidate') {
       const fetchCandidateData = async () => {
         try {
-          const examsRes = await axios.get('http://localhost:5000/api/exams/available', { withCredentials: true });
+          const examsRes = await axios.get(`${API_URL}/api/exams/available`, { withCredentials: true });
           
           const sortedExams = examsRes.data.sort((a: any, b: any) => {
             const dateA = new Date(a.scheduledStartDate || a.createdAt || Date.now()).getTime();

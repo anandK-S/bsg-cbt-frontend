@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import Link from 'next/link';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 import '@/utils/apiConfig';
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff, BadgeInfo, UserPlus, ShieldCheck } from 'lucide-react';
@@ -33,7 +34,7 @@ export default function Register() {
     setError('');
     try {
       const { data } = await axios.post(
-        'http://localhost:5000/api/auth/register',
+        `${API_URL}/api/auth/register`,
         { name, email, password, bsgId, section },
         { withCredentials: true }
       );
