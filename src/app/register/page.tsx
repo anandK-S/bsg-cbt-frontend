@@ -21,7 +21,7 @@ export default function Register() {
   const [bsgId, setBsgId] = useState('');
   const [section, setSection] = useState('Scout');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<{ message: string, platformName?: string, supportEmail?: string } | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -30,8 +30,15 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+    if (!passwordRegex.test(password)) {
+      setError({ message: 'Password must be at least 6 characters and contain a letter, a number, and a special character.' });
+      return;
+    }
+
     setLoading(true);
-    setError('');
+    setError(null);
     try {
       const { data } = await axios.post(
         `${API_URL}/api/auth/register`,
@@ -48,11 +55,15 @@ export default function Register() {
       } else {
         router.push('/dashboard');
       }
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    } catch (err: any) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError({
+          message: err.response.data.message || 'Registration failed. Please try again.',
+          platformName: err.response.data.platformName,
+          supportEmail: err.response.data.supportEmail
+        });
       } else {
-        setError('Registration failed. Please try again.');
+        setError({ message: 'Registration failed. Please try again.' });
       }
     } finally {
       setLoading(false);
@@ -106,10 +117,18 @@ export default function Register() {
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-red-500/10 text-red-500 p-3 rounded-xl border border-red-500/20 text-sm flex items-center gap-2 font-medium"
+                className={`${error.supportEmail ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-red-500/10 text-red-500 border-red-500/20'} p-4 rounded-xl border flex flex-col gap-2 font-medium text-sm`}
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                {error}
+                <div className="flex items-center gap-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${error.supportEmail ? 'bg-amber-500' : 'bg-red-500'}`} />
+                  <span className="font-bold">{error.platformName ? `${error.platformName} is Under Maintenance` : 'Error'}</span>
+                </div>
+                <p>{error.message}</p>
+                {error.supportEmail && (
+                  <p className="mt-2 text-xs font-bold bg-amber-100 p-2 rounded-lg text-amber-900 inline-block text-center border border-amber-200">
+                    Contact Support: {error.supportEmail}
+                  </p>
+                )}
               </motion.div>
             )}
             
@@ -213,6 +232,7 @@ export default function Register() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                <p className="text-[10px] text-gray-500 mt-1">Min 6 chars, 1 letter, 1 number, 1 special char.</p>
               </div>
             </div>
             <div className="pt-2 flex flex-col sm:flex-row gap-3">

@@ -18,7 +18,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<{ message: string, platformName?: string, supportEmail?: string } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
 
@@ -29,7 +29,7 @@ export default function Login() {
   const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) => {
     if (e) e.preventDefault();
     setLoading(true);
-    setError('');
+    setError(null);
     try {
       const { data } = await axios.post(
         `${API_URL}/api/auth/login`,
@@ -46,11 +46,15 @@ export default function Login() {
       } else {
         router.push('/dashboard');
       }
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || 'Login failed. Please try again.');
+    } catch (err: any) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError({
+          message: err.response.data.message || 'Login failed.',
+          platformName: err.response.data.platformName,
+          supportEmail: err.response.data.supportEmail
+        });
       } else {
-        setError('Login failed. Please try again.');
+        setError({ message: 'Login failed. Please try again.' });
       }
     } finally {
       setLoading(false);
@@ -104,10 +108,18 @@ export default function Login() {
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-red-500/10 text-red-500 p-3 rounded-xl border border-red-500/20 text-sm flex items-center gap-2 font-medium"
+                className={`${error.supportEmail ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-red-500/10 text-red-500 border-red-500/20'} p-4 rounded-xl border flex flex-col gap-2 font-medium text-sm`}
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                {error}
+                <div className="flex items-center gap-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${error.supportEmail ? 'bg-amber-500' : 'bg-red-500'}`} />
+                  <span className="font-bold">{error.platformName ? `${error.platformName} is Under Maintenance` : 'Error'}</span>
+                </div>
+                <p>{error.message}</p>
+                {error.supportEmail && (
+                  <p className="mt-2 text-xs font-bold bg-amber-100 p-2 rounded-lg text-amber-900 inline-block text-center border border-amber-200">
+                    Contact Support: {error.supportEmail}
+                  </p>
+                )}
               </motion.div>
             )}
 
