@@ -37,7 +37,7 @@ export default function Home() {
         <div className="relative flex items-center justify-center">
           <div className="absolute inset-0 w-24 h-24 bg-bsg-blue/20 rounded-full animate-ping"></div>
           <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-bsg-blue to-bsg-blue-light rounded-2xl flex items-center justify-center shadow-2xl transform rotate-3 animate-bounce">
-            <span className="text-white font-extrabold text-2xl">CBT</span>
+            <span className="text-white font-extrabold text-2xl">BSG</span>
           </div>
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex justify-between items-center bg-white/70 backdrop-blur-lg border border-gray-100 rounded-2xl px-6 py-4 shadow-sm">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-bsg-blue to-bsg-blue-light rounded-xl flex items-center justify-center text-white shadow-md transform -rotate-3">
-              <span className="font-extrabold text-sm">CBT</span>
+              <span className="font-extrabold text-sm">BSG</span>
             </div>
             <span className="text-gray-900 font-extrabold text-xl tracking-tight hidden sm:block">
               CBT Portal
@@ -82,8 +82,8 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="relative z-10 flex flex-col items-center justify-center min-h-screen pt-32 pb-16 px-4">
-        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-4xl mx-auto flex flex-col items-center text-center mt-12 sm:mt-20">
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-screen pt-24 pb-16 px-4">
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-4xl mx-auto flex flex-col items-center text-center mt-4 sm:mt-8">
           
           <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/80 border border-blue-100/50 text-bsg-blue text-xs sm:text-sm font-bold mb-8 shadow-sm backdrop-blur-sm">
             <span className="relative flex h-2.5 w-2.5">
@@ -140,9 +140,9 @@ export default function Home() {
             <div className="absolute top-0 right-0 w-96 h-96 bg-bsg-blue/40 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none"></div>
             
             <div className="relative z-10 w-full md:w-1/3 flex justify-center">
-              <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl relative group rotate-3 hover:rotate-0 transition-all duration-500">
-                <img src="/anandkumar-scout.jpg" alt="Anandkumar Sharma Scout" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-              </div>
+              <motion.div animate={{ y: [0, -10, 0], rotate: [-2, 2, -2] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="w-48 h-48 sm:w-56 sm:h-56 rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl relative">
+                <img src="/anandkumar-scout.jpg" alt="Anandkumar Sharma Scout" className="w-full h-full object-cover" />
+              </motion.div>
             </div>
             
             <div className="relative z-10 w-full md:w-2/3 text-center md:text-left space-y-5">

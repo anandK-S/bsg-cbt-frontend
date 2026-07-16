@@ -93,8 +93,8 @@ export default function Login() {
           className="relative z-10"
         >
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform rotate-3">
-              <ShieldCheck size={28} className="text-white" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform -rotate-3">
+              <span className="font-extrabold text-white text-xl sm:text-2xl">BSG</span>
             </div>
           </div>
         <h2 className="text-center text-3xl font-extrabold text-foreground tracking-tight">

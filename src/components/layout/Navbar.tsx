@@ -75,13 +75,9 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
           {/* Logo */}
           <div className="flex items-center">
             <Link href={user?.role === 'Admin' ? '/admin' : user?.role === 'Examiner' ? '/examiner' : '/dashboard'} className="flex items-center gap-2 group">
-              <div className="w-12 h-12 flex items-center justify-center">
-                <img 
-                  src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Bharat_Scouts_and_Guides_Logo.svg/1200px-Bharat_Scouts_and_Guides_Logo.svg.png" 
-                  alt="BSG Logo" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-bsg-blue to-bsg-blue-light rounded-xl flex items-center justify-center text-white shadow-md transform -rotate-3">
+            <span className="font-extrabold text-sm">BSG</span>
+          </div>
               <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-bsg-blue to-bsg-gold tracking-tight hidden sm:block">
                 CBT Portal
               </span>
