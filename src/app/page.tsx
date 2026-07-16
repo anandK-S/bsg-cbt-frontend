@@ -11,9 +11,15 @@ export default function Home() {
   const { isAuthenticated, user, _hasHydrated } = useAuthStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Show welcome modal once per session
+    if (!sessionStorage.getItem('welcomeShown')) {
+      setShowWelcomeModal(true);
+      sessionStorage.setItem('welcomeShown', 'true');
+    }
   }, []);
 
   useEffect(() => {
@@ -186,13 +192,13 @@ export default function Home() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-60 pointer-events-none"></div>
             
             <div className="relative z-10 md:w-1/3 flex justify-center">
-              <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-bsg-blue/20 shadow-2xl relative group">
+              <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-bsg-blue/20 shadow-2xl relative group bg-white flex items-center justify-center p-4">
                 <img 
-                  src="https://www.anandkumar.online/assets/images/about/pic1.jpg" 
-                  alt="Anandkumar Sharma" 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Bharat_Scouts_and_Guides_Logo.svg/1200px-Bharat_Scouts_and_Guides_Logo.svg.png" 
+                  alt="BSG Logo" 
+                  className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-bsg-blue/10 group-hover:bg-transparent transition-colors duration-300"></div>
+                <div className="absolute inset-0 bg-bsg-blue/5 group-hover:bg-transparent transition-colors duration-300"></div>
               </div>
             </div>
             
@@ -202,7 +208,7 @@ export default function Home() {
               </div>
               <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">Anandkumar Sharma</h2>
               <p className="text-lg text-gray-600 font-medium leading-relaxed">
-                Dedicated Software Engineer creating robust, scalable solutions for education and governance. The BSG CBT Portal was engineered to provide a secure, seamless examination experience.
+                Anandkumar Sharma is a Rover of 33rd NAIR, B.P Group, Vadodara Division, Western Railway. The BSG CBT Portal was engineered to provide a secure, seamless examination experience.
               </p>
               
               <div className="pt-4 flex items-center justify-center md:justify-start">
@@ -222,6 +228,36 @@ export default function Home() {
           <a href="/privacy" className="hover:text-bsg-blue transition-colors">Privacy Policy</a>
         </motion.div>
       </main>
+      
+      {/* Welcome Modal */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-bsg-blue to-bsg-gold"></div>
+            <div className="w-20 h-20 mx-auto mb-6 bg-blue-50 rounded-full flex items-center justify-center">
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/en/thumb/e/e5/Bharat_Scouts_and_Guides_Logo.svg/1200px-Bharat_Scouts_and_Guides_Logo.svg.png" 
+                alt="BSG Logo" 
+                className="w-12 h-12 object-contain"
+              />
+            </div>
+            <h2 className="text-2xl font-black text-gray-900 mb-3">Welcome to BSG CBT Portal</h2>
+            <p className="text-gray-600 font-medium leading-relaxed mb-8 text-sm">
+              The official, highly secure Computer Based Test platform for Bharat Scouts and Guides proficiency badges and certifications.
+            </p>
+            <button 
+              onClick={() => setShowWelcomeModal(false)}
+              className="w-full bg-bsg-blue hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
+            >
+              Continue to Portal
+            </button>
+          </motion.div>
+        </div>
+      )}
       
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes shimmer {
