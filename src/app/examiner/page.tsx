@@ -36,6 +36,10 @@ export default function ExaminerDashboard() {
   const [liveAttempts, setLiveAttempts] = useState<LiveAttempt[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('tests'); // 'tests', 'respondents', 'help'
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState('All');
 
   const fetchExams = async () => {
     try {
@@ -82,9 +86,28 @@ export default function ExaminerDashboard() {
       return () => clearInterval(interval);
     }
   }, [activeTab]);
+  
+  // Timer for live countdown
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (activeTab === 'respondents') {
+      const timer = setInterval(() => setNow(Date.now()), 1000);
+      return () => clearInterval(timer);
+    }
+  }, [activeTab]);
 
   if (loading || !_hasHydrated) return <LoadingScreen text="Loading Examiner Portal..." />;
   if (!isAuthenticated || (user?.role !== 'Examiner' && user?.role !== 'Admin')) return null;
+
+  const categories = ['All', ...Array.from(new Set(exams.map(e => e.category).filter(Boolean)))];
+  
+  const filteredExams = exams.filter(exam => {
+    const matchesSearch = exam.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         (exam.description && exam.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesStatus = statusFilter === 'All' || exam.status === statusFilter;
+    const matchesCategory = categoryFilter === 'All' || exam.category === categoryFilter;
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
@@ -103,7 +126,7 @@ export default function ExaminerDashboard() {
               onClick={() => setActiveTab('respondents')}
               className={`whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm ${activeTab === 'respondents' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center gap-2`}
             >
-              <Users size={18} /> Live Monitoring
+              <Activity size={18} /> Live Monitoring
             </button>
             <button 
               onClick={() => setActiveTab('help')}
@@ -119,7 +142,7 @@ export default function ExaminerDashboard() {
       <div className="flex-1 w-full max-w-7xl mx-auto py-8">
         {activeTab === 'tests' && (
           <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
                 <h1 className="text-3xl font-black text-gray-900 mb-2">My Tests</h1>
                 <p className="text-gray-500 font-medium text-sm">Manage, edit, and monitor your computer-based tests.</p>
@@ -131,24 +154,67 @@ export default function ExaminerDashboard() {
                 <span className="text-xl leading-none">+</span> New test
               </Link>
             </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+              <div className="flex-1 relative">
+                <Search size={18} className="absolute left-3 top-3 text-gray-400" />
+                <input 
+                  type="text"
+                  placeholder="Search exams..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 py-2 font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all"
+                />
+              </div>
+              <div className="flex gap-4">
+                <select 
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Published">Published</option>
+                  <option value="Draft">Draft</option>
+                </select>
+                <select 
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all"
+                >
+                  {categories.map((c, i) => (
+                    <option key={i} value={c as string}>{c as string}</option>
+                  ))}
+                </select>
+                <select 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const sorted = [...exams].sort((a, b) => {
+                      // fallback logic for date, usually exams have _id we can sort by or createdAt
+                      const dateA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
+                      const dateB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
+                      return val === 'newest' ? dateB - dateA : dateA - dateB;
+                    });
+                    setExams(sorted);
+                  }}
+                  className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                </select>
+              </div>
+            </div>
 
-            {exams.length === 0 ? (
+            {filteredExams.length === 0 ? (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-16 text-center flex flex-col items-center">
                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
                   <FileText size={40} className="text-gray-400" />
                 </div>
-                <h3 className="text-xl font-black text-gray-900 mb-2">No tests created yet</h3>
-                <p className="text-gray-500 font-medium mb-8 max-w-md">You haven't created any tests. Click the button below to set up your first computer-based test.</p>
-                <Link 
-                  href="/examiner/exams/create" 
-                  className="bg-gray-900 hover:bg-black text-white px-8 py-3 rounded-xl font-bold shadow-md transition-all"
-                >
-                  Create New Test
-                </Link>
+                <h3 className="text-xl font-black text-gray-900 mb-2">No tests found</h3>
+                <p className="text-gray-500 font-medium mb-8 max-w-md">Try adjusting your search or filters.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {exams.map(exam => (
+                {filteredExams.map(exam => (
                   <div key={exam._id} className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
                     <div className="p-6 flex-1">
                       <div className="flex justify-between items-start mb-4 gap-2">
@@ -199,41 +265,63 @@ export default function ExaminerDashboard() {
                     <tr>
                       <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Candidate Details</th>
                       <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Exam Title</th>
+                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Start Time</th>
                       <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Time Left</th>
                       <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Warnings</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
+                  <tbody className="bg-white divide-y divide-gray-200">
                     {liveAttempts.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-16 text-center">
-                          <div className="text-4xl mb-4">👀</div>
-                          <p className="font-bold text-gray-900 text-lg">No active exams right now.</p>
-                          <p className="text-gray-500 text-sm">When candidates start an exam, they will appear here in real-time.</p>
+                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500 font-medium">
+                          No candidates are currently taking exams.
                         </td>
                       </tr>
                     ) : (
-                      liveAttempts.map((attempt) => (
-                        <tr key={attempt._id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-black text-gray-900">{attempt.candidateId?.name}</div>
-                            <div className="text-sm text-gray-500 font-medium">BSG ID: {attempt.candidateId?.bsgId}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{attempt.examId?.title}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-600">
-                            {Math.floor(attempt.timeRemaining / 60)}m {attempt.timeRemaining % 60}s
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-3 py-1 inline-flex text-xs font-black rounded-full ${attempt.warnings > 0 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'}`}>
-                              {attempt.warnings || 0} / 3
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                            {attempt.status}
-                          </td>
-                        </tr>
-                      ))
+                      liveAttempts.map((attempt) => {
+                        const startTime = (attempt as any).startTime ? new Date((attempt as any).startTime).toLocaleTimeString() : 'N/A';
+                        
+                        let liveTimeLeft = attempt.timeRemaining;
+                        if ((attempt as any).startTime) {
+                          const timeSinceSync = Math.floor((now - new Date(attempt.updatedAt).getTime()) / 1000);
+                          liveTimeLeft = Math.max(0, attempt.timeRemaining - timeSinceSync);
+                        }
+
+                        const m = Math.floor(liveTimeLeft / 60);
+                        const s = liveTimeLeft % 60;
+                        const timeString = `${m}:${s.toString().padStart(2, '0')}`;
+
+                        return (
+                          <tr key={attempt._id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-gray-900">{attempt.candidateId?.name || 'Unknown'}</span>
+                                <span className="text-xs text-gray-500">{attempt.candidateId?.bsgId || 'No ID'} | {attempt.candidateId?.section || 'No Section'}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm font-medium text-gray-900">{attempt.examId?.title || 'Unknown Exam'}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm font-medium text-gray-900">{startTime}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`text-sm font-black ${liveTimeLeft < 60 ? 'text-red-600' : 'text-bsg-blue'} font-mono bg-gray-100 px-3 py-1 rounded-md`}>
+                                {timeString}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {attempt.warnings > 0 ? (
+                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-black rounded-full bg-red-100 text-red-800">
+                                  {attempt.warnings} / 3
+                                </span>
+                              ) : (
+                                <span className="text-sm text-gray-500 font-medium">0 / 3</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

@@ -8,16 +8,35 @@ export default function CreateExam() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [durationMinutes, setDurationMinutes] = useState(60);
-  const [durationUnit, setDurationUnit] = useState('min');
+  const [durationHours, setDurationHours] = useState<number | ''>('');
+  const [durationMinutes, setDurationMinutes] = useState<number | ''>(60);
+  const [durationSeconds, setDurationSeconds] = useState<number | ''>('');
   const [passingMarks, setPassingMarks] = useState<number | ''>(50);
   const [allowMultipleAttempts, setAllowMultipleAttempts] = useState(false);
+  const [releaseResultsInstantly, setReleaseResultsInstantly] = useState(true);
   const [scheduledStartDate, setScheduledStartDate] = useState('');
   const [scheduledEndDate, setScheduledEndDate] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate Duration
+    const h = Number(durationHours) || 0;
+    const m = Number(durationMinutes) || 0;
+    const s = Number(durationSeconds) || 0;
+    const totalSeconds = (h * 3600) + (m * 60) + s;
+    
+    if (totalSeconds <= 0) {
+      alert("Please enter a valid exam duration greater than 0.");
+      return;
+    }
+
+    if (scheduledStartDate && scheduledEndDate && new Date(scheduledStartDate) > new Date(scheduledEndDate)) {
+      alert("Start Date cannot be after End Date.");
+      return;
+    }
+
     setLoading(true);
     try {
       const { data } = await axios.post(
@@ -25,10 +44,11 @@ export default function CreateExam() {
         { 
           title, 
           description, 
-          durationMinutes,
-          durationUnit,
+          durationMinutes: Math.ceil(totalSeconds / 60),
+          durationSeconds: totalSeconds,
           passingMarks,
           allowMultipleAttempts,
+          releaseResultsInstantly,
           scheduledStartDate: scheduledStartDate || undefined,
           scheduledEndDate: scheduledEndDate || undefined
         },
@@ -88,26 +108,43 @@ export default function CreateExam() {
             <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Timing & Scoring</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="durationMinutes" className="block text-sm font-bold text-gray-700 mb-1">Duration <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Duration <span className="text-red-500">*</span></label>
                 <div className="flex gap-2">
-                  <input
-                    type="number"
-                    id="durationMinutes"
-                    required
-                    min="1"
-                    className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
-                    value={durationMinutes}
-                    onChange={(e) => setDurationMinutes(parseInt(e.target.value) || 1)}
-                  />
-                  <select
-                    value={durationUnit}
-                    onChange={(e) => setDurationUnit(e.target.value)}
-                    className="block w-32 border border-gray-300 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-bold bg-gray-50"
-                  >
-                    <option value="min">Minutes</option>
-                    <option value="hour">Hours</option>
-                  </select>
+                  <div className="flex-1 relative">
+                    <input
+                      type="number"
+                      min="0"
+                      className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
+                      value={durationHours}
+                      onChange={(e) => setDurationHours(e.target.value ? parseInt(e.target.value) : '')}
+                      placeholder="0"
+                    />
+                    <span className="absolute right-3 top-3.5 text-xs text-gray-400 font-bold uppercase">hr</span>
+                  </div>
+                  <div className="flex-1 relative">
+                    <input
+                      type="number"
+                      min="0"
+                      className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
+                      value={durationMinutes}
+                      onChange={(e) => setDurationMinutes(e.target.value ? parseInt(e.target.value) : '')}
+                      placeholder="0"
+                    />
+                    <span className="absolute right-3 top-3.5 text-xs text-gray-400 font-bold uppercase">min</span>
+                  </div>
+                  <div className="flex-1 relative">
+                    <input
+                      type="number"
+                      min="0"
+                      className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
+                      value={durationSeconds}
+                      onChange={(e) => setDurationSeconds(e.target.value ? parseInt(e.target.value) : '')}
+                      placeholder="0"
+                    />
+                    <span className="absolute right-3 top-3.5 text-xs text-gray-400 font-bold uppercase">sec</span>
+                  </div>
                 </div>
+                <p className="mt-1 text-xs text-gray-500 font-medium">Leave fields empty to default to 0.</p>
               </div>
 
               <div>
@@ -155,23 +192,30 @@ export default function CreateExam() {
               </div>
             </div>
 
-            <div className="pt-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-              <label className="flex items-center gap-4 cursor-pointer group">
-                <div className="relative">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="flex items-center space-x-3 p-4 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 text-bsg-blue focus:ring-bsg-blue rounded border-gray-300"
                     checked={allowMultipleAttempts}
                     onChange={(e) => setAllowMultipleAttempts(e.target.checked)}
                   />
-                  <div className={`block w-14 h-7 rounded-full transition-colors duration-300 ${allowMultipleAttempts ? 'bg-bsg-blue' : 'bg-gray-300'}`}></div>
-                  <div className={`dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300 shadow-sm ${allowMultipleAttempts ? 'transform translate-x-7' : ''}`}></div>
-                </div>
-                <div>
-                  <span className="text-sm font-bold text-gray-900 block group-hover:text-bsg-blue transition-colors">Allow Multiple Attempts</span>
-                  <span className="text-xs font-medium text-gray-500 mt-0.5">If enabled, candidates can re-take this exam after submitting it.</span>
-                </div>
-              </label>
+                  <span className="text-sm font-bold text-gray-700">Allow Multiple Attempts<span className="block text-xs font-normal text-gray-500 mt-0.5">If enabled, candidates can take this exam more than once.</span></span>
+                </label>
+              </div>
+
+              <div>
+                <label className="flex items-center space-x-3 p-4 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 text-bsg-blue focus:ring-bsg-blue rounded border-gray-300"
+                    checked={releaseResultsInstantly}
+                    onChange={(e) => setReleaseResultsInstantly(e.target.checked)}
+                  />
+                  <span className="text-sm font-bold text-gray-700">Release Results Instantly<span className="block text-xs font-normal text-gray-500 mt-0.5">If disabled, candidates will not see their scores until you release them.</span></span>
+                </label>
+              </div>
             </div>
           </div>
         </div>

@@ -12,9 +12,11 @@ interface ExamDetailsData {
   title: string;
   description: string;
   durationMinutes: number;
+  durationSeconds?: number;
   durationUnit: string;
   passingMarks: number;
   allowMultipleAttempts?: boolean;
+  releaseResultsInstantly?: boolean;
   scheduledStartDate?: string | null;
   scheduledEndDate?: string | null;
   status: string;
@@ -40,7 +42,20 @@ export default function ExamDetails() {
   const examId = params.id as string;
   
   const [exam, setExam] = useState<ExamDetailsData | null>(null);
-  const [editForm, setEditForm] = useState<Partial<ExamDetailsData>>({});
+  
+  const [editForm, setEditForm] = useState<{
+    title?: string;
+    description?: string;
+    category?: string;
+    durationHours?: number | '';
+    durationMinutes?: number | '';
+    durationSeconds?: number | '';
+    allowMultipleAttempts?: boolean;
+    releaseResultsInstantly?: boolean;
+    scheduledStartDate?: string;
+    scheduledEndDate?: string;
+  }>({});
+  
   const [isSavingBasic, setIsSavingBasic] = useState(false);
   const [loading, setLoading] = useState(true);
   
@@ -50,6 +65,7 @@ export default function ExamDetails() {
 
   const [results, setResults] = useState<ResultData[]>([]);
   const [loadingResults, setLoadingResults] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   
   // AI Import State
   const [showAiModal, setShowAiModal] = useState(false);
@@ -80,12 +96,21 @@ export default function ExamDetails() {
         withCredentials: true,
       });
       setExam(data);
+      
+      const totalSecs = data.durationSeconds || (data.durationMinutes * 60);
+      const h = Math.floor(totalSecs / 3600);
+      const m = Math.floor((totalSecs % 3600) / 60);
+      const s = totalSecs % 60;
+      
       setEditForm({
         title: data.title,
         description: data.description,
         category: data.category,
-        durationMinutes: data.durationMinutes,
+        durationHours: h || '',
+        durationMinutes: m || '',
+        durationSeconds: s || '',
         allowMultipleAttempts: data.allowMultipleAttempts,
+        releaseResultsInstantly: data.releaseResultsInstantly !== false,
         scheduledStartDate: data.scheduledStartDate ? new Date(data.scheduledStartDate).toISOString().slice(0,16) : '',
         scheduledEndDate: data.scheduledEndDate ? new Date(data.scheduledEndDate).toISOString().slice(0,16) : '',
       });
@@ -100,7 +125,32 @@ export default function ExamDetails() {
   const handleSaveBasicSettings = async () => {
     setIsSavingBasic(true);
     try {
-      await axios.put(`http://localhost:5000/api/exams/${examId}`, editForm, { withCredentials: true });
+      const h = Number(editForm.durationHours) || 0;
+      const m = Number(editForm.durationMinutes) || 0;
+      const s = Number(editForm.durationSeconds) || 0;
+      const totalSeconds = (h * 3600) + (m * 60) + s;
+      
+      if (totalSeconds <= 0) {
+        alert("Please enter a valid exam duration greater than 0.");
+        setIsSavingBasic(false);
+        return;
+      }
+      
+      if (editForm.scheduledStartDate && editForm.scheduledEndDate && new Date(editForm.scheduledStartDate) > new Date(editForm.scheduledEndDate)) {
+        alert("Start Date cannot be after End Date.");
+        setIsSavingBasic(false);
+        return;
+      }
+
+      const payload = {
+        ...editForm,
+        durationMinutes: Math.ceil(totalSeconds / 60),
+        durationSeconds: totalSeconds,
+        scheduledStartDate: editForm.scheduledStartDate || null,
+        scheduledEndDate: editForm.scheduledEndDate || null,
+      };
+
+      await axios.put(`http://localhost:5000/api/exams/${examId}`, payload, { withCredentials: true });
       fetchExam();
       alert('Basic settings updated successfully');
     } catch (error) {
@@ -240,22 +290,30 @@ export default function ExamDetails() {
   };
 
   const handlePublish = async () => {
+    if (!confirm("Are you sure you want to publish this exam? Candidates will be able to take it.")) return;
+    setIsPublishing(true);
     try {
       await axios.put(`http://localhost:5000/api/exams/${examId}/status`, { status: 'Published' }, { withCredentials: true });
       fetchExam();
     } catch (err) {
       console.error("Publish Error:", err);
       alert("Failed to publish exam");
+    } finally {
+      setIsPublishing(false);
     }
   };
 
   const handleUnpublish = async () => {
+    if (!confirm("Are you sure you want to unpublish this exam? It will be moved to Draft status.")) return;
+    setIsPublishing(true);
     try {
       await axios.put(`http://localhost:5000/api/exams/${examId}/status`, { status: 'Draft' }, { withCredentials: true });
       fetchExam();
     } catch (err) {
       console.error("Unpublish Error:", err);
       alert("Failed to unpublish exam");
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -337,16 +395,18 @@ export default function ExamDetails() {
               {exam.status === 'Draft' ? (
                 <button 
                   onClick={handlePublish}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+                  disabled={isPublishing}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
                 >
-                  <CheckCircle size={18} /> Publish Test
+                  <CheckCircle size={18} /> {isPublishing ? 'Publishing...' : 'Publish Test'}
                 </button>
               ) : (
                 <button 
                   onClick={handleUnpublish}
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+                  disabled={isPublishing}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
                 >
-                  <Trash2 size={18} /> Unpublish
+                  <Trash2 size={18} /> {isPublishing ? 'Unpublishing...' : 'Unpublish'}
                 </button>
               )}
             </div>
@@ -414,14 +474,43 @@ export default function ExamDetails() {
                         className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Duration (Minutes)</label>
-                      <input 
-                        type="number" 
-                        value={editForm.durationMinutes || ''}
-                        onChange={(e) => setEditForm({...editForm, durationMinutes: parseInt(e.target.value)})}
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
-                      />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Duration <span className="text-red-500">*</span></label>
+                      <div className="flex gap-2">
+                        <div className="flex-1 relative">
+                          <input
+                            type="number"
+                            min="0"
+                            className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
+                            value={editForm.durationHours}
+                            onChange={(e) => setEditForm({...editForm, durationHours: e.target.value ? parseInt(e.target.value) : ''})}
+                            placeholder="0"
+                          />
+                          <span className="absolute right-3 top-3.5 text-xs text-gray-400 font-bold uppercase">hr</span>
+                        </div>
+                        <div className="flex-1 relative">
+                          <input
+                            type="number"
+                            min="0"
+                            className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
+                            value={editForm.durationMinutes}
+                            onChange={(e) => setEditForm({...editForm, durationMinutes: e.target.value ? parseInt(e.target.value) : ''})}
+                            placeholder="0"
+                          />
+                          <span className="absolute right-3 top-3.5 text-xs text-gray-400 font-bold uppercase">min</span>
+                        </div>
+                        <div className="flex-1 relative">
+                          <input
+                            type="number"
+                            min="0"
+                            className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
+                            value={editForm.durationSeconds}
+                            onChange={(e) => setEditForm({...editForm, durationSeconds: e.target.value ? parseInt(e.target.value) : ''})}
+                            placeholder="0"
+                          />
+                          <span className="absolute right-3 top-3.5 text-xs text-gray-400 font-bold uppercase">sec</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -453,7 +542,7 @@ export default function ExamDetails() {
                       className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none resize-none transition-all"
                     />
                   </div>
-                  <div className="pt-2">
+                  <div className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <div className="relative">
                         <input 
@@ -468,6 +557,23 @@ export default function ExamDetails() {
                       <div>
                         <span className="text-sm font-bold text-gray-700 block group-hover:text-bsg-blue transition-colors">Allow Multiple Attempts</span>
                         <span className="text-xs text-gray-500">If enabled, candidates can take this exam more than once.</span>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div className="relative">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only"
+                          checked={editForm.releaseResultsInstantly !== false}
+                          onChange={(e) => setEditForm({...editForm, releaseResultsInstantly: e.target.checked})}
+                        />
+                        <div className={`block w-12 h-6 rounded-full transition-colors ${editForm.releaseResultsInstantly !== false ? 'bg-bsg-blue' : 'bg-gray-300'}`}></div>
+                        <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${editForm.releaseResultsInstantly !== false ? 'transform translate-x-6' : ''}`}></div>
+                      </div>
+                      <div>
+                        <span className="text-sm font-bold text-gray-700 block group-hover:text-bsg-blue transition-colors">Release Results Instantly</span>
+                        <span className="text-xs text-gray-500">If disabled, candidates won't see their scores.</span>
                       </div>
                     </label>
                   </div>
@@ -615,6 +721,11 @@ export default function ExamDetails() {
                           </div>
                         ))}
                       </div>
+                      {q.questionId.mediaUrl && (
+                        <div className="mt-6 flex justify-center">
+                          <img src={`http://localhost:5000${q.questionId.mediaUrl}`} alt="Question Media" className="max-h-48 max-w-full rounded-xl border border-gray-200 shadow-sm object-contain" />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -781,11 +892,24 @@ export default function ExamDetails() {
                   <label className="block text-sm font-black text-gray-700 mb-2">Category (Optional)</label>
                   <input
                     type="text"
+                    list="bsg-categories"
                     value={manualQuestion.category}
                     onChange={(e) => setManualQuestion({...manualQuestion, category: e.target.value})}
                     className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
-                    placeholder="e.g., Geography"
+                    placeholder="e.g., Pravesh, Pratham Sopan"
                   />
+                  <datalist id="bsg-categories">
+                    <option value="Pravesh" />
+                    <option value="Pratham Sopan" />
+                    <option value="Dwitiya Sopan" />
+                    <option value="Tritiya Sopan" />
+                    <option value="Rajya Puraskar" />
+                    <option value="Rashtrapati Scout/Guide" />
+                    <option value="First Aid" />
+                    <option value="Pioneering" />
+                    <option value="Mapping" />
+                    <option value="Campcraft" />
+                  </datalist>
                 </div>
                 <div>
                   <label className="block text-sm font-black text-gray-700 mb-2">Marks</label>
