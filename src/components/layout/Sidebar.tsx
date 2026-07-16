@@ -12,6 +12,7 @@ import {
   User as UserIcon, 
   Activity,
   Award
+} from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 
