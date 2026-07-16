@@ -248,7 +248,7 @@ export default function ExamDetails() {
 
       if (editingQuestionId) {
         await axios.put(
-          `\/api/exams/${examId}/questions/${editingQuestionId}`,
+          `${API_URL}/api/exams/${examId}/questions/${editingQuestionId}`,
           formData,
           { 
             withCredentials: true,
@@ -257,7 +257,7 @@ export default function ExamDetails() {
         );
       } else {
         await axios.post(
-          `\/api/exams/${examId}/questions`,
+          `${API_URL}/api/exams/${examId}/questions`,
           formData,
           { 
             withCredentials: true,
@@ -750,7 +750,7 @@ export default function ExamDetails() {
                     onClick={async () => {
                       if (confirm("Are you sure you want to release all scores to candidates now?")) {
                         try {
-                          await axios.put(`${API_URL}/api/exams/${examId}/status`, { releaseResultsInstantly: true }, { withCredentials: true });
+                          await axios.put(`${API_URL}/api/exams/${examId}`, { releaseResultsInstantly: true }, { withCredentials: true });
                           fetchExam();
                           alert("Results have been released to candidates!");
                         } catch (err) {

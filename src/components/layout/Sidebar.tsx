@@ -12,8 +12,8 @@ import {
   User as UserIcon, 
   Activity,
   Award
-} from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const { user, isAuthenticated, logout, _hasHydrated } = useAuthStore();
@@ -23,7 +23,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/logout', {}, { withCredentials: true });
+      await axios.post(`${API_URL}/api/auth/logout`, {}, { withCredentials: true });
     } catch (e) {
       console.error('Logout failed on backend', e);
     }
@@ -41,7 +41,8 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         ];
       case 'Examiner':
         return [
-          { name: 'Dashboard', href: '/examiner', icon: LayoutDashboard }
+          { name: 'Dashboard', href: '/examiner', icon: LayoutDashboard },
+          { name: 'Profile', href: '/profile', icon: UserIcon },
         ];
       case 'Candidate':
         return [
@@ -58,8 +59,8 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const links = getLinksForRole();
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64 shadow-sm z-40">
-      <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+    <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64 shadow-xl shadow-bsg-blue/5 z-40">
+      <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-b from-gray-50 to-white">
         <Link href={user?.role === 'Admin' ? '/admin' : user?.role === 'Examiner' ? '/examiner' : '/dashboard'} className="flex items-center gap-2 group" onClick={onClose}>
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
             <span className="text-white font-extrabold text-xs">BSG</span>
@@ -70,8 +71,8 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         </Link>
       </div>
 
-      <div className="flex-1 py-6 px-4 flex flex-col gap-2 overflow-y-auto">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">Navigation</p>
+      <div className="flex-1 py-6 px-4 flex flex-col gap-2 overflow-y-auto custom-scrollbar">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">Main Menu</p>
         {links.map((link) => {
           // Highlight if current path strictly equals link, or starts with it (except for dashboard which is root-like)
           let isActive = pathname === link.href;

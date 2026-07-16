@@ -34,6 +34,7 @@ export default function ExaminerDashboard() {
   const router = useRouter();
   const [exams, setExams] = useState<Exam[]>([]);
   const [liveAttempts, setLiveAttempts] = useState<LiveAttempt[]>([]);
+  const [lastFetchTime, setLastFetchTime] = useState(Date.now());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('tests'); // 'tests', 'respondents', 'help'
   
@@ -65,6 +66,7 @@ export default function ExaminerDashboard() {
         withCredentials: true,
       });
       setLiveAttempts(data);
+      setLastFetchTime(Date.now());
     } catch (error) {
       console.error('Error fetching live attempts:', error);
     }
@@ -289,7 +291,7 @@ export default function ExaminerDashboard() {
                         
                         let liveTimeLeft = attempt.timeRemaining;
                         if ((attempt as any).startTime) {
-                          const timeSinceSync = Math.floor((now - new Date(attempt.updatedAt).getTime()) / 1000);
+                          const timeSinceSync = Math.floor((now - lastFetchTime) / 1000);
                           liveTimeLeft = Math.max(0, attempt.timeRemaining - timeSinceSync);
                         }
 
