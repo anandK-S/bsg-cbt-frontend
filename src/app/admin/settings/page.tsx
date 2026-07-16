@@ -1,21 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Settings, Save, AlertCircle } from 'lucide-react';
+import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function AdminSettings() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const [settings, setSettings] = useState({
+    platformName: 'BSG CBT Portal',
+    supportEmail: 'support@bsg-india.org',
+    maintenanceMode: false
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data } = await axios.get(`${API_URL}/api/settings`);
+        setSettings({
+          platformName: data.platformName || 'BSG CBT Portal',
+          supportEmail: data.supportEmail || 'support@bsg-india.org',
+          maintenanceMode: data.maintenanceMode || false
+        });
+      } catch (error) {
+        console.error('Failed to load settings', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    
+    try {
+      await axios.put(`${API_URL}/api/settings`, settings, { withCredentials: true });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    }, 1000);
+    } catch (error) {
+      console.error('Failed to update settings', error);
+      alert('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) return <LoadingScreen text="Loading Settings..." />;
 
   return (
     <div className="p-4 sm:p-8 max-w-4xl mx-auto w-full">
@@ -39,7 +75,8 @@ export default function AdminSettings() {
               <label className="block text-sm font-semibold text-gray-700 mb-1">Platform Name</label>
               <input 
                 type="text" 
-                defaultValue="BSG CBT Portal"
+                value={settings.platformName}
+                onChange={(e) => setSettings({...settings, platformName: e.target.value})}
                 className="w-full sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-shadow outline-none"
               />
             </div>
@@ -48,14 +85,20 @@ export default function AdminSettings() {
               <label className="block text-sm font-semibold text-gray-700 mb-1">Support Email</label>
               <input 
                 type="email" 
-                defaultValue="support@bsg-india.org"
+                value={settings.supportEmail}
+                onChange={(e) => setSettings({...settings, supportEmail: e.target.value})}
                 className="w-full sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-shadow outline-none"
               />
             </div>
 
             <div>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" defaultChecked className="w-4 h-4 text-bsg-blue border-gray-300 rounded focus:ring-bsg-blue" />
+                <input 
+                  type="checkbox" 
+                  checked={settings.maintenanceMode}
+                  onChange={(e) => setSettings({...settings, maintenanceMode: e.target.checked})}
+                  className="w-4 h-4 text-bsg-blue border-gray-300 rounded focus:ring-bsg-blue" 
+                />
                 <span className="text-sm font-medium text-gray-700">Enable Maintenance Mode</span>
               </label>
               <p className="text-xs text-gray-500 ml-6 mt-1">If enabled, candidates will not be able to log in or start exams.</p>

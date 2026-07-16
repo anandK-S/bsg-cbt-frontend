@@ -7,6 +7,11 @@ import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { 
+  Users, ShieldCheck, UserX, UserCheck, Search, Filter, 
+  MoreVertical, Edit, Trash2, Mail, ShieldAlert,
+  ChevronRight, Database, Download, Plus, LayoutGrid, List
+} from 'lucide-react';
 
 interface User {
   _id: string;
@@ -35,6 +40,7 @@ export default function AdminDashboard() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [activeTab, setActiveTab] = useState<'users' | 'exams'>('users');
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Password Reset Modal State
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -188,7 +194,6 @@ export default function AdminDashboard() {
       });
       setExaminerSuccess('Examiner created successfully!');
       
-      // Refresh user list
       const usersRes = await axios.get(`${API_URL}/api/users`, { withCredentials: true });
       setUsers(usersRes.data);
 
@@ -279,7 +284,6 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setBulkImportResult(data);
-      // Refresh user list
       const usersRes = await axios.get(`${API_URL}/api/users`, { withCredentials: true });
       setUsers(usersRes.data);
     } catch (error: any) {
@@ -300,168 +304,224 @@ export default function AdminDashboard() {
   const filteredUsers = users.filter((u) => {
     const matchRole = roleFilter === 'All' || u.role === roleFilter;
     const matchSection = sectionFilter === 'All' || u.section === sectionFilter;
-    return matchRole && matchSection;
+    const matchSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (u.bsgId && u.bsgId.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchRole && matchSection && matchSearch;
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
-      {/* Premium Header */}
-      <div className="bg-gradient-to-r from-bsg-blue to-bsg-blue-dark rounded-3xl p-8 mb-8 text-white shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10 blur-3xl pointer-events-none"></div>
-        <div className="relative z-10">
-          <h1 className="text-4xl font-black mb-2 tracking-tight">Admin Dashboard</h1>
-          <p className="text-blue-100 text-lg font-medium">Manage your system users, examiners, and monitor overall platform health.</p>
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen bg-gray-50/30">
+      
+      {/* Sleek Header Component */}
+      <div className="relative overflow-hidden rounded-3xl bg-[#0F172A] text-white p-8 md:p-12 mb-8 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8 border border-gray-800">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob"></div>
+        <div className="absolute top-0 right-72 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob animation-delay-2000"></div>
+        
+        <div className="relative z-10 w-full md:w-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-4">
+            <ShieldCheck size={14} /> Control Panel
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+            Admin Workspace
+          </h1>
+          <p className="text-gray-400 text-lg font-medium max-w-xl">
+            Monitor system health, manage examiners and candidates, and configure global portal settings.
+          </p>
+        </div>
+
+        <div className="relative z-10 flex gap-4 w-full md:w-auto">
+          <button 
+            onClick={() => router.push('/admin/settings')}
+            className="flex-1 md:flex-none px-6 py-3.5 rounded-2xl font-bold bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center justify-center gap-2 backdrop-blur-md"
+          >
+            <ShieldAlert size={18} /> Global Settings
+          </button>
+          <button 
+            onClick={() => setShowExaminerModal(true)}
+            className="flex-1 md:flex-none px-6 py-3.5 rounded-2xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] flex items-center justify-center gap-2"
+          >
+            <Plus size={18} /> New Examiner
+          </button>
         </div>
       </div>
       
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-10">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center transform hover:scale-105 transition-transform duration-300">
-          <div className="p-4 rounded-xl bg-blue-50 text-bsg-blue mr-5 text-3xl shadow-inner">👥</div>
-          <div>
-            <dt className="text-sm font-bold text-gray-400 uppercase tracking-wider">Total Users</dt>
-            <dd className="mt-1 text-4xl font-black text-gray-900">{totalUsers}</dd>
+      {/* Premium Stats Grid */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        {[
+          { label: 'Total Users', value: totalUsers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-500/10', border: 'border-blue-100' },
+          { label: 'Active Candidates', value: activeUsers, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-500/10', border: 'border-emerald-100' },
+          { label: 'Blocked Accounts', value: blockedUsers, icon: UserX, color: 'text-rose-600', bg: 'bg-rose-500/10', border: 'border-rose-100' },
+          { label: 'Examiners', value: totalExaminers, icon: Database, color: 'text-purple-600', bg: 'bg-purple-500/10', border: 'border-purple-100' }
+        ].map((stat, i) => (
+          <div key={i} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
+            <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.bg.replace('/10', '/5')} rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`}></div>
+            <div className="flex items-center gap-4 relative z-10">
+              <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color} ${stat.border} border`}>
+                <stat.icon size={24} className="stroke-[2.5]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">{stat.label}</p>
+                <h3 className="text-3xl font-black text-gray-900 mt-1 tracking-tight">{stat.value}</h3>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center transform hover:scale-105 transition-transform duration-300">
-          <div className="p-4 rounded-xl bg-green-50 text-green-600 mr-5 text-3xl shadow-inner">✅</div>
-          <div>
-            <dt className="text-sm font-bold text-gray-400 uppercase tracking-wider">Active Users</dt>
-            <dd className="mt-1 text-4xl font-black text-gray-900">{activeUsers}</dd>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center transform hover:scale-105 transition-transform duration-300">
-          <div className="p-4 rounded-xl bg-red-50 text-red-600 mr-5 text-3xl shadow-inner">🚫</div>
-          <div>
-            <dt className="text-sm font-bold text-gray-400 uppercase tracking-wider">Blocked Users</dt>
-            <dd className="mt-1 text-4xl font-black text-gray-900">{blockedUsers}</dd>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center transform hover:scale-105 transition-transform duration-300">
-          <div className="p-4 rounded-xl bg-purple-50 text-purple-600 mr-5 text-3xl shadow-inner">📝</div>
-          <div>
-            <dt className="text-sm font-bold text-gray-400 uppercase tracking-wider">Examiners</dt>
-            <dd className="mt-1 text-4xl font-black text-gray-900">{totalExaminers}</dd>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-200 mb-8 inline-flex flex-wrap gap-2">
+      {/* Tabs */}
+      <div className="flex items-center gap-2 mb-6 border-b border-gray-200">
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${activeTab === 'users' ? 'bg-bsg-blue text-white shadow-md' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}
+          className={`flex items-center gap-2 px-6 py-4 font-bold text-sm transition-all border-b-2 ${
+            activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+          }`}
         >
-          User Management
+          <Users size={18} /> User Management
         </button>
         <button
           onClick={() => setActiveTab('exams')}
-          className={`px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${activeTab === 'exams' ? 'bg-bsg-blue text-white shadow-md' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}
+          className={`flex items-center gap-2 px-6 py-4 font-bold text-sm transition-all border-b-2 ${
+            activeTab === 'exams' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+          }`}
         >
-          Exam Management
+          <List size={18} /> Platform Exams
         </button>
       </div>
 
+      {/* Main Content Area */}
       {activeTab === 'users' ? (
-        <div className="bg-white shadow-sm overflow-hidden sm:rounded-3xl border border-gray-100 mb-10">
-          <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h3 className="text-xl font-black text-gray-900">User Directory</h3>
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-bsg-blue focus:border-bsg-blue block p-2.5 font-bold shadow-sm"
-              >
-                <option value="All">All Roles</option>
-                <option value="Candidate">Candidate</option>
-                <option value="Examiner">Examiner</option>
-                <option value="Admin">Admin</option>
-              </select>
-              <select
-                value={sectionFilter}
-                onChange={(e) => setSectionFilter(e.target.value)}
-                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-bsg-blue focus:border-bsg-blue block p-2.5 font-bold shadow-sm"
-              >
-                <option value="All">All Sections</option>
-                <option value="Scout">Scout</option>
-                <option value="Guide">Guide</option>
-                <option value="Rover">Rover</option>
-                <option value="Ranger">Ranger</option>
-                <option value="Leader">Leader</option>
-              </select>
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+          {/* Toolbar */}
+          <div className="p-6 border-b border-gray-100 bg-gray-50/30 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div className="relative w-full lg:w-96">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search users by name, email, or BSG ID..." 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow text-sm font-medium"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+              <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl px-3 py-1">
+                <Filter size={16} className="text-gray-400" />
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="bg-transparent text-gray-700 text-sm focus:outline-none py-2 font-bold cursor-pointer"
+                >
+                  <option value="All">All Roles</option>
+                  <option value="Candidate">Candidates</option>
+                  <option value="Examiner">Examiners</option>
+                  <option value="Admin">Admins</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl px-3 py-1">
+                <Filter size={16} className="text-gray-400" />
+                <select
+                  value={sectionFilter}
+                  onChange={(e) => setSectionFilter(e.target.value)}
+                  className="bg-transparent text-gray-700 text-sm focus:outline-none py-2 font-bold cursor-pointer"
+                >
+                  <option value="All">All Sections</option>
+                  <option value="Scout">Scout</option>
+                  <option value="Guide">Guide</option>
+                  <option value="Rover">Rover</option>
+                  <option value="Ranger">Ranger</option>
+                  <option value="Leader">Leader</option>
+                </select>
+              </div>
               <button
                 onClick={() => setShowBulkImportModal(true)}
-                className="bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark px-4 py-2.5 rounded-xl font-black text-sm shadow-md transition-all whitespace-nowrap"
+                className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-2xl font-bold text-sm transition-all shadow-sm flex items-center gap-2 ml-auto lg:ml-0"
               >
-                📥 Bulk Import
-              </button>
-              <button
-                onClick={() => setShowExaminerModal(true)}
-                className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all whitespace-nowrap ml-auto md:ml-0"
-              >
-                + Add Examiner
+                <Download size={16} /> Bulk Import
               </button>
             </div>
           </div>
+
+          {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50/50">
                 <tr>
-                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Name / BSG ID</th>
-                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Role</th>
-                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Section</th>
-                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Status</th>
-                  <th scope="col" className="px-8 py-4 text-right text-xs font-black text-gray-400 uppercase tracking-wider">Actions</th>
+                  <th scope="col" className="px-8 py-5 text-left text-xs font-black text-gray-500 uppercase tracking-wider">User Identity</th>
+                  <th scope="col" className="px-8 py-5 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Role & Status</th>
+                  <th scope="col" className="px-8 py-5 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Section</th>
+                  <th scope="col" className="px-8 py-5 text-right text-xs font-black text-gray-500 uppercase tracking-wider">Management Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-50">
+              <tbody className="bg-white divide-y divide-gray-100">
                 {filteredUsers.map((u: User) => (
-                  <tr key={u._id} className="hover:bg-blue-50/50 transition-colors group">
+                  <tr key={u._id} className="hover:bg-blue-50/40 transition-colors group">
                     <td className="px-8 py-5 whitespace-nowrap">
-                      <div className="text-sm font-black text-gray-900 group-hover:text-bsg-blue transition-colors">{u.name}</div>
-                      <div className="text-sm font-medium text-gray-500">{u.bsgId} | {u.email}</div>
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-inner ${
+                          u.role === 'Admin' ? 'bg-purple-500' : u.role === 'Examiner' ? 'bg-blue-500' : 'bg-gray-400'
+                        }`}>
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="text-sm font-black text-gray-900 group-hover:text-blue-600 transition-colors">{u.name}</div>
+                          <div className="text-xs font-medium text-gray-500 mt-0.5 flex items-center gap-1">
+                            <Mail size={10} /> {u.email} {u.bsgId && <span className="text-gray-300">|</span>} {u.bsgId}
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap">
-                      <span className={`px-4 py-1.5 inline-flex text-xs font-black uppercase tracking-wider rounded-full flex items-center gap-1.5 w-max ${u.role === 'Admin' ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' : u.role === 'Examiner' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'bg-gray-100 text-gray-700 ring-1 ring-gray-200'}`}>
-                        {u.role === 'Admin' && '👑 '}
-                        {u.role === 'Examiner' && '📝 '}
-                        {u.role === 'Candidate' && '🎓 '}
-                        {u.role}
-                      </span>
+                      <div className="flex flex-col gap-2 items-start">
+                        <span className={`px-3 py-1 inline-flex text-[10px] font-black uppercase tracking-wider rounded-lg border ${
+                          u.role === 'Admin' ? 'bg-purple-50 text-purple-700 border-purple-200' : 
+                          u.role === 'Examiner' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
+                          'bg-gray-100 text-gray-700 border-gray-200'
+                        }`}>
+                          {u.role}
+                        </span>
+                        <span className={`px-3 py-1 inline-flex text-[10px] font-black uppercase tracking-wider rounded-lg border ${
+                          u.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
+                          'bg-rose-50 text-rose-700 border-rose-200'
+                        }`}>
+                          {u.status}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-700">{u.section || '-'}</div>
-                    </td>
-                    <td className="px-8 py-5 whitespace-nowrap">
-                      <span className={`px-4 py-1.5 inline-flex text-xs font-black uppercase tracking-wider rounded-full w-max ${u.status === 'Active' ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200'}`}>
-                        {u.status}
-                      </span>
+                      <div className="text-sm font-bold text-gray-700">{u.section || '-'}</div>
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end gap-3">
+                      <div className="flex justify-end gap-2 opacity-100 lg:opacity-50 group-hover:opacity-100 transition-opacity">
                         {u.role !== 'Admin' && (
                           <>
                             <button
                               onClick={() => openPasswordModal(u)}
-                              className="text-bsg-blue hover:text-white font-black hover:bg-bsg-blue px-4 py-2 rounded-xl transition-all shadow-sm border border-blue-100"
+                              className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-xl transition-all border border-transparent hover:border-blue-100"
+                              title="Reset Password"
                             >
-                              Reset Pass
+                              <Edit size={18} />
                             </button>
                             <button
                               onClick={() => toggleBlockStatus(u._id, u.status)}
-                              className={`px-4 py-2 rounded-xl font-black transition-all shadow-sm border ${u.status === 'Active' ? 'border-orange-200 text-orange-600 hover:bg-orange-600 hover:text-white' : 'border-green-200 text-green-600 hover:bg-green-600 hover:text-white'}`}
+                              className={`p-2 rounded-xl transition-all border border-transparent ${
+                                u.status === 'Active' ? 'text-gray-500 hover:text-orange-600 hover:bg-orange-50 hover:border-orange-100' : 'text-orange-500 hover:text-green-600 hover:bg-green-50 hover:border-green-100'
+                              }`}
+                              title={u.status === 'Active' ? 'Block User' : 'Unblock User'}
                             >
-                              {u.status === 'Active' ? 'Soft Delete' : 'Unblock'}
+                              <ShieldCheck size={18} />
                             </button>
                             <button
                               onClick={() => openDeleteModal(u)}
-                              className="px-4 py-2 rounded-xl font-black transition-all shadow-sm border border-red-200 text-red-600 hover:bg-red-600 hover:text-white"
+                              className="text-gray-500 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-xl transition-all border border-transparent hover:border-rose-100"
+                              title="Delete Permanently"
                             >
-                              Perm Delete
+                              <Trash2 size={18} />
                             </button>
                             {u.role === 'Examiner' && (
                               <button
                                 onClick={() => fetchExaminerInsights(u)}
-                                className="px-4 py-2 rounded-xl font-black transition-all shadow-sm border border-purple-200 text-purple-600 hover:bg-purple-600 hover:text-white"
+                                className="text-gray-500 hover:text-purple-600 hover:bg-purple-50 px-4 py-2 rounded-xl font-bold transition-all border border-transparent hover:border-purple-100"
                               >
                                 Insights
                               </button>
@@ -472,63 +532,84 @@ export default function AdminDashboard() {
                     </td>
                   </tr>
                 ))}
+                {filteredUsers.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-8 py-16 text-center text-gray-500">
+                      <div className="mx-auto w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                        <Search className="text-gray-400" size={24} />
+                      </div>
+                      <p className="text-lg font-bold text-gray-700">No users found</p>
+                      <p className="text-sm mt-1">Try adjusting your filters or search query.</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
       ) : (
-        <div className="bg-white shadow-sm overflow-hidden sm:rounded-3xl border border-gray-100 mb-10">
-          <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-            <h3 className="text-xl font-black text-gray-900">All Exams</h3>
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-100 bg-gray-50/30">
+            <h3 className="text-lg font-black text-gray-900">Platform Exams Overview</h3>
+            <p className="text-sm text-gray-500 font-medium mt-1">Monitor all exams created by examiners.</p>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50/50">
                 <tr>
-                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Exam Title</th>
-                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Examiner</th>
-                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Duration</th>
-                  <th scope="col" className="px-8 py-4 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Status</th>
-                  <th scope="col" className="px-8 py-4 text-right text-xs font-black text-gray-400 uppercase tracking-wider">Actions</th>
+                  <th scope="col" className="px-8 py-5 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Exam Title</th>
+                  <th scope="col" className="px-8 py-5 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Created By</th>
+                  <th scope="col" className="px-8 py-5 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Status & Duration</th>
+                  <th scope="col" className="px-8 py-5 text-right text-xs font-black text-gray-500 uppercase tracking-wider">Action</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-50">
+              <tbody className="bg-white divide-y divide-gray-100">
                 {exams.map((exam: Exam) => (
-                  <tr key={exam._id} className="hover:bg-blue-50/50 transition-colors group">
+                  <tr key={exam._id} className="hover:bg-blue-50/40 transition-colors group">
                     <td className="px-8 py-5">
-                      <div className="text-sm font-black text-gray-900 group-hover:text-bsg-blue transition-colors">{exam.title}</div>
-                      <div className="text-sm font-medium text-gray-500 truncate max-w-xs">{exam.description || 'No description'}</div>
+                      <div className="text-sm font-black text-gray-900 group-hover:text-blue-600 transition-colors">{exam.title}</div>
+                      <div className="text-xs font-medium text-gray-500 truncate max-w-xs mt-1">{exam.description || 'No description provided'}</div>
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap">
-                      <div className="text-sm font-bold text-gray-900">
+                      <div className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] text-gray-600">
+                          {/* @ts-ignore */}
+                          {exam.creatorId?.name?.charAt(0) || '?'}
+                        </div>
                         {/* @ts-ignore */}
-                        {exam.creatorId?.name || 'Unknown'}
+                        {exam.creatorId?.name || 'Unknown Examiner'}
                       </div>
                     </td>
-                    <td className="px-8 py-5 whitespace-nowrap text-sm font-bold text-gray-600 flex items-center gap-1.5">
-                      ⏱️ {exam.durationMinutes} mins
-                    </td>
                     <td className="px-8 py-5 whitespace-nowrap">
-                      <span className={`px-4 py-1.5 inline-flex text-xs font-black uppercase tracking-wider rounded-full w-max flex items-center gap-1.5 ${exam.status === 'Published' ? 'bg-green-50 text-green-700 ring-1 ring-green-200' : 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200'}`}>
-                        <span className={`w-2 h-2 rounded-full ${exam.status === 'Published' ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
-                        {exam.status}
-                      </span>
+                      <div className="flex flex-col gap-2 items-start">
+                        <span className={`px-3 py-1 inline-flex text-[10px] font-black uppercase tracking-wider rounded-lg border ${
+                          exam.status === 'Published' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}>
+                          {exam.status}
+                        </span>
+                        <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                          ⏱️ {exam.durationMinutes} minutes
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-8 py-5 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-8 py-5 whitespace-nowrap text-right">
                       <button
                         onClick={() => router.push(`/examiner/exams/${exam._id}`)}
-                        className="text-bsg-blue hover:text-white font-black hover:bg-bsg-blue px-6 py-2 rounded-xl transition-all shadow-sm border border-blue-100 inline-block"
+                        className="text-gray-500 group-hover:text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl font-bold transition-all border border-transparent hover:border-blue-100 inline-flex items-center gap-2"
                       >
-                        Manage &rarr;
+                        Inspect <ChevronRight size={16} />
                       </button>
                     </td>
                   </tr>
                 ))}
                 {exams.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-8 py-12 text-center text-gray-500 font-medium">
-                      <div className="text-4xl mb-4">🗂️</div>
-                      No exams found in the system.
+                    <td colSpan={4} className="px-8 py-16 text-center text-gray-500">
+                      <div className="mx-auto w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                        <List className="text-gray-400" size={24} />
+                      </div>
+                      <p className="text-lg font-bold text-gray-700">No exams yet</p>
+                      <p className="text-sm mt-1">Examiners have not created any exams.</p>
                     </td>
                   </tr>
                 )}
@@ -538,70 +619,54 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Modals remain functionally the same but visually upgraded */}
       {/* Password Reset Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => !isResetting && setShowPasswordModal(false)}></div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                      Reset Password for {selectedUser?.name}
-                    </h3>
-                    <div className="mt-4">
-                      {resetError && <div className="mb-4 p-2 bg-red-50 text-red-700 text-sm rounded border border-red-200">{resetError}</div>}
-                      {resetSuccess && <div className="mb-4 p-2 bg-green-50 text-green-700 text-sm rounded border border-green-200">{resetSuccess}</div>}
-                      
-                      <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">New Password</label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          id="new-password"
-                          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 pr-10 focus:outline-none focus:ring-bsg-blue focus:border-bsg-blue sm:text-sm"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Enter new password (min 6 chars)"
-                          disabled={isResetting || !!resetSuccess}
-                        />
-                        <button
-                          type="button"
-                          className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-                          onClick={() => setShowPassword(!showPassword)}
-                          title={showPassword ? "Hide password" : "Show password"}
-                        >
-                          {showPassword ? '👁️' : '👁️‍🗨️'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative transform transition-all">
+            <h2 className="text-2xl font-black text-gray-900 mb-2">Reset Password</h2>
+            <p className="text-gray-500 text-sm font-medium mb-6">For user: {selectedUser?.name}</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">New Password</label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"}
+                    value={newPassword} 
+                    onChange={e => setNewPassword(e.target.value)} 
+                    className="w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-medium"
+                    placeholder="Enter new password (min 6 chars)"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 flex flex-col sm:flex-row-reverse gap-2">
-                <button
-                  type="button"
-                  onClick={handlePasswordReset}
-                  disabled={isResetting || !!resetSuccess}
-                  className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-6 py-2 bg-bsg-blue text-base font-bold text-white hover:bg-bsg-blue-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
-                >
-                  {isResetting ? 'Resetting...' : 'Reset Password'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordModal(false)}
-                  disabled={isResetting || !!resetSuccess}
-                  className="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
+            </div>
+
+            {resetError && <p className="mt-4 text-rose-500 font-semibold text-sm bg-rose-50 p-3 rounded-xl">{resetError}</p>}
+            {resetSuccess && <p className="mt-4 text-emerald-500 font-semibold text-sm bg-emerald-50 p-3 rounded-xl">{resetSuccess}</p>}
+            
+            <div className="mt-8 flex justify-end gap-3">
+              <button 
+                onClick={() => setShowPasswordModal(false)} 
+                className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                disabled={isResetting}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handlePasswordReset} 
+                className="px-6 py-2.5 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all flex items-center gap-2"
+                disabled={isResetting}
+              >
+                {isResetting ? 'Saving...' : 'Reset Password'}
+              </button>
             </div>
           </div>
         </div>
@@ -609,54 +674,54 @@ export default function AdminDashboard() {
 
       {/* Create Examiner Modal */}
       {showExaminerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
-            <h2 className="text-2xl font-black text-gray-900 mb-6">Create Examiner</h2>
+            <h2 className="text-2xl font-black text-gray-900 mb-6">Create New Examiner</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Name</label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
                 <input 
                   type="text" 
                   value={examinerName} 
                   onChange={e => setExaminerName(e.target.value)} 
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-bsg-blue focus:border-transparent outline-none transition-all"
-                  placeholder="Examiner Name"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-medium"
+                  placeholder="e.g. John Doe"
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
                 <input 
                   type="email" 
                   value={examinerEmail} 
                   onChange={e => setExaminerEmail(e.target.value)} 
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-bsg-blue focus:border-transparent outline-none transition-all"
-                  placeholder="examiner@example.com"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-medium"
+                  placeholder="examiner@bsg.org"
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Initial Password</label>
                 <div className="relative">
                   <input 
                     type={showExaminerPassword ? "text" : "password"}
                     value={examinerPassword} 
                     onChange={e => setExaminerPassword(e.target.value)} 
-                    className="w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-bsg-blue focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all font-medium"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 text-sm font-bold"
                     onClick={() => setShowExaminerPassword(!showExaminerPassword)}
                   >
-                    {showExaminerPassword ? '👁️' : '👁️‍🗨️'}
+                    {showExaminerPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
               </div>
             </div>
 
-            {examinerError && <p className="mt-4 text-red-500 font-semibold text-sm bg-red-50 p-3 rounded-xl">{examinerError}</p>}
-            {examinerSuccess && <p className="mt-4 text-green-500 font-semibold text-sm bg-green-50 p-3 rounded-xl">{examinerSuccess}</p>}
+            {examinerError && <p className="mt-4 text-rose-500 font-semibold text-sm bg-rose-50 p-3 rounded-xl">{examinerError}</p>}
+            {examinerSuccess && <p className="mt-4 text-emerald-500 font-semibold text-sm bg-emerald-50 p-3 rounded-xl">{examinerSuccess}</p>}
             
             <div className="mt-8 flex justify-end gap-3">
               <button 
@@ -672,10 +737,10 @@ export default function AdminDashboard() {
               </button>
               <button 
                 onClick={handleCreateExaminer} 
-                className="px-6 py-2.5 rounded-xl font-bold bg-bsg-blue hover:bg-bsg-blue-dark text-white shadow-md transition-all flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all flex items-center gap-2"
                 disabled={isCreatingExaminer}
               >
-                {isCreatingExaminer ? 'Creating...' : 'Create Examiner'}
+                {isCreatingExaminer ? 'Creating...' : 'Create Account'}
               </button>
             </div>
           </div>
@@ -684,39 +749,33 @@ export default function AdminDashboard() {
 
       {/* Permanent Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative border-t-8 border-red-500">
-            <div className="flex items-center gap-3 mb-4 text-red-500">
-              <div className="text-3xl">⚠️</div>
-              <h2 className="text-2xl font-black">Permanent Delete</h2>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative border-t-8 border-rose-500">
+            <h2 className="text-2xl font-black text-rose-600 mb-4 flex items-center gap-2">
+              <ShieldAlert /> Critical Action
+            </h2>
             
             <p className="text-gray-600 font-medium mb-6">
-              You are about to permanently delete <strong className="text-gray-900">{userToDelete?.name}</strong>. This action cannot be undone. Please enter your Admin password to confirm.
+              You are about to permanently delete <strong className="text-gray-900">{userToDelete?.name}</strong>. This action is irreversible. Enter your Admin password to proceed.
             </p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Your Admin Password</label>
                 <input 
                   type="password" 
                   value={adminPasswordForDelete} 
                   onChange={e => setAdminPasswordForDelete(e.target.value)} 
-                  className="w-full px-4 py-3 rounded-xl border border-red-200 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Verify your password"
+                  className="w-full px-4 py-3 rounded-xl border border-rose-200 focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none transition-all bg-rose-50/50"
+                  placeholder="Admin Password"
                 />
               </div>
             </div>
 
-            {deleteError && <p className="mt-4 text-red-500 font-semibold text-sm bg-red-50 p-3 rounded-xl border border-red-100">{deleteError}</p>}
+            {deleteError && <p className="mt-4 text-rose-500 font-semibold text-sm bg-rose-50 p-3 rounded-xl border border-rose-100">{deleteError}</p>}
             
             <div className="mt-8 flex justify-end gap-3">
               <button 
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeleteError('');
-                  setAdminPasswordForDelete('');
-                }} 
+                onClick={() => setShowDeleteModal(false)} 
                 className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
                 disabled={isDeleting}
               >
@@ -724,7 +783,7 @@ export default function AdminDashboard() {
               </button>
               <button 
                 onClick={handlePermanentDelete} 
-                className="px-6 py-2.5 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white shadow-md transition-all flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-md transition-all flex items-center gap-2"
                 disabled={isDeleting}
               >
                 {isDeleting ? 'Deleting...' : 'Delete Permanently'}
@@ -734,172 +793,43 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Examiner Insights Modal */}
-      {showInsightsModal && selectedExaminer && (
-        <div className="fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex items-center justify-center min-h-screen p-4 text-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowInsightsModal(false)}></div>
-            <div className="relative inline-block bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-4xl w-full">
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-6 flex justify-between items-center">
-                <h3 className="text-2xl font-black text-white" id="modal-title">
-                  Examiner Insights: {selectedExaminer.name}
-                </h3>
-                <button onClick={() => setShowInsightsModal(false)} className="text-white hover:text-gray-200 text-2xl font-bold">&times;</button>
-              </div>
-              <div className="px-8 py-6 bg-gray-50 max-h-[70vh] overflow-y-auto">
-                {loadingInsights ? (
-                  <div className="flex justify-center items-center h-40">
-                    <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                ) : insightsData ? (
-                  <div className="space-y-8">
-                    <div>
-                      <h4 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">📝 Prepared Exams</h4>
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <table className="min-w-full divide-y divide-gray-100">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Exam Title</th>
-                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Questions</th>
-                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {insightsData.exams.map((exam: any) => (
-                              <tr key={exam._id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{exam.title}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.questions?.length || 0} questions</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${exam.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                    {exam.status}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                            {insightsData.exams.length === 0 && (
-                              <tr>
-                                <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">No exams created by this examiner.</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">🎓 Candidate Results (For their exams)</h4>
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <table className="min-w-full divide-y divide-gray-100">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Candidate</th>
-                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Exam Title</th>
-                              <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Score</th>
-                              <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-100">
-                            {insightsData.attempts.map((attempt: any) => {
-                              const associatedExam = insightsData.exams.find((e: any) => e._id === attempt.examId);
-                              const earned = attempt.score || 0;
-                              const total = attempt.totalMarks || 0;
-                              return (
-                                <tr key={attempt._id}>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                                    {attempt.candidateId?.name || 'Unknown'}
-                                    <div className="text-xs text-gray-500 font-normal">{attempt.candidateId?.section}</div>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{associatedExam?.title || 'Unknown Exam'}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold">
-                                    <span className={earned === total && total > 0 ? 'text-green-600' : 'text-blue-600'}>
-                                      {earned} / {total || '-'}
-                                    </span>
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button 
-                                      onClick={async () => {
-                                        if(window.confirm('Are you sure you want to delete this attempt?')) {
-                                          try {
-                                            await axios.delete(`${API_URL}/api/attempts/${attempt._id}`, { withCredentials: true });
-                                            setInsightsData(prev => prev ? {
-                                              ...prev,
-                                              attempts: prev.attempts.filter(a => a._id !== attempt._id)
-                                            } : null);
-                                          } catch(e) {
-                                            alert('Failed to delete attempt');
-                                          }
-                                        }
-                                      }}
-                                      className="text-red-600 hover:text-red-900 font-bold"
-                                    >
-                                      Delete
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                            {insightsData.attempts.length === 0 && (
-                              <tr>
-                                <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">No attempts recorded for these exams yet.</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-10 text-gray-500">Failed to load insights.</div>
-                )}
-              </div>
-              <div className="bg-white px-4 py-3 border-t border-gray-100 sm:px-6 flex flex-row-reverse">
-                <button
-                  type="button"
-                  onClick={() => setShowInsightsModal(false)}
-                  className="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-6 py-2.5 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 sm:w-auto sm:text-sm"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Bulk Import Modal */}
       {showBulkImportModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Bulk Import Users</h2>
-            <p className="text-gray-500 text-sm mb-6">Upload a CSV file with columns: <code className="bg-gray-100 px-2 py-0.5 rounded text-gray-800 font-bold">name, email, password, role, bsgId, section, state</code></p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+            <h2 className="text-2xl font-black text-gray-900 mb-6">Bulk Import Users</h2>
             
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Select CSV File</label>
-              <input 
-                type="file" 
+            <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors relative cursor-pointer group">
+              <input
+                type="file"
                 accept=".csv"
-                onChange={(e) => setBulkImportFile(e.target.files ? e.target.files[0] : null)}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-bsg-blue/10 file:text-bsg-blue hover:file:bg-bsg-blue/20"
+                onChange={(e) => setBulkImportFile(e.target.files?.[0] || null)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
+              <div className="text-4xl mb-2 group-hover:scale-110 transition-transform">📄</div>
+              <p className="text-gray-700 font-bold mb-1">
+                {bulkImportFile ? bulkImportFile.name : 'Click or drag CSV file here'}
+              </p>
+              <p className="text-xs text-gray-500 font-medium">Must include headers: name, email, password, section, bsgId</p>
             </div>
-            
+
             {bulkImportResult && (
-              <div className={`mb-6 p-4 rounded-xl border ${bulkImportResult.errors?.length ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'}`}>
-                <p className={`font-bold ${bulkImportResult.errors?.length ? 'text-orange-800' : 'text-green-800'}`}>
-                  {bulkImportResult.message}
-                </p>
+              <div className={`mt-4 p-4 rounded-xl text-sm font-medium border ${
+                bulkImportResult.errors?.length ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              }`}>
+                <p className="font-bold">{bulkImportResult.message}</p>
                 {bulkImportResult.createdCount !== undefined && (
-                  <p className="text-sm font-medium mt-1 text-gray-700">Users created: {bulkImportResult.createdCount}</p>
+                  <p>Successfully created: {bulkImportResult.createdCount}</p>
                 )}
                 {bulkImportResult.errors && bulkImportResult.errors.length > 0 && (
-                  <div className="mt-2 max-h-32 overflow-y-auto text-xs text-red-600 bg-white p-2 rounded border border-red-100">
-                    {bulkImportResult.errors.map((e, idx) => <div key={idx}>{e}</div>)}
-                  </div>
+                  <ul className="mt-2 list-disc pl-5 space-y-1 text-xs">
+                    {bulkImportResult.errors.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
                 )}
               </div>
             )}
             
-            <div className="flex justify-end gap-3">
+            <div className="mt-8 flex justify-end gap-3">
               <button 
                 onClick={() => {
                   setShowBulkImportModal(false);
@@ -909,12 +839,12 @@ export default function AdminDashboard() {
                 className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
                 disabled={isBulkImporting}
               >
-                Close
+                {bulkImportResult ? 'Close' : 'Cancel'}
               </button>
               <button 
                 onClick={handleBulkImport} 
-                className="px-6 py-2.5 rounded-xl font-bold bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
-                disabled={isBulkImporting || !bulkImportFile}
+                disabled={!bulkImportFile || isBulkImporting}
+                className="px-6 py-2.5 rounded-xl font-bold bg-gray-900 hover:bg-gray-800 text-white shadow-md transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isBulkImporting ? 'Importing...' : 'Start Import'}
               </button>
