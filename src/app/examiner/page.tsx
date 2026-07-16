@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
-import { Search, FileText, Activity, Users, Settings, LogOut, CheckCircle, Clock } from 'lucide-react';
+import { Search, FileText, Activity, Users, Settings, LogOut, CheckCircle, Clock, HelpCircle, Database } from 'lucide-react';
 import { API_URL } from '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
