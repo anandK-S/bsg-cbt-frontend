@@ -43,7 +43,7 @@ export default function ExaminerDashboard() {
 
   const fetchExams = async () => {
     try {
-      const { data } = await axios.get('\/api/exams', {
+      const { data } = await axios.get(`${API_URL}/api/exams`, {
         withCredentials: true,
       });
       setExams(data);
@@ -61,7 +61,7 @@ export default function ExaminerDashboard() {
 
   const fetchLiveAttempts = async () => {
     try {
-      const { data } = await axios.get('\/api/attempts/live', {
+      const { data } = await axios.get(`${API_URL}/api/attempts/live`, {
         withCredentials: true,
       });
       setLiveAttempts(data);

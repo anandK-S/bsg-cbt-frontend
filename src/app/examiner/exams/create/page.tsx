@@ -41,7 +41,7 @@ export default function CreateExam() {
     setLoading(true);
     try {
       const { data } = await axios.post(
-        '\/api/exams',
+        `${API_URL}/api/exams`,
         { 
           title, 
           description, 

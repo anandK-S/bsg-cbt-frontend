@@ -93,7 +93,7 @@ export default function ExamDetails() {
 
   const fetchExam = async () => {
     try {
-      const { data } = await axios.get(`\/api/exams/${examId}?t=${new Date().getTime()}`, {
+      const { data } = await axios.get(`${API_URL}/api/exams/${examId}?t=${new Date().getTime()}`, {
         withCredentials: true,
       });
       setExam(data);
@@ -151,7 +151,7 @@ export default function ExamDetails() {
         scheduledEndDate: editForm.scheduledEndDate || null,
       };
 
-      await axios.put(`\/api/exams/${examId}`, payload, { withCredentials: true });
+      await axios.put(`${API_URL}/api/exams/${examId}`, payload, { withCredentials: true });
       fetchExam();
       alert('Basic settings updated successfully');
     } catch (error) {
@@ -175,7 +175,7 @@ export default function ExamDetails() {
       const fetchResults = async () => {
         setLoadingResults(true);
         try {
-          const { data } = await axios.get(`\/api/attempts/${examId}/result`, {
+          const { data } = await axios.get(`${API_URL}/api/attempts/${examId}/result`, {
             withCredentials: true,
           });
           setResults(Array.isArray(data) ? data : []);
@@ -201,7 +201,7 @@ export default function ExamDetails() {
     formData.append('file', importFile);
     
     try {
-      await axios.post(`\/api/exams/${examId}/questions/import`, formData, { 
+      await axios.post(`${API_URL}/api/exams/${examId}/questions/import`, formData, { 
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -298,7 +298,7 @@ export default function ExamDetails() {
     if (!confirm("Are you sure you want to publish this exam? Candidates will be able to take it.")) return;
     setIsPublishing(true);
     try {
-      await axios.put(`\/api/exams/${examId}/status`, { status: 'Published' }, { withCredentials: true });
+      await axios.put(`${API_URL}/api/exams/${examId}/status`, { status: 'Published' }, { withCredentials: true });
       fetchExam();
     } catch (err) {
       console.error("Publish Error:", err);
@@ -312,7 +312,7 @@ export default function ExamDetails() {
     if (!confirm("Are you sure you want to unpublish this exam? It will be moved to Draft status.")) return;
     setIsPublishing(true);
     try {
-      await axios.put(`\/api/exams/${examId}/status`, { status: 'Draft' }, { withCredentials: true });
+      await axios.put(`${API_URL}/api/exams/${examId}/status`, { status: 'Draft' }, { withCredentials: true });
       fetchExam();
     } catch (err) {
       console.error("Unpublish Error:", err);
@@ -587,7 +587,7 @@ export default function ExamDetails() {
                       onClick={async () => {
                         if (confirm("Are you sure you want to permanently delete this exam? This action cannot be undone.")) {
                           try {
-                            await axios.delete(`\/api/exams/${examId}`, { withCredentials: true });
+                            await axios.delete(`${API_URL}/api/exams/${examId}`, { withCredentials: true });
                             router.push('/examiner');
                           } catch (err) {
                             alert('Failed to delete exam');
@@ -699,7 +699,7 @@ export default function ExamDetails() {
                           onClick={async () => {
                             if (confirm("Are you sure you want to delete this question?")) {
                               try {
-                                await axios.delete(`\/api/exams/${examId}/questions/${q.questionId._id}`, { withCredentials: true });
+                                await axios.delete(`${API_URL}/api/exams/${examId}/questions/${q.questionId._id}`, { withCredentials: true });
                                 fetchExam(); // refresh
                               } catch (err) {
                                 alert('Failed to delete question');
@@ -767,8 +767,8 @@ export default function ExamDetails() {
                   onClick={async () => {
                     if (confirm("Are you sure you want to clear ALL results for this exam? This cannot be undone.")) {
                       try {
-                        await axios.delete(`\/api/attempts/${examId}/results`, { withCredentials: true });
-                        const { data } = await axios.get(`\/api/attempts/${examId}/result`, { withCredentials: true });
+                        await axios.delete(`${API_URL}/api/attempts/${examId}/results`, { withCredentials: true });
+                        const { data } = await axios.get(`${API_URL}/api/attempts/${examId}/result`, { withCredentials: true });
                         setResults(Array.isArray(data) ? data : []);
                       } catch (err) {
                         alert('Failed to clear results');
@@ -836,7 +836,7 @@ export default function ExamDetails() {
                               onClick={async () => {
                                 if (confirm("Are you sure you want to delete this candidate's result?")) {
                                   try {
-                                    await axios.delete(`\/api/attempts/result/${result._id}`, { withCredentials: true });
+                                    await axios.delete(`${API_URL}/api/attempts/result/${result._id}`, { withCredentials: true });
                                     setResults(results.filter(r => r._id !== result._id));
                                   } catch (err) {
                                     alert('Failed to delete result');
