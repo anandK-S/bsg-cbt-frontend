@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
 import { LayoutDashboard, Users, Database, Settings, HelpCircle, FileText, Activity, Search } from 'lucide-react';
-import '@/utils/apiConfig';
+import { API_URL } from '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface Exam {
@@ -43,7 +43,7 @@ export default function ExaminerDashboard() {
 
   const fetchExams = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/exams', {
+      const { data } = await axios.get('\/api/exams', {
         withCredentials: true,
       });
       setExams(data);
@@ -61,7 +61,7 @@ export default function ExaminerDashboard() {
 
   const fetchLiveAttempts = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/attempts/live', {
+      const { data } = await axios.get('\/api/attempts/live', {
         withCredentials: true,
       });
       setLiveAttempts(data);
@@ -134,6 +134,12 @@ export default function ExaminerDashboard() {
             >
               <HelpCircle size={18} /> Help & Tutorials
             </button>
+            <Link 
+              href="/profile"
+              className="whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 flex items-center gap-2"
+            >
+              <Settings size={18} /> Profile Settings
+            </Link>
           </div>
         </div>
       </div>

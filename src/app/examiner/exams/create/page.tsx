@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
 
 export default function CreateExam() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function CreateExam() {
     setLoading(true);
     try {
       const { data } = await axios.post(
-        'http://localhost:5000/api/exams',
+        '\/api/exams',
         { 
           title, 
           description, 
