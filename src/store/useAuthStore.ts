@@ -9,6 +9,10 @@ interface User {
   bsgId?: string;
   profileImage?: string;
   token?: string;
+  district?: string;
+  section?: string;
+  unitName?: string;
+  unitNumber?: string;
 }
 
 interface AuthState {
