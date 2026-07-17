@@ -487,9 +487,10 @@ export default function ExamTakePage() {
         {/* Left Side: Question Area (70%) */}
         <div className="flex-1 flex flex-col w-full md:w-[70%] lg:w-[75%] border-r border-gray-300 bg-white">
           {/* Question Header */}
-          <div className="bg-gray-100 border-b border-gray-300 px-6 py-2 flex justify-between items-center">
+          <div className="bg-gray-100 border-b border-gray-300 px-6 py-2 flex justify-between items-center flex-wrap gap-2">
             <span className="font-extrabold text-gray-700 text-lg">Question No. {currentQuestionIndex + 1}</span>
             <div className="flex items-center gap-4 text-sm font-bold text-gray-500">
+              {currentQ.section && <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded uppercase tracking-wider text-xs border border-purple-200">Section: {currentQ.section}</span>}
               <span>Marks: <span className="text-green-600">+{currentQ.marks || 1}</span></span>
               <span>Type: <span className="text-gray-700">{currentQ.type === 'MultipleChoice' ? 'Multiple Choice' : currentQ.type === 'Subjective' ? 'Subjective' : currentQ.type === 'LogicDecision' ? 'Logic/Decision' : 'Single Choice'}</span></span>
             </div>

@@ -77,12 +77,14 @@ export default function ExamDetails() {
   // Manual Question State
   const [showManualModal, setShowManualModal] = useState(false);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [manualQuestion, setManualQuestion] = useState({
     text: '',
     options: ['', '', '', ''],
     correctOptionIndex: 0,
     acceptableAnswers: [''],
     category: '',
+    section: '',
     marks: 1,
     type: 'SingleChoice',
     mediaUrl: ''
@@ -233,6 +235,7 @@ export default function ExamDetails() {
       formData.append('marks', manualQuestion.marks.toString());
       formData.append('type', manualQuestion.type);
       if (manualQuestion.category) formData.append('category', manualQuestion.category);
+      if (manualQuestion.section) formData.append('section', manualQuestion.section);
       if (manualQuestion.mediaUrl) formData.append('mediaUrl', manualQuestion.mediaUrl);
       
       if (manualQuestion.type === 'Subjective') {
@@ -273,6 +276,7 @@ export default function ExamDetails() {
         correctOptionIndex: 0,
         acceptableAnswers: [''],
         category: '',
+        section: '',
         marks: 1,
         type: 'SingleChoice',
         mediaUrl: ''
@@ -630,7 +634,14 @@ export default function ExamDetails() {
           <div className="max-w-5xl">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <h1 className="text-3xl font-black text-gray-900">Question Manager</h1>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                <Link
+                  href={`/examiner/exams/${examId}/print`}
+                  target="_blank"
+                  className="bg-gray-800 text-white font-black px-5 py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-sm flex items-center gap-2"
+                >
+                  <FileText size={18} /> Print Master Paper
+                </Link>
                 <button 
                   onClick={() => setShowAiModal(true)}
                   className="bg-bsg-gold text-bsg-blue-dark font-black px-5 py-2.5 rounded-xl hover:bg-yellow-500 transition-colors shadow-sm flex items-center gap-2"
@@ -646,6 +657,7 @@ export default function ExamDetails() {
                       correctOptionIndex: 0,
                       acceptableAnswers: [''],
                       category: '',
+                      section: '',
                       marks: 1,
                       type: 'SingleChoice',
                       mediaUrl: ''
@@ -660,6 +672,22 @@ export default function ExamDetails() {
               </div>
             </div>
 
+            {/* Category Filter */}
+            {exam.questions.length > 0 && (
+              <div className="mb-6 flex justify-end">
+                <select 
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="bg-white border-2 border-gray-200 rounded-xl px-4 py-2 text-gray-900 font-medium focus:border-bsg-blue outline-none"
+                >
+                  <option value="All">All Categories</option>
+                  {Array.from(new Set(exam.questions.map(q => q.questionId.category).filter(Boolean))).map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {exam.questions.length === 0 ? (
               <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-16 text-center">
                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400">
@@ -670,7 +698,9 @@ export default function ExamDetails() {
               </div>
             ) : (
               <div className="space-y-4">
-                {exam.questions.map((q, idx) => (
+                {exam.questions
+                  .filter(q => categoryFilter === 'All' || q.questionId.category === categoryFilter)
+                  .map((q, idx) => (
                   <div key={q.questionId._id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-start">
                       <div className="flex items-start gap-4">
@@ -680,6 +710,7 @@ export default function ExamDetails() {
                         <div>
                           <p className="text-gray-900 font-bold text-lg">{q.questionId.text}</p>
                           <div className="flex flex-wrap gap-3 mt-2">
+                            {q.questionId.section && <span className="text-xs font-bold text-purple-600 uppercase tracking-wider bg-purple-50 px-2 py-0.5 rounded-md">Section: {q.questionId.section}</span>}
                             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-md">Category: {q.questionId.category || 'General'}</span>
                             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-md">Type: {q.questionId.type === 'LogicDecision' ? 'Logic/Decision' : (q.questionId.type || 'SingleChoice')}</span>
                             <span className="text-xs font-bold text-bsg-blue uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-md">Marks: {q.marks || 1}</span>
@@ -696,6 +727,7 @@ export default function ExamDetails() {
                               correctOptionIndex: q.questionId.correctOptionIndex || 0,
                               acceptableAnswers: q.questionId.acceptableAnswers?.length ? [...q.questionId.acceptableAnswers] : [''],
                               category: q.questionId.category || '',
+                              section: q.questionId.section || '',
                               marks: q.marks || 1,
                               type: q.questionId.type || 'SingleChoice',
                               mediaUrl: q.questionId.mediaUrl || ''
@@ -849,6 +881,19 @@ export default function ExamDetails() {
                             {new Date(result.createdAt).toLocaleString()}
                           </td>
                           <td className="px-8 py-5 whitespace-nowrap text-right flex items-center justify-end gap-3">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await axios.put(`${API_URL}/api/attempts/results/${result._id}/release`, {}, { withCredentials: true });
+                                  setResults(results.map(r => r._id === result._id ? { ...r, isReleased: !(r as any).isReleased } : r));
+                                } catch (err) {
+                                  alert('Failed to toggle result release');
+                                }
+                              }}
+                              className={`font-black px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 ${(result as any).isReleased ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                            >
+                              {(result as any).isReleased ? 'Released' : 'Unreleased'}
+                            </button>
                             <Link href={`/exams/${result._id}/review`} className="text-bsg-blue hover:text-bsg-blue-dark font-black hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors flex items-center gap-2">
                               <Eye size={16} /> Review
                             </Link>
@@ -1034,6 +1079,23 @@ export default function ExamDetails() {
                   >
                     <Mic size={14} /> Dictate
                   </button>
+                  <button 
+                    type="button"
+                    onClick={async () => {
+                      if (!manualQuestion.text) return;
+                      try {
+                        const { data } = await axios.post(`${API_URL}/api/exams/translate`, { text: manualQuestion.text }, { withCredentials: true });
+                        if (data.translatedText) {
+                          setManualQuestion(prev => ({...prev, text: `${prev.text}\n${data.translatedText}`}));
+                        }
+                      } catch (err) {
+                        alert('Translation failed');
+                      }
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-bold text-green-700 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-full transition-colors ml-2"
+                  >
+                    Aa Translate to Hindi
+                  </button>
                 </div>
                 <textarea
                   value={manualQuestion.text}
@@ -1044,7 +1106,17 @@ export default function ExamDetails() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-black text-gray-700 mb-2">Section (Optional)</label>
+                  <input
+                    type="text"
+                    value={manualQuestion.section || ''}
+                    onChange={(e) => setManualQuestion({...manualQuestion, section: e.target.value})}
+                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
+                    placeholder="e.g., General Knowledge"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-black text-gray-700 mb-2">Category (Optional)</label>
                   <input
