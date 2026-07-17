@@ -10,11 +10,6 @@ import { UserCircle, Settings } from 'lucide-react';
 import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
-import { API_URL } from '@/utils/apiConfig';
-import { UserCircle, Settings } from 'lucide-react';
-import '@/utils/apiConfig';
-import LoadingScreen from '@/components/ui/LoadingScreen';
-
 interface Exam {
   _id: string;
   title: string;
