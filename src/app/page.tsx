@@ -12,7 +12,6 @@ export default function Home() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -157,7 +156,7 @@ export default function Home() {
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-24 text-center text-sm font-medium text-gray-400 flex items-center justify-center gap-6 pb-8">
           <button onClick={() => setShowTerms(true)} className="hover:text-gray-900 transition-colors flex items-center gap-2"><BookOpen size={16}/> Terms & Conditions</button>
           <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-          <button onClick={() => setShowPrivacy(true)} className="hover:text-gray-900 transition-colors flex items-center gap-2"><ShieldCheck size={16}/> Privacy Policy</button>
+          <Link href="/privacy" className="hover:text-gray-900 transition-colors flex items-center gap-2"><ShieldCheck size={16}/> Privacy Policy</Link>
         </motion.div>
       </main>
       
@@ -183,25 +182,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Privacy Modal */}
-      <AnimatePresence>
-        {showPrivacy && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl max-h-[80vh] flex flex-col relative">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3"><ShieldCheck className="text-bsg-blue" /> Privacy Policy</h2>
-                <button onClick={() => setShowPrivacy(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><X size={20}/></button>
-              </div>
-              <div className="overflow-y-auto custom-scrollbar flex-1 pr-2 text-gray-600 text-sm space-y-4 font-medium">
-                <p>Your privacy and data security are our top priority.</p>
-                <p>We only collect information necessary for the administration of the CBT exams, such as your BSG ID, Name, and Section. During examinations, we monitor browser activity strictly to ensure test integrity.</p>
-                <p>Passwords are securely hashed. We do not share your information with any third parties.</p>
-              </div>
-              <button onClick={() => setShowPrivacy(false)} className="mt-6 w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black">Close Privacy Policy</button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+
 
     </div>
   );
