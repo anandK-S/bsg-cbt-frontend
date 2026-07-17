@@ -24,7 +24,7 @@ export default function AdminSettings() {
       try {
         const { data } = await axios.get(`${API_URL}/api/settings`);
         setSettings({
-          platformName: data.platformName || 'BSG CBT Portal',
+          platformName: data.platformName || 'BSG Portal',
           supportEmail: data.supportEmail || 'support@bsg-india.org',
           maintenanceMode: data.maintenanceMode || false,
           termsUrl: data.termsUrl || '',

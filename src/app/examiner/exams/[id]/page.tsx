@@ -473,11 +473,24 @@ export default function ExamDetails() {
                       <label className="block text-sm font-bold text-gray-700 mb-1">Category</label>
                       <input 
                         type="text" 
+                        list="exam-categories"
                         value={editForm.category || ''}
                         onChange={(e) => setEditForm({...editForm, category: e.target.value})}
                         placeholder="e.g. Science, Math"
                         className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
                       />
+                      <datalist id="exam-categories">
+                        <option value="Pravesh" />
+                        <option value="Pratham Sopan" />
+                        <option value="Dwitiya Sopan" />
+                        <option value="Tritiya Sopan" />
+                        <option value="Rajya Puraskar" />
+                        <option value="Rashtrapati Scout/Guide" />
+                        <option value="First Aid" />
+                        <option value="Pioneering" />
+                        <option value="Mapping" />
+                        <option value="Campcraft" />
+                      </datalist>
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-bold text-gray-700 mb-1">Duration <span className="text-red-500">*</span></label>
@@ -668,7 +681,7 @@ export default function ExamDetails() {
                           <p className="text-gray-900 font-bold text-lg">{q.questionId.text}</p>
                           <div className="flex flex-wrap gap-3 mt-2">
                             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-md">Category: {q.questionId.category || 'General'}</span>
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-md">Type: {q.type || 'SingleChoice'}</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-md">Type: {q.questionId.type === 'LogicDecision' ? 'Logic/Decision' : (q.questionId.type || 'SingleChoice')}</span>
                             <span className="text-xs font-bold text-bsg-blue uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-md">Marks: {q.marks || 1}</span>
                           </div>
                         </div>
@@ -684,7 +697,7 @@ export default function ExamDetails() {
                               acceptableAnswers: q.questionId.acceptableAnswers?.length ? [...q.questionId.acceptableAnswers] : [''],
                               category: q.questionId.category || '',
                               marks: q.marks || 1,
-                              type: q.type || 'SingleChoice',
+                              type: q.questionId.type || 'SingleChoice',
                               mediaUrl: q.questionId.mediaUrl || ''
                             });
                             setMediaFile(null);
@@ -957,6 +970,7 @@ export default function ExamDetails() {
                     <option value="SingleChoice">Single Choice</option>
                     <option value="MultipleChoice">Multiple Choice</option>
                     <option value="Subjective">Short Answer (Subjective)</option>
+                    <option value="LogicDecision">Logic/Decision</option>
                   </select>
                 </div>
                 <div>

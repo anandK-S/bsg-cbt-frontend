@@ -491,7 +491,7 @@ export default function ExamTakePage() {
             <span className="font-extrabold text-gray-700 text-lg">Question No. {currentQuestionIndex + 1}</span>
             <div className="flex items-center gap-4 text-sm font-bold text-gray-500">
               <span>Marks: <span className="text-green-600">+{currentQ.marks || 1}</span></span>
-              <span>Type: <span className="text-gray-700">{currentQ.type === 'MultipleChoice' ? 'Multiple Choice' : currentQ.type === 'Subjective' ? 'Subjective' : 'Single Choice'}</span></span>
+              <span>Type: <span className="text-gray-700">{currentQ.type === 'MultipleChoice' ? 'Multiple Choice' : currentQ.type === 'Subjective' ? 'Subjective' : currentQ.type === 'LogicDecision' ? 'Logic/Decision' : 'Single Choice'}</span></span>
             </div>
           </div>
 

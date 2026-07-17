@@ -161,7 +161,7 @@ export default function ExaminerDashboard() {
                 href="/examiner/exams/create" 
                 className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-6 py-3 rounded-xl font-bold shadow-md transition-all flex items-center gap-2 flex-shrink-0"
               >
-                <span className="text-xl leading-none">+</span> New test
+                <span className="text-xl leading-none">+</span> Prepared Test
               </Link>
             </div>
             
@@ -355,7 +355,7 @@ export default function ExaminerDashboard() {
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                 <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2"><FileText className="text-bsg-blue" size={20}/> 1. Creating a New Test</h3>
                 <p className="text-gray-600 mb-4 leading-relaxed">
-                  Navigate to the <strong>My Tests</strong> tab and click on the blue <strong>+ New Test</strong> button. Provide a title, description, and the time limit in minutes. You can also specify an optional scheduled Start Date and End Date to restrict when candidates can access it.
+                  Navigate to the <strong>My Tests</strong> tab and click on the blue <strong>+ Prepared Test</strong> button. Provide a title, description, and the time limit in minutes. You can also specify an optional scheduled Start Date and End Date to restrict when candidates can access it.
                 </p>
               </div>
               

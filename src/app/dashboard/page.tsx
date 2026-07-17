@@ -81,7 +81,7 @@ export default function CandidateDashboard() {
     }
   }, [_hasHydrated, isAuthenticated, user, router, logout]);
 
-  if (loading || !_hasHydrated) return <LoadingScreen text="Loading your CBT Portal..." />;
+  if (loading || !_hasHydrated) return <LoadingScreen text="Loading your BSG Portal..." />;
   if (!isAuthenticated || user?.role !== 'Candidate') return null;
 
   return (

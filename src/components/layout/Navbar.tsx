@@ -79,7 +79,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
             <span className="font-extrabold text-sm">BSG</span>
           </div>
               <span className="font-extrabold text-xl bg-clip-text text-transparent bg-gradient-to-r from-bsg-blue to-bsg-gold tracking-tight hidden sm:block">
-                CBT Portal
+                BSG Portal
               </span>
             </Link>
           </div>

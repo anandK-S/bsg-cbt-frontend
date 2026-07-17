@@ -125,7 +125,7 @@ export default function Register() {
           Create an Account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
-          Join the BSG CBT Portal
+          Join the BSG Portal
         </p>
       </motion.div>
 

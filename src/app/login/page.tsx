@@ -101,7 +101,7 @@ export default function Login() {
           Welcome Back
         </h2>
         <p className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
-          Sign in to the BSG CBT Portal
+          Sign in to the BSG Portal
         </p>
       </motion.div>
 

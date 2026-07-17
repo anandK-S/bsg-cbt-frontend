@@ -89,11 +89,11 @@ export default function Home() {
 
           <motion.h1 variants={itemVariants} className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-black text-gray-900 tracking-tight leading-[1.05] mb-6">
             Welcome to the <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-bsg-blue to-blue-500">CBT Portal</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-bsg-blue to-blue-500">BSG Portal</span>
           </motion.h1>
 
           <motion.p variants={itemVariants} className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-            The official, highly secure Computer Based Test (CBT) portal engineered specifically for CBT examination for all.
+            The official, highly secure examination portal engineered specifically for Bharat Scout & Guide testing.
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0">
@@ -146,7 +146,7 @@ export default function Home() {
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight">Anandkumar Sharma</h2>
               <p className="text-base sm:text-lg text-gray-300 font-medium leading-relaxed">
                 Rover of 33rd NAIR, B.P Group, Vadodara Division, Western Railway.<br className="hidden sm:block"/>
-                Engineered the BSG CBT Portal to provide a seamless examination experience.
+                Engineered the BSG Portal to provide a seamless examination experience.
               </p>
             </div>
           </div>
@@ -172,7 +172,7 @@ export default function Home() {
                 <button onClick={() => setShowTerms(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><X size={20}/></button>
               </div>
               <div className="overflow-y-auto custom-scrollbar flex-1 pr-2 text-gray-600 text-sm space-y-4 font-medium">
-                <p>Welcome to the Bharat Scouts and Guides (BSG) Computer Based Test (CBT) Portal.</p>
+                <p>Welcome to the Bharat Scouts and Guides (BSG) Portal.</p>
                 <p>By using this platform, you agree to adhere strictly to the examination rules. Any attempt to switch tabs, minimize the browser, or engage in unfair means will be automatically recorded and may lead to immediate disqualification.</p>
                 <p>Your data, including examination progress, is securely handled. The portal is the intellectual property of BSG, developed by Anandkumar Sharma.</p>
               </div>
