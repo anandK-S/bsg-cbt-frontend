@@ -9,6 +9,8 @@ export default function CreateExam() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('General');
+  const [presetCategory, setPresetCategory] = useState('General');
   const [durationHours, setDurationHours] = useState<number | ''>('');
   const [durationMinutes, setDurationMinutes] = useState<number | ''>(60);
   const [durationSeconds, setDurationSeconds] = useState<number | ''>('');
@@ -44,7 +46,8 @@ export default function CreateExam() {
         `${API_URL}/api/exams`,
         { 
           title, 
-          description, 
+          description,
+          category,
           durationMinutes: Math.ceil(totalSeconds / 60),
           durationSeconds: totalSeconds,
           passingMarks,
@@ -101,6 +104,43 @@ export default function CreateExam() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Provide a brief description or instructions for the candidates..."
               />
+            </div>
+
+            <div>
+              <label htmlFor="category" className="block text-sm font-bold text-gray-700 mb-1">Category <span className="text-red-500">*</span></label>
+              <div className="flex gap-4">
+                <select
+                  value={presetCategory}
+                  onChange={(e) => {
+                    setPresetCategory(e.target.value);
+                    if (e.target.value !== 'Custom') {
+                      setCategory(e.target.value);
+                    } else {
+                      setCategory('');
+                    }
+                  }}
+                  className="block w-1/3 border border-gray-300 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
+                >
+                  <option value="General">General</option>
+                  <option value="Pravesh">Pravesh</option>
+                  <option value="Pratham Sopan">Pratham Sopan</option>
+                  <option value="Dwitiya Sopan">Dwitiya Sopan</option>
+                  <option value="Tritiya Sopan">Tritiya Sopan</option>
+                  <option value="Rajya Puraskar">Rajya Puraskar</option>
+                  <option value="Rashtrapati">Rashtrapati</option>
+                  <option value="Custom">Custom...</option>
+                </select>
+                <input
+                  type="text"
+                  id="category"
+                  required
+                  disabled={presetCategory !== 'Custom'}
+                  className="block w-2/3 border border-gray-300 rounded-xl shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium disabled:bg-gray-100 disabled:text-gray-500"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder={presetCategory === 'Custom' ? "Enter custom category" : "Selected from preset"}
+                />
+              </div>
             </div>
           </div>
 

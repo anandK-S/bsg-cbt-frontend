@@ -205,13 +205,38 @@ export default function CandidateDashboard() {
                     <span className="font-semibold text-gray-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400"></span> {exam.maxScore || 0} Marks</span>
                   </div>
                 </div>
-                <div className="p-4 bg-gray-50 border-t border-gray-100">
-                  <Link 
-                    href={`/exams/${exam._id}/start`} 
-                    className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-bold rounded-xl text-bsg-blue-dark bg-bsg-gold hover:bg-yellow-500 transition-colors shadow-sm"
-                  >
-                    Start Exam Now &rarr;
-                  </Link>
+                <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-col justify-end">
+                  {(() => {
+                    const now = Date.now();
+                    const hasEnded = exam.scheduledEndDate && new Date(exam.scheduledEndDate).getTime() < now;
+                    const hasNotStarted = exam.scheduledStartDate && new Date(exam.scheduledStartDate).getTime() > now;
+
+                    if (hasEnded) {
+                      return (
+                        <div className="w-full text-center px-4 py-3 border border-transparent text-sm font-bold rounded-xl text-red-700 bg-red-100 cursor-not-allowed">
+                          Test is Closed
+                        </div>
+                      );
+                    }
+                    if (hasNotStarted) {
+                      return (
+                        <Link 
+                          href={`/exams/${exam._id}/start`} 
+                          className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-bold rounded-xl text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors shadow-sm"
+                        >
+                          Starts Soon - View Timer &rarr;
+                        </Link>
+                      );
+                    }
+                    return (
+                      <Link 
+                        href={`/exams/${exam._id}/start`} 
+                        className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-bold rounded-xl text-bsg-blue-dark bg-bsg-gold hover:bg-yellow-500 transition-colors shadow-sm"
+                      >
+                        Start Exam Now &rarr;
+                      </Link>
+                    );
+                  })()}
                 </div>
               </div>
             ))}

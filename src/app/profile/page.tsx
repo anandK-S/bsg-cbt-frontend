@@ -89,14 +89,16 @@ export default function ProfilePage() {
               )}
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Display Name</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Display Name (First Name + Surname)</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  pattern="[a-zA-Z\s]+"
+                  title="Name can only contain letters and spaces (no special characters or numbers)."
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
-                  placeholder="Your Name"
+                  placeholder="E.g. Anandkumar Sharma"
                 />
               </div>
 
@@ -122,8 +124,10 @@ export default function ProfilePage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  pattern="^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$"
+                  title="Password must be at least 6 characters and contain a letter, a number, and a special character."
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
-                  placeholder="Leave blank to keep current password"
+                  placeholder="Min 6 chars, 1 letter, 1 number, 1 special char"
                 />
               </div>
 

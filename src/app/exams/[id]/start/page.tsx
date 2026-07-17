@@ -20,6 +20,8 @@ export default function ExamStartPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
 
+  const [timeUntilStart, setTimeUntilStart] = useState<number | null>(null);
+
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'Candidate') {
       router.push('/');
@@ -32,6 +34,14 @@ export default function ExamStartPage() {
           withCredentials: true,
         });
         setExam(data);
+
+        if (data.scheduledStartDate) {
+          const startTime = new Date(data.scheduledStartDate).getTime();
+          const now = Date.now();
+          if (startTime > now) {
+            setTimeUntilStart(Math.floor((startTime - now) / 1000));
+          }
+        }
       } catch (error) {
         console.error('Error fetching exam:', error);
         setErrorMsg("Failed to load exam. It might have been unpublished or removed.");
@@ -42,6 +52,21 @@ export default function ExamStartPage() {
 
     fetchExamDetails();
   }, [isAuthenticated, user, router, examId]);
+
+  useEffect(() => {
+    if (timeUntilStart !== null && timeUntilStart > 0) {
+      const timer = setInterval(() => {
+        setTimeUntilStart((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(timer);
+            return 0; // Trigger instructions reveal
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [timeUntilStart]);
 
   const handleStartExam = async () => {
     setStarting(true);
@@ -68,6 +93,88 @@ export default function ExamStartPage() {
       <p className="text-gray-500 font-medium">Loading Assessment Details...</p>
     </div>
   );
+
+  // If exam is strictly closed (we could also rely on backend)
+  if (exam?.scheduledEndDate && new Date(exam.scheduledEndDate).getTime() < Date.now()) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 text-center">
+        <div className="mb-6">
+          <Link href="/dashboard" className="text-bsg-blue hover:text-blue-800 text-sm font-semibold transition-colors flex items-center justify-center gap-1">
+            &larr; Return to Dashboard
+          </Link>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12">
+          <AlertTriangle size={64} className="text-yellow-500 mx-auto mb-4" />
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Test is Closed</h1>
+          <p className="text-gray-500 font-medium">This examination ended on {new Date(exam.scheduledEndDate).toLocaleString()} and is no longer available.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Countdown State
+  if (timeUntilStart !== null && timeUntilStart > 0) {
+    const days = Math.floor(timeUntilStart / (3600 * 24));
+    const hours = Math.floor((timeUntilStart % (3600 * 24)) / 3600);
+    const minutes = Math.floor((timeUntilStart % 3600) / 60);
+    const seconds = timeUntilStart % 60;
+
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 text-center flex flex-col items-center justify-center min-h-[70vh]">
+        <div className="mb-8">
+          <Link href="/dashboard" className="text-bsg-blue hover:text-blue-800 text-sm font-semibold transition-colors flex items-center justify-center gap-1">
+            &larr; Return to Dashboard
+          </Link>
+        </div>
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-12 w-full max-w-2xl transform transition-all hover:scale-105 duration-300">
+          <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Clock size={40} className="text-bsg-blue animate-pulse" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
+            {exam?.title}
+          </h1>
+          <p className="text-gray-500 font-medium mb-10 text-lg">
+            This examination is scheduled to start soon. Please wait here.
+          </p>
+          
+          <div className="flex items-center justify-center gap-4 sm:gap-6">
+            {days > 0 && (
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black shadow-inner">
+                  {days.toString().padStart(2, '0')}
+                </div>
+                <span className="text-gray-500 font-bold text-xs uppercase tracking-wider mt-2">Days</span>
+              </div>
+            )}
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black shadow-inner">
+                {hours.toString().padStart(2, '0')}
+              </div>
+              <span className="text-gray-500 font-bold text-xs uppercase tracking-wider mt-2">Hours</span>
+            </div>
+            <div className="text-3xl font-bold text-gray-400 mb-6">:</div>
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black shadow-inner">
+                {minutes.toString().padStart(2, '0')}
+              </div>
+              <span className="text-gray-500 font-bold text-xs uppercase tracking-wider mt-2">Minutes</span>
+            </div>
+            <div className="text-3xl font-bold text-gray-400 mb-6">:</div>
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-bsg-blue text-white rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black shadow-inner border-2 border-blue-400">
+                {seconds.toString().padStart(2, '0')}
+              </div>
+              <span className="text-bsg-blue font-bold text-xs uppercase tracking-wider mt-2">Seconds</span>
+            </div>
+          </div>
+          
+          <p className="mt-10 text-sm font-semibold text-gray-400">
+            You will be automatically redirected to the instructions page when the timer hits zero.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">

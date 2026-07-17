@@ -220,8 +220,8 @@ export default function ExamTakePage() {
       if (document.hidden) {
         setWarnings(prev => {
           const newWarnings = prev + 1;
-          alert(`Warning! Tab switching or leaving the window is strictly prohibited. Warning count: ${newWarnings}/2`);
-          if (newWarnings >= 2) {
+          alert(`Warning! Tab switching or leaving the window is strictly prohibited. Warning count: ${newWarnings}/3`);
+          if (newWarnings >= 3) {
             handleAutoSubmit('Exceeded maximum tab switching/window leaving warnings.');
           } else {
             enforceFullscreen();
@@ -234,8 +234,8 @@ export default function ExamTakePage() {
     const handleBlur = () => {
       setWarnings(prev => {
         const newWarnings = prev + 1;
-        alert(`Warning! You left the exam window or opened another app. Warning count: ${newWarnings}/2`);
-        if (newWarnings >= 2) {
+        alert(`Warning! You left the exam window or opened another app. Warning count: ${newWarnings}/3`);
+        if (newWarnings >= 3) {
           handleAutoSubmit('Exceeded maximum window blur/focus warnings.');
         } else {
           enforceFullscreen();
@@ -248,8 +248,8 @@ export default function ExamTakePage() {
       if (!document.fullscreenElement) {
         setWarnings(prev => {
           const newWarnings = prev + 1;
-          alert(`Warning! You exited fullscreen mode. This is prohibited. Warning count: ${newWarnings}/2`);
-          if (newWarnings >= 2) {
+          alert(`Warning! You exited fullscreen mode. This is prohibited. Warning count: ${newWarnings}/3`);
+          if (newWarnings >= 3) {
             handleAutoSubmit('Exceeded maximum fullscreen exit warnings.');
           } else {
             enforceFullscreen();

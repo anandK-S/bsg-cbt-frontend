@@ -91,9 +91,22 @@ export default function PastResultsPage() {
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-6 space-y-4">
-            {pastExams.map((result: PastResult) => {
+            {pastExams.map((result: PastResult & { attemptId?: any }) => {
               const percentage = result.totalMarks > 0 ? Math.round((result.score / result.totalMarks) * 100) : 0;
               const isPassed = percentage >= 50;
+              
+              // Calculate time taken
+              let timeTakenStr = 'N/A';
+              if (result.attemptId) {
+                const totalSeconds = (result.examId as any)?.durationMinutes * 60 + ((result.examId as any)?.durationSeconds || 0);
+                const timeRemaining = result.attemptId.timeRemaining;
+                if (totalSeconds > 0 && timeRemaining !== undefined) {
+                  const takenSeconds = totalSeconds - timeRemaining;
+                  const m = Math.floor(takenSeconds / 60);
+                  const s = takenSeconds % 60;
+                  timeTakenStr = `${m}m ${s}s`;
+                }
+              }
 
               return (
                 <div key={result._id} className={`bg-gray-50 p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${result.violationReason ? 'border-red-300 bg-red-50/50' : 'border-gray-100 hover:bg-white hover:shadow-md hover:border-gray-200'}`}>
@@ -103,8 +116,11 @@ export default function PastResultsPage() {
                     </div>
                     <div>
                       <h4 className="text-lg font-bold text-gray-900 leading-tight mb-1">{result.examId?.title || 'Unknown Exam'}</h4>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {new Date(result.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Date: {new Date(result.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                      </p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Examiner: {(result.examId as any)?.creatorId?.name || 'Unknown'} | Time Taken: {timeTakenStr}
                       </p>
                       {result.violationReason && (
                         <p className="text-sm font-bold text-red-600 mt-2 bg-red-100 px-3 py-1 rounded inline-block">

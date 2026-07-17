@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
 import { API_URL } from '@/utils/apiConfig';
-import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2, Edit2 } from 'lucide-react';
+import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2, Edit2, Mic } from 'lucide-react';
 
 interface ExamDetailsData {
   _id: string;
@@ -800,6 +800,13 @@ export default function ExamDetails() {
                 >
                   <FileText size={18} /> Export to CSV
                 </button>
+                <button 
+                  onClick={() => window.print()}
+                  disabled={results.length === 0}
+                  className="bg-gray-800 text-white font-black px-5 py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+                >
+                  <FileText size={18} /> Print PDF
+                </button>
               </div>
             </div>
             <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
@@ -885,16 +892,108 @@ export default function ExamDetails() {
                 <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Average Score</p>
                 <p className="text-5xl font-black text-bsg-blue">
                   {results.length > 0 
-                    ? Math.round(results.reduce((acc, curr) => acc + (curr.score / curr.totalMarks * 100), 0) / results.length) 
+                    ? Math.round(results.reduce((acc, curr) => acc + ((curr.score / curr.totalMarks) * 100 || 0), 0) / results.length) 
                     : 0}%
                 </p>
               </div>
             </div>
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-16 text-center text-gray-500">
-              <BarChart2 size={48} className="mx-auto mb-4 text-gray-300" />
-              <p className="font-bold text-xl text-gray-900 mb-2">Advanced Analytics</p>
-              <p>Question-by-question analysis will be available here when more data is collected.</p>
-            </div>
+            
+            {results.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8">
+                  <h3 className="text-xl font-black text-gray-900 mb-6">Score Distribution</h3>
+                  <div className="h-[300px] w-full">
+                    {(() => {
+                      const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } = require('recharts');
+                      const distribution = [
+                        { name: '0-20%', count: 0 },
+                        { name: '21-40%', count: 0 },
+                        { name: '41-60%', count: 0 },
+                        { name: '61-80%', count: 0 },
+                        { name: '81-100%', count: 0 }
+                      ];
+                      results.forEach(r => {
+                        const pct = (r.score / r.totalMarks) * 100;
+                        if (pct <= 20) distribution[0].count++;
+                        else if (pct <= 40) distribution[1].count++;
+                        else if (pct <= 60) distribution[2].count++;
+                        else if (pct <= 80) distribution[3].count++;
+                        else distribution[4].count++;
+                      });
+                      return (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={distribution}>
+                            <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                            <Tooltip cursor={{ fill: '#F3F4F6' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                            <Bar dataKey="count" fill="#1d4ed8" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8">
+                  <h3 className="text-xl font-black text-gray-900 mb-6">Pass vs Fail Ratio</h3>
+                  <div className="h-[300px] w-full relative">
+                    {(() => {
+                      const { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } = require('recharts');
+                      const passed = results.filter(r => (r.score / r.totalMarks) * 100 >= (exam.passingMarks || 50)).length;
+                      const failed = results.length - passed;
+                      const data = [
+                        { name: 'Passed', value: passed, color: '#10B981' }, // green-500
+                        { name: 'Failed', value: failed, color: '#EF4444' }  // red-500
+                      ];
+                      
+                      return (
+                        <>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={data}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={80}
+                                outerRadius={110}
+                                paddingAngle={5}
+                                dataKey="value"
+                                stroke="none"
+                              >
+                                {data.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                              </Pie>
+                              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span className="text-3xl font-black text-gray-900">{Math.round((passed / results.length) * 100)}%</span>
+                            <span className="text-sm font-bold text-gray-400">Pass Rate</span>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                  <div className="flex justify-center gap-6 mt-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-bold text-gray-600">Passed</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <span className="text-sm font-bold text-gray-600">Failed</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-16 text-center text-gray-500">
+                <BarChart2 size={48} className="mx-auto mb-4 text-gray-300" />
+                <p className="font-bold text-xl text-gray-900 mb-2">No Data Available</p>
+                <p>Statistics will appear here once candidates complete the exam.</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -913,7 +1012,29 @@ export default function ExamDetails() {
             
             <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1">
               <div>
-                <label className="block text-sm font-black text-gray-700 mb-2">Question Text</label>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-black text-gray-700">Question Text</label>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      if (!('webkitSpeechRecognition' in window)) {
+                        alert("Voice dictation is not supported in this browser. Please use Chrome.");
+                        return;
+                      }
+                      const recognition = new (window as any).webkitSpeechRecognition();
+                      recognition.lang = 'en-US';
+                      recognition.interimResults = false;
+                      recognition.onresult = (event: any) => {
+                        const transcript = event.results[0][0].transcript;
+                        setManualQuestion(prev => ({...prev, text: prev.text + (prev.text ? ' ' : '') + transcript}));
+                      };
+                      recognition.start();
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-bold text-bsg-blue hover:text-bsg-blue-dark bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors"
+                  >
+                    <Mic size={14} /> Dictate
+                  </button>
+                </div>
                 <textarea
                   value={manualQuestion.text}
                   onChange={(e) => setManualQuestion({...manualQuestion, text: e.target.value})}
@@ -995,6 +1116,14 @@ export default function ExamDetails() {
                       <img src={manualQuestion.mediaUrl.startsWith('http') ? manualQuestion.mediaUrl : `${API_URL}${manualQuestion.mediaUrl}`} alt="Current Media" className="w-full object-cover" />
                       <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-2 py-1 truncate font-bold text-center">
                         Current Image
+                      </div>
+                    </div>
+                  )}
+                  {mediaFile && (
+                    <div className="mt-3 relative rounded-lg overflow-hidden border border-gray-200 inline-block max-w-[200px]">
+                      <img src={URL.createObjectURL(mediaFile)} alt="New Media" className="w-full object-cover" />
+                      <div className="absolute bottom-0 left-0 right-0 bg-bsg-blue/80 text-white text-[10px] px-2 py-1 truncate font-bold text-center">
+                        New Image
                       </div>
                     </div>
                   )}

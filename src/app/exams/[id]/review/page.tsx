@@ -17,6 +17,7 @@ export default function ExamReviewPage() {
   
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -72,6 +73,7 @@ export default function ExamReviewPage() {
                   {isPassed ? 'Congratulations! 🎉' : 'Keep Practicing! 💪'}
                 </h1>
                 <p className="text-white/90 text-lg">You scored {result.score} out of {result.totalMarks} marks.</p>
+
               </div>
               <div className="bg-white/20 px-8 py-6 rounded-2xl text-center backdrop-blur-md border border-white/30 shadow-lg">
                 <span className="block text-sm font-bold uppercase tracking-wider text-white/90 mb-1">Total Score</span>
@@ -79,31 +81,39 @@ export default function ExamReviewPage() {
               </div>
             </div>
           </div>
-
-          {/* AI Feedback */}
-          <div className="p-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <BrainCircuit className="text-bsg-blue" size={24} /> AI Tutor Feedback
-            </h3>
-            <div className="bg-blue-50/50 rounded-xl p-6 border border-blue-100">
-              <div className="prose prose-blue max-w-none text-gray-700 leading-relaxed font-medium">
-                <ReactMarkdown>{result.aiFeedback || "No feedback generated."}</ReactMarkdown>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Detailed Breakdown */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          <h2 className="text-2xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
-            Question Breakdown
-            <span className="bg-gray-100 text-gray-600 text-sm py-1 px-3 rounded-full font-semibold">
-              {questionDetails.length} Questions
-            </span>
-          </h2>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 print:border-none print:shadow-none">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            <h2 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+              Question Breakdown
+              <span className="bg-gray-100 text-gray-600 text-sm py-1 px-3 rounded-full font-semibold">
+                {questionDetails.length} Questions
+              </span>
+            </h2>
+            
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto print:hidden">
+              <input
+                type="text"
+                placeholder="Search questions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue flex-1 min-w-[200px]"
+              />
+              <button 
+                onClick={() => window.print()}
+                className="px-4 py-2 bg-bsg-blue text-white font-bold rounded-lg hover:bg-blue-800 transition-colors shadow-sm"
+              >
+                Download Test Paper
+              </button>
+            </div>
+          </div>
 
           <div className="space-y-8">
-            {questionDetails.map((q: any, index: number) => {
+            {questionDetails
+              .filter((q: any) => q.text.toLowerCase().includes(searchQuery.toLowerCase()))
+              .map((q: any, index: number) => {
               const isUnanswered = q.candidateAnswerIndex === null || q.candidateAnswerIndex === undefined;
               
               let headerStyle = 'bg-gray-50 border-gray-200 text-gray-500';
@@ -120,9 +130,9 @@ export default function ExamReviewPage() {
               }
 
               return (
-                <div key={q._id} className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                <div key={q._id} className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm print:break-inside-avoid print:border-gray-300">
                   {/* Question Header */}
-                  <div className={`px-6 py-4 border-b flex justify-between items-center ${headerStyle}`}>
+                  <div className={`px-6 py-4 border-b flex justify-between items-center ${headerStyle} print:bg-gray-100 print:text-black print:border-gray-300`}>
                     <div className="flex items-center gap-3 font-bold">
                       <Icon size={20} className={q.isCorrect ? 'text-green-600' : (!isUnanswered ? 'text-red-600' : 'text-gray-400')} />
                       <span>Question {index + 1}</span>
@@ -134,7 +144,7 @@ export default function ExamReviewPage() {
 
                   {/* Question Body */}
                   <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">{q.text}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-6 whitespace-pre-wrap">{q.text}</h3>
                     
                     <div className="space-y-3">
                       {q.options.map((opt: string, optIdx: number) => {
@@ -145,11 +155,11 @@ export default function ExamReviewPage() {
                         let labelStyle = 'bg-gray-100 border-gray-200 text-gray-500';
                         
                         if (isCorrectChoice) {
-                          optionStyle = 'border-green-500 bg-green-50 text-green-900 font-medium ring-1 ring-green-500';
-                          labelStyle = 'bg-green-500 border-green-500 text-white';
+                          optionStyle = 'border-green-500 bg-green-50 text-green-900 font-medium ring-1 ring-green-500 print:border-green-800 print:bg-white print:text-black';
+                          labelStyle = 'bg-green-500 border-green-500 text-white print:text-black print:bg-white print:border-green-800';
                         } else if (isCandidateChoice && !isCorrectChoice) {
-                          optionStyle = 'border-red-300 bg-red-50 text-red-900 font-medium';
-                          labelStyle = 'bg-red-500 border-red-500 text-white';
+                          optionStyle = 'border-red-300 bg-red-50 text-red-900 font-medium print:border-red-800 print:bg-white print:text-black';
+                          labelStyle = 'bg-red-500 border-red-500 text-white print:text-black print:bg-white print:border-red-800';
                         }
 
                         return (
@@ -161,10 +171,10 @@ export default function ExamReviewPage() {
                             
                             {/* Badges for clarity */}
                             {isCorrectChoice && (
-                              <span className="ml-2 text-xs font-bold uppercase tracking-wider text-green-700 bg-green-100 px-2 py-1 rounded-md">Correct Answer</span>
+                              <span className="ml-2 text-xs font-bold uppercase tracking-wider text-green-700 bg-green-100 px-2 py-1 rounded-md print:bg-transparent print:border print:border-green-800">Correct Answer</span>
                             )}
                             {isCandidateChoice && !isCorrectChoice && (
-                              <span className="ml-2 text-xs font-bold uppercase tracking-wider text-red-700 bg-red-100 px-2 py-1 rounded-md">Your Answer</span>
+                              <span className="ml-2 text-xs font-bold uppercase tracking-wider text-red-700 bg-red-100 px-2 py-1 rounded-md print:bg-transparent print:border print:border-red-800">Your Answer</span>
                             )}
                           </div>
                         );
