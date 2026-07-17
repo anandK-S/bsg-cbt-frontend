@@ -7,7 +7,6 @@ import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import { UserCircle, Settings } from 'lucide-react';
-import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface Exam {
