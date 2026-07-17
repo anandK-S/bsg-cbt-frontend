@@ -11,16 +11,11 @@ export default function Home() {
   const { isAuthenticated, user, _hasHydrated } = useAuthStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    if (!sessionStorage.getItem('welcomeShown')) {
-      setShowWelcomeModal(true);
-      sessionStorage.setItem('welcomeShown', 'true');
-    }
   }, []);
 
   useEffect(() => {
@@ -166,31 +161,7 @@ export default function Home() {
         </motion.div>
       </main>
       
-      {/* Welcome Modal (Developer Info) */}
-      <AnimatePresence>
-        {showWelcomeModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md">
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -20 }} className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl text-center relative overflow-hidden">
-              <button onClick={() => setShowWelcomeModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 p-2 rounded-full transition-colors"><X size={20}/></button>
-              
-              <div className="w-28 h-28 mx-auto mb-5 rounded-3xl overflow-hidden border-4 border-gray-50 shadow-lg transform rotate-3">
-                <img src="/anandkumar-scout.jpg" alt="Developer" className="w-full h-full object-cover" />
-              </div>
-              <div className="inline-flex items-center justify-center px-3 py-1 mb-3 rounded-full bg-blue-50 text-bsg-blue text-[10px] font-black uppercase tracking-widest">
-                Developed By
-              </div>
-              <h2 className="text-2xl font-black text-gray-900 mb-2">Anandkumar Sharma</h2>
-              <p className="text-gray-500 font-medium leading-relaxed mb-8 text-sm">
-                Rover of 33rd NAIR, B.P Group, Vadodara Division, Western Railway.<br/><br/>
-                Welcome to the BSG CBT Portal!
-              </p>
-              <button onClick={() => setShowWelcomeModal(false)} className="w-full bg-gray-900 hover:bg-black text-white font-bold py-4 rounded-2xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98]">
-                Enter Platform
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+
 
       {/* Terms Modal */}
       <AnimatePresence>

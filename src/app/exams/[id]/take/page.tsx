@@ -5,8 +5,9 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
-import { Menu, X, CheckCircle2, Circle, Clock, UserCircle, Save, Eraser, BookmarkPlus } from 'lucide-react';
+import { Menu, X, CheckCircle2, Circle, Clock, UserCircle, Save, Eraser, BookmarkPlus, AlertTriangle } from 'lucide-react';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { io } from 'socket.io-client';
 
 // Status Types for Government CBT
 type QuestionStatus = 'NotVisited' | 'Visited' | 'Answered' | 'MarkedForReview' | 'AnsweredAndMarkedForReview';
@@ -27,6 +28,7 @@ export default function ExamTakePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMobilePaletteOpen, setIsMobilePaletteOpen] = useState(false);
   const [warnings, setWarnings] = useState(0);
+  const [submissionResult, setSubmissionResult] = useState<any>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const attemptIdRef = useRef<string | null>(null);
@@ -95,20 +97,30 @@ export default function ExamTakePage() {
 
   const isSubmittingRef = useRef(false);
 
-  const handleAutoSubmit = useCallback(async () => {
+  const handleAutoSubmit = useCallback(async (forcedViolationReason?: string) => {
     if (isSubmittingRef.current || !attemptIdRef.current) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     
+    // Auto-exit fullscreen
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(err => console.error(err));
+    }
+    
     try {
-      await axios.post(`${API_URL}/api/attempts/${attemptIdRef.current}/submit`, {
+      const payload: any = {
         answers: answersRef.current,
         timeRemaining: timeRemainingRef.current
-      }, {
+      };
+      if (forcedViolationReason) {
+        payload.violationReason = forcedViolationReason;
+      }
+      
+      const { data } = await axios.post(`${API_URL}/api/attempts/${attemptIdRef.current}/submit`, payload, {
         withCredentials: true,
       });
       localStorage.removeItem(`attempt_answers_${attemptIdRef.current}`);
-      router.push(`/dashboard`); // Go to dashboard
+      setSubmissionResult(data);
     } catch (e: any) {
       if (e.response?.status === 400) {
         localStorage.removeItem(`attempt_answers_${attemptIdRef.current}`);
@@ -161,6 +173,28 @@ export default function ExamTakePage() {
     return () => clearInterval(syncInterval);
   }, [loading, isSubmitting]);
 
+  // Socket listener for Examiner Force Pause
+  useEffect(() => {
+    if (loading || isSubmitting || !attemptIdRef.current) return;
+
+    const socket = io(API_URL, { withCredentials: true });
+    
+    socket.on('connect', () => {
+      socket.emit('join-exam', { examId, candidateId: user?._id });
+    });
+
+    socket.on('force-pause', (data: any) => {
+      if (data.candidateId === user?._id) {
+        alert("Your exam has been forcefully terminated by an Examiner.");
+        handleAutoSubmit("Exam forcefully terminated by Examiner");
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [loading, isSubmitting, examId, user?._id, handleAutoSubmit]);
+
   const handleManualSubmit = async () => {
     if (window.confirm("Are you sure you want to submit your exam early? You cannot undo this action.")) {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -188,7 +222,7 @@ export default function ExamTakePage() {
           const newWarnings = prev + 1;
           alert(`Warning! Tab switching or leaving the window is strictly prohibited. Warning count: ${newWarnings}/2`);
           if (newWarnings >= 2) {
-            handleAutoSubmit();
+            handleAutoSubmit('Exceeded maximum tab switching/window leaving warnings.');
           } else {
             enforceFullscreen();
           }
@@ -202,7 +236,7 @@ export default function ExamTakePage() {
         const newWarnings = prev + 1;
         alert(`Warning! You left the exam window or opened another app. Warning count: ${newWarnings}/2`);
         if (newWarnings >= 2) {
-          handleAutoSubmit();
+          handleAutoSubmit('Exceeded maximum window blur/focus warnings.');
         } else {
           enforceFullscreen();
         }
@@ -216,7 +250,7 @@ export default function ExamTakePage() {
           const newWarnings = prev + 1;
           alert(`Warning! You exited fullscreen mode. This is prohibited. Warning count: ${newWarnings}/2`);
           if (newWarnings >= 2) {
-            handleAutoSubmit();
+            handleAutoSubmit('Exceeded maximum fullscreen exit warnings.');
           } else {
             enforceFullscreen();
           }
@@ -229,8 +263,21 @@ export default function ExamTakePage() {
     const handleCopy = (e: ClipboardEvent) => e.preventDefault();
     
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+      
+      // Block copy, paste, inspect element
       if ((e.ctrlKey && e.key === 'c') || (e.ctrlKey && e.key === 'v') || e.key === 'F12' || e.key === 'Escape') {
         e.preventDefault();
+        return;
+      }
+
+      // If they are not typing in a text area, completely disable the keyboard on PC/Mobile
+      if (!isInput) {
+        // Allow F5 or refresh? No, prevent it to avoid accidental reload.
+        if (e.key !== 'F5' && !(e.ctrlKey && e.key === 'r')) {
+          e.preventDefault();
+        }
       }
     };
 
@@ -357,6 +404,45 @@ export default function ExamTakePage() {
   const currentQ = questions[currentQuestionIndex];
   const currentAnswer = answers.find(a => a.questionId === currentQ._id) || {};
 
+  if (submissionResult) {
+    const isFail = (submissionResult.score / submissionResult.totalMarks) < 0.33; // Assume 33% passing if not provided
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-8 text-center border border-gray-200">
+          <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${isFail ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+            {isFail ? <AlertTriangle size={40} /> : <CheckCircle2 size={40} />}
+          </div>
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Exam Submitted!</h2>
+          <p className="text-gray-500 mb-8 font-medium">Your assessment has been successfully recorded.</p>
+          
+          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 mb-8 space-y-4">
+            <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+              <span className="text-gray-600 font-semibold">Your Score</span>
+              <span className="text-2xl font-black text-gray-900">{submissionResult.score} <span className="text-lg text-gray-400">/ {submissionResult.totalMarks}</span></span>
+            </div>
+            {submissionResult.violationReason && (
+              <div className="pt-2 text-left bg-red-50 p-3 rounded border border-red-200">
+                <span className="text-red-800 font-bold block text-sm">Violation Recorded:</span>
+                <span className="text-red-600 text-sm mt-1">{submissionResult.violationReason}</span>
+              </div>
+            )}
+            <div className="pt-2 text-left">
+              <span className="text-gray-800 font-bold block text-sm">Feedback</span>
+              <span className="text-gray-600 text-sm mt-1 block leading-relaxed">{submissionResult.aiFeedback}</span>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => router.push('/dashboard')}
+            className="w-full bg-bsg-blue hover:bg-blue-800 text-white font-extrabold py-4 rounded-xl shadow-md transition-colors"
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gray-50 overflow-hidden select-none absolute inset-0 z-[100]">
       {/* Top Header - Strict Government Style */}
@@ -427,7 +513,8 @@ export default function ExamTakePage() {
                   <textarea
                     value={currentAnswer.subjectiveAnswer || ''}
                     onChange={(e) => updateSubjectiveAnswer(e.target.value)}
-                    className="w-full min-h-[150px] p-4 border-2 border-gray-300 rounded-lg focus:border-bsg-blue focus:ring-4 focus:ring-bsg-blue/10 outline-none resize-y text-lg text-gray-900 font-medium"
+                    disabled={isSubmitting}
+                    className="w-full min-h-[150px] p-4 border-2 border-gray-300 rounded-lg focus:border-bsg-blue focus:ring-4 focus:ring-bsg-blue/10 outline-none resize-y text-lg text-gray-900 font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="Type your answer here..."
                   />
                 </div>
@@ -437,8 +524,8 @@ export default function ExamTakePage() {
                   return (
                     <div 
                       key={idx}
-                      onClick={() => selectOption(idx)}
-                      className={`flex items-start p-4 border rounded-lg cursor-pointer transition-all ${isSelected ? 'border-bsg-blue bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'}`}
+                      onClick={() => { if (!isSubmitting) selectOption(idx); }}
+                      className={`flex items-start p-4 border rounded-lg transition-all ${isSubmitting ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'} ${isSelected ? 'border-bsg-blue bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50 bg-white'}`}
                     >
                       <div className="flex-shrink-0 mr-4 mt-0.5">
                         {isSelected ? (
@@ -479,7 +566,8 @@ export default function ExamTakePage() {
                 
                 <button 
                   onClick={clearResponse}
-                  className="px-4 py-2.5 sm:px-6 bg-white hover:bg-red-50 text-red-600 font-bold rounded-xl shadow-sm flex items-center gap-2 border border-gray-300 hover:border-red-200 transition-all text-sm"
+                  disabled={isSubmitting}
+                  className="px-4 py-2.5 sm:px-6 bg-white hover:bg-red-50 text-red-600 font-bold rounded-xl shadow-sm flex items-center gap-2 border border-gray-300 hover:border-red-200 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Eraser size={16} /> Clear
                 </button>
@@ -488,7 +576,8 @@ export default function ExamTakePage() {
               <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 ml-auto">
                 <button 
                   onClick={markForReviewAndNext}
-                  className={`px-4 py-2.5 sm:px-6 font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 border transition-all duration-300 text-sm flex-1 sm:flex-none ${
+                  disabled={isSubmitting}
+                  className={`px-4 py-2.5 sm:px-6 font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 border transition-all duration-300 text-sm flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed ${
                     currentAnswer.status === 'MarkedForReview' || currentAnswer.status === 'AnsweredAndMarkedForReview'
                       ? 'bg-purple-100 text-purple-700 border-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.4)]'
                       : 'bg-white hover:bg-purple-50 text-purple-700 border-gray-300 hover:border-purple-300'
@@ -500,7 +589,8 @@ export default function ExamTakePage() {
 
                 <button 
                   onClick={saveAndNext}
-                  className={`px-6 py-2.5 sm:px-8 font-bold rounded-xl shadow-md flex items-center justify-center gap-2 border transition-all duration-300 text-sm flex-1 sm:flex-none ${
+                  disabled={isSubmitting}
+                  className={`px-6 py-2.5 sm:px-8 font-bold rounded-xl shadow-md flex items-center justify-center gap-2 border transition-all duration-300 text-sm flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed ${
                     currentQuestionIndex === questions.length - 1 
                       ? 'bg-gradient-to-r from-bsg-blue to-bsg-blue-light hover:from-blue-700 hover:to-blue-600 text-white border-transparent hover:shadow-lg transform hover:-translate-y-0.5' 
                       : 'bg-green-600 hover:bg-green-700 text-white border-green-700 hover:shadow-lg'

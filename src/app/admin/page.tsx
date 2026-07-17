@@ -22,6 +22,7 @@ interface User {
   role: string;
   status: string;
   profileImage?: string;
+  district?: string;
 }
 
 interface Exam {
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  const [editFormData, setEditFormData] = useState({ name: '', email: '', bsgId: '', section: '', rank: '' });
+  const [editFormData, setEditFormData] = useState({ name: '', email: '', bsgId: '', section: '', rank: '', district: '' });
   const [editMsg, setEditMsg] = useState({ text: '', type: '' });
   const [isEditing, setIsEditing] = useState(false);
 
@@ -369,7 +370,7 @@ export default function AdminDashboard() {
                             <>
                               <button onClick={() => { 
                                 setUserToEdit(u); 
-                                setEditFormData({ name: u.name, email: u.email, bsgId: u.bsgId || '', section: u.section || '', rank: u.rank || '' });
+                                setEditFormData({ name: u.name, email: u.email, bsgId: u.bsgId || '', section: u.section || '', rank: u.rank || '', district: u.district || '' });
                                 setEditMsg({ text: '', type: '' });
                                 setShowEditModal(true); 
                               }} className="text-gray-400 hover:text-blue-500 p-2 rounded-lg hover:bg-blue-50" title="Edit"><Edit2 size={16} /></button>
@@ -627,6 +628,10 @@ export default function AdminDashboard() {
                   <option value="Ranger">Ranger</option>
                   <option value="Leader">Leader</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">District</label>
+                <input type="text" value={editFormData.district} onChange={e => setEditFormData({...editFormData, district: e.target.value})} className="w-full px-3 py-2 border rounded-lg outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Rank / Designation</label>

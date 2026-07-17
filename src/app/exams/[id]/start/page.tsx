@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import Link from 'next/link';
-import { CheckCircle, AlertTriangle, Clock, Target, FileText, ChevronRight } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Clock, Target, FileText, ChevronRight, ShieldCheck } from 'lucide-react';
 
 export default function ExamStartPage() {
   const { user, isAuthenticated } = useAuthStore();
@@ -18,6 +18,7 @@ export default function ExamStartPage() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'Candidate') {
@@ -46,15 +47,9 @@ export default function ExamStartPage() {
     setStarting(true);
     setErrorMsg(null);
     try {
-      // The API call to actually start and create the attempt happens on the /take page
-      // But we can test it here if we want to catch the 403 before redirecting.
-      // Wait, the original code just redirects to /take.
-      // If we redirect to /take, the /take page handles the API call and throws the alert.
-      // Let's change the architecture: we make the /start API call HERE, and if successful, redirect to /take.
       const { data } = await axios.post(`${API_URL}/api/exams/${examId}/start`, {}, {
         withCredentials: true,
       });
-      // Assuming it succeeded, we redirect to take where it will fetch the active attempt
       router.push(`/exams/${examId}/take`);
     } catch (err: any) {
       console.error(err);
@@ -126,14 +121,8 @@ export default function ExamStartPage() {
             <div className="flex items-start gap-3">
               <div className="mt-0.5 bg-yellow-50 text-yellow-600 p-1 rounded-full"><Target size={16} /></div>
               <div>
-                <p className="text-sm font-bold text-gray-800">Passing Criteria</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  This examination contains <strong>{exam?.questions?.length || 0} questions</strong>. You must score at least <strong>{
-                    exam?.questions?.length 
-                      ? Math.round(((exam?.passingMarks || 0) / exam.questions.reduce((sum: number, q: any) => sum + (q.marks || 1), 0)) * 100) 
-                      : (exam?.passingMarks || 0)
-                  }%</strong> to successfully pass.
-                </p>
+                <p className="text-sm font-bold text-gray-800">Fullscreen & Proctoring</p>
+                <p className="text-sm text-gray-600 mt-1">The exam will automatically enter fullscreen mode once started. Exiting fullscreen will trigger a security warning.</p>
               </div>
             </div>
 
@@ -141,15 +130,38 @@ export default function ExamStartPage() {
               <div className="mt-0.5 bg-green-50 text-green-600 p-1 rounded-full"><ShieldCheck size={16} /></div>
               <div>
                 <p className="text-sm font-bold text-gray-800">Academic Integrity</p>
-                <p className="text-sm text-gray-600 mt-1">This is a proctored examination environment. Leaving the fullscreen window, switching tabs, or copying text will be recorded as a warning. Multiple warnings will lead to automatic submission and disqualification.</p>
+                <p className="text-sm text-gray-600 mt-1">Any attempt to use unfair means, switch tabs, minimize the browser, or exit fullscreen will be automatically recorded as a security violation. Multiple violations will lead to immediate auto-submission of the exam.</p>
               </div>
             </div>
+
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 bg-blue-50 text-bsg-blue p-1 rounded-full"><FileText size={16} /></div>
+              <div>
+                <p className="text-sm font-bold text-gray-800">Bilingual Questions</p>
+                <p className="text-sm text-gray-600 mt-1">For bilingual questions, the English version will prevail in case of any discrepancy.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 flex items-start gap-3">
+            <div className="flex items-center h-5 mt-0.5">
+              <input
+                id="agree"
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="w-4 h-4 text-bsg-blue bg-white border-gray-300 rounded focus:ring-bsg-blue"
+              />
+            </div>
+            <label htmlFor="agree" className="text-sm font-medium text-gray-800 cursor-pointer select-none">
+              I understand that any attempt to use unfair means will result in immediate disqualification, and I agree to follow all examination rules.
+            </label>
           </div>
 
           <div className="border-t border-gray-100 pt-8 flex justify-end">
             <button
               onClick={handleStartExam}
-              disabled={starting || !!errorMsg}
+              disabled={starting || !!errorMsg || !agreed}
               className="inline-flex items-center gap-2 px-8 py-3 bg-bsg-blue hover:bg-blue-800 text-white font-bold rounded-lg transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               {starting ? 'Initializing...' : 'I understand, start exam'}
@@ -159,15 +171,5 @@ export default function ExamStartPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-// Inline fallback for icon if ShieldCheck wasn't imported properly from lucide
-function ShieldCheck(props: any) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}>
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
   );
 }

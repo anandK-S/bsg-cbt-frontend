@@ -13,7 +13,9 @@ export default function AdminSettings() {
   const [settings, setSettings] = useState({
     platformName: 'BSG CBT Portal',
     supportEmail: 'support@bsg-india.org',
-    maintenanceMode: false
+    maintenanceMode: false,
+    termsUrl: '',
+    privacyUrl: ''
   });
   const [loading, setLoading] = useState(true);
 
@@ -24,7 +26,9 @@ export default function AdminSettings() {
         setSettings({
           platformName: data.platformName || 'BSG CBT Portal',
           supportEmail: data.supportEmail || 'support@bsg-india.org',
-          maintenanceMode: data.maintenanceMode || false
+          maintenanceMode: data.maintenanceMode || false,
+          termsUrl: data.termsUrl || '',
+          privacyUrl: data.privacyUrl || ''
         });
       } catch (error) {
         console.error('Failed to load settings', error);
@@ -87,6 +91,28 @@ export default function AdminSettings() {
                 type="email" 
                 value={settings.supportEmail}
                 onChange={(e) => setSettings({...settings, supportEmail: e.target.value})}
+                className="w-full sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-shadow outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Terms & Conditions URL</label>
+              <input 
+                type="url" 
+                placeholder="https://"
+                value={settings.termsUrl}
+                onChange={(e) => setSettings({...settings, termsUrl: e.target.value})}
+                className="w-full sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-shadow outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Privacy Policy URL</label>
+              <input 
+                type="url" 
+                placeholder="https://"
+                value={settings.privacyUrl}
+                onChange={(e) => setSettings({...settings, privacyUrl: e.target.value})}
                 className="w-full sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-shadow outline-none"
               />
             </div>

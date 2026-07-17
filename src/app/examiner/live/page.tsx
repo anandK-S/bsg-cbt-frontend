@@ -31,6 +31,7 @@ export default function LiveMonitor() {
             candidateId: attempt.candidateId._id,
             name: attempt.candidateId.name,
             bsgId: attempt.candidateId.bsgId,
+            district: attempt.candidateId.district,
             examId: attempt.examId.title || attempt.examId._id,
             status: attempt.status === 'In-Progress' ? 'Active' : attempt.status,
             warnings: attempt.warnings || 0,
@@ -120,6 +121,7 @@ export default function LiveMonitor() {
                   <div>
                     <h3 className="text-xl font-black text-gray-900">{c.name || `Candidate ${c.candidateId.substring(0,6)}`}</h3>
                     <p className="text-sm text-gray-500 font-medium mt-1">ID: <span className="font-bold">{c.bsgId || c.candidateId.substring(0,8)}</span></p>
+                    {c.district && <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">{c.district}</p>}
                   </div>
                   <div className={`p-2 rounded-xl ${c.status === 'Blocked' ? 'bg-red-50 text-red-600' : c.status === 'Completed' ? 'bg-gray-100 text-gray-600' : 'bg-green-50 text-green-600'}`}>
                     {c.status === 'Blocked' ? <ShieldAlert size={20} /> : c.status === 'Completed' ? <StopCircle size={20} /> : <PlayCircle size={20} />}

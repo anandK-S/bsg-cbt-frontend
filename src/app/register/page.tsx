@@ -20,6 +20,9 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [bsgId, setBsgId] = useState('');
   const [section, setSection] = useState('Scout');
+  const [district, setDistrict] = useState('Vadodara');
+  const [unitNumber, setUnitNumber] = useState('');
+  const [unitName, setUnitName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ message: string, platformName?: string, supportEmail?: string } | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -39,6 +42,18 @@ export default function Register() {
       setError({ message: 'You must agree to the Terms & Privacy Policy to register.' });
       return;
     }
+
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    if (!nameRegex.test(name)) {
+      setError({ message: 'Name can only contain letters and spaces (no special characters or numbers).' });
+      return;
+    }
+
+    const bsgIdRegex = /^\d{8}$/;
+    if (!bsgIdRegex.test(bsgId)) {
+      setError({ message: 'BSG ID must be exactly 8 digits.' });
+      return;
+    }
     
     const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
     if (!passwordRegex.test(password)) {
@@ -51,7 +66,7 @@ export default function Register() {
     try {
       const { data } = await axios.post(
         `${API_URL}/api/auth/register`,
-        { name, email, password, bsgId, section },
+        { name, email, password, bsgId, section, district, unitNumber, unitName },
         { withCredentials: true }
       );
       
@@ -188,10 +203,11 @@ export default function Register() {
                     id="bsgId"
                     type="text"
                     required
+                    maxLength={8}
                     className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="BSG-xxxx"
+                    placeholder="Enter exactly 8 digits"
                     value={bsgId}
-                    onChange={(e) => setBsgId(e.target.value)}
+                    onChange={(e) => setBsgId(e.target.value.replace(/\D/g, '').slice(0, 8))}
                   />
                 </div>
               </div>
@@ -218,6 +234,47 @@ export default function Register() {
                 </div>
               </div>
 
+              <div>
+                <label htmlFor="district" className="block text-sm font-semibold text-foreground mb-1.5">District</label>
+                <div className="relative group">
+                  <select
+                    id="district"
+                    required
+                    className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all sm:text-sm"
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                  >
+                    <option value="Vadodara">Vadodara</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="unitNumber" className="block text-sm font-semibold text-foreground mb-1.5">Unit/Group Number</label>
+                <input
+                  id="unitNumber"
+                  type="number"
+                  required
+                  className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all sm:text-sm"
+                  placeholder="e.g. 33"
+                  value={unitNumber}
+                  onChange={(e) => setUnitNumber(e.target.value)}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label htmlFor="unitName" className="block text-sm font-semibold text-foreground mb-1.5">Unit/Group Name</label>
+                <input
+                  id="unitName"
+                  type="text"
+                  required
+                  className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all sm:text-sm"
+                  placeholder="e.g. NAIR, B.P Group"
+                  value={unitName}
+                  onChange={(e) => setUnitName(e.target.value)}
+                />
+              </div>
+
               <div className="md:col-span-2">
                 <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1.5">Password</label>
                 <div className="relative group">
@@ -241,7 +298,7 @@ export default function Register() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-1">Min 6 chars, 1 letter, 1 number, 1 special char.</p>
+                <p className="text-[10px] text-gray-500 mt-1">letter number special character mixed password</p>
               </div>
 
               {(globalSettings?.termsUrl || globalSettings?.privacyUrl) && (

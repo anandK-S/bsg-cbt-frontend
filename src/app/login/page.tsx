@@ -147,9 +147,15 @@ export default function Login() {
                     required
                     autoComplete="email"
                     className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="you@example.com or BSG ID"
+                    placeholder="you@example.com or 8-digit BSG ID"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (/^\d+$/.test(val)) {
+                        val = val.slice(0, 8);
+                      }
+                      setEmail(val);
+                    }}
                   />
                 </div>
               </div>
@@ -225,7 +231,7 @@ export default function Login() {
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <button
                 type="button"
-                onClick={() => router.back()}
+                onClick={() => router.push('/')}
                 className="w-full sm:w-1/3 flex justify-center items-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors"
               >
                 Cancel

@@ -10,6 +10,11 @@ import { UserCircle, Settings } from 'lucide-react';
 import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
+import { API_URL } from '@/utils/apiConfig';
+import { UserCircle, Settings } from 'lucide-react';
+import '@/utils/apiConfig';
+import LoadingScreen from '@/components/ui/LoadingScreen';
+
 interface Exam {
   _id: string;
   title: string;
@@ -19,6 +24,9 @@ interface Exam {
   questionCount?: number;
   maxScore?: number;
   creatorName?: string;
+  scheduledStartDate?: string;
+  scheduledEndDate?: string;
+  createdAt?: string;
 }
 
 
@@ -28,7 +36,9 @@ export default function CandidateDashboard() {
   const router = useRouter();
   
   const [availableExams, setAvailableExams] = useState<Exam[]>([]);
-
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState('All');
+  const [filterExaminer, setFilterExaminer] = useState('All');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -99,9 +109,11 @@ export default function CandidateDashboard() {
           </div>
           <div className="flex-1 mt-2 sm:mt-0">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-1">Welcome, {user?.name}</h1>
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 text-blue-100 font-medium">
+            <div className="flex flex-wrap items-center sm:items-start gap-2 text-blue-100 font-medium mt-2">
               <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm shadow-sm border border-white/10">BSG ID: {user?.bsgId}</span>
-              <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm shadow-sm border border-white/10">Candidate</span>
+              {user?.district && <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm shadow-sm border border-white/10">District: {user.district}</span>}
+              {user?.section && <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm shadow-sm border border-white/10">Section: {user.section}</span>}
+              {user?.unitName && <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm shadow-sm border border-white/10">Unit: {user.unitNumber ? `#${user.unitNumber} ` : ''}{user.unitName}</span>}
             </div>
           </div>
         </div>
@@ -111,11 +123,43 @@ export default function CandidateDashboard() {
 
       {/* Available Exams Section */}
       <div className="mb-12">
-        <div className="flex items-center mb-6">
-          <h2 className="text-2xl font-extrabold text-gray-900">Available Exams</h2>
-          <span className="ml-3 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">
-            {availableExams.length} New
-          </span>
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+          <div className="flex items-center">
+            <h2 className="text-2xl font-extrabold text-gray-900">Available Exams</h2>
+            <span className="ml-3 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">
+              {availableExams.length} New
+            </span>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <input 
+              type="text" 
+              placeholder="Search exams..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none min-w-[200px]"
+            />
+            <select 
+              value={filterCategory} 
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none"
+            >
+              <option value="All">All Categories</option>
+              {Array.from(new Set(availableExams.map(e => e.category || 'General'))).map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <select 
+              value={filterExaminer} 
+              onChange={(e) => setFilterExaminer(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none"
+            >
+              <option value="All">All Examiners</option>
+              {Array.from(new Set(availableExams.map(e => e.creatorName || 'Unknown Examiner'))).map(e => (
+                <option key={e} value={e}>{e}</option>
+              ))}
+            </select>
+          </div>
         </div>
         
         {availableExams.length === 0 ? (
@@ -126,7 +170,11 @@ export default function CandidateDashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {availableExams.map((exam: Exam) => (
+            {availableExams
+              .filter(exam => filterCategory === 'All' || (exam.category || 'General') === filterCategory)
+              .filter(exam => filterExaminer === 'All' || (exam.creatorName || 'Unknown Examiner') === filterExaminer)
+              .filter(exam => exam.title.toLowerCase().includes(searchQuery.toLowerCase()))
+              .map((exam: Exam) => (
               <div key={exam._id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 overflow-hidden flex flex-col transform hover:-translate-y-1 group">
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="flex justify-between items-start mb-4">
@@ -141,8 +189,21 @@ export default function CandidateDashboard() {
                   <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-grow">{exam.description || 'No description provided.'}</p>
                   
                   <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4">
-                    <p className="text-xs text-gray-500 font-medium">Created By:</p>
-                    <p className="text-sm font-bold text-gray-700">{exam.creatorName || 'Unknown Examiner'}</p>
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="text-xs text-gray-500 font-medium">Created By:</p>
+                      <p className="text-xs font-bold text-gray-700">{exam.creatorName || 'Unknown Examiner'}</p>
+                    </div>
+                    {exam.scheduledStartDate ? (
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-blue-500 font-medium">Scheduled For:</p>
+                        <p className="text-xs font-bold text-blue-700">{new Date(exam.scheduledStartDate).toLocaleString()}</p>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-gray-400 font-medium">Published:</p>
+                        <p className="text-xs font-bold text-gray-600">{new Date(exam.createdAt || Date.now()).toLocaleDateString()}</p>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex items-center justify-between text-sm mt-auto pt-4 border-t border-gray-100">
