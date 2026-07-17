@@ -62,7 +62,7 @@ export default function Home() {
               <span className="font-extrabold text-sm">BSG</span>
             </div>
             <span className="text-gray-900 font-extrabold text-xl tracking-tight hidden sm:block">
-              CBT Portal
+              BSG Portal
             </span>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="flex items-center gap-2 sm:gap-4">
@@ -112,9 +112,9 @@ export default function Home() {
         {/* Feature Cards Grid */}
         <motion.div initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }} className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-24 sm:mt-32 max-w-6xl mx-auto w-full px-4 sm:px-6">
           {[
-            { icon: ShieldCheck, color: 'text-rose-500', bg: 'bg-rose-50', title: 'Secure Examination', desc: 'Strict monitoring during CBT exam to maintain highest integrity.' },
+            { icon: ShieldCheck, color: 'text-rose-500', bg: 'bg-rose-50', title: 'Secure Examination', desc: 'Strict monitoring during BSG exam to maintain highest integrity.' },
             { icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50', title: 'Reliable & Offline-Safe', desc: 'Data is auto-saved locally ensuring uninterrupted Bharat Scout and Guide tests.' },
-            { icon: Brain, color: 'text-bsg-blue', bg: 'bg-blue-50', title: 'Instant Insights', desc: 'Get immediate scoring and detailed feedback on CBT exam performance.' }
+            { icon: Brain, color: 'text-bsg-blue', bg: 'bg-blue-50', title: 'Instant Insights', desc: 'Get immediate scoring and detailed feedback on BSG exam performance.' }
           ].map((feat, idx) => (
             <div key={idx} className="bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 rounded-3xl hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 group hover:-translate-y-2">
               <div className={`w-16 h-16 ${feat.bg} ${feat.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>

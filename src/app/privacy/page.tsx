@@ -13,10 +13,10 @@ export default function PrivacyPolicyPage() {
         </div>
 
         <div className="space-y-6 text-gray-600 font-medium leading-relaxed">
-          <p>Your privacy and data security are our top priority at the Bharat Scouts and Guides (BSG) Computer Based Test (CBT) Portal.</p>
+          <p>Your privacy and data security are our top priority at the Bharat Scouts and Guides (BSG) Portal.</p>
           
           <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">1. Information Collection</h2>
-          <p>We only collect information necessary for the administration of the CBT exams, such as your BSG ID, Name, Section, and District. This ensures you are eligible for the specific examination.</p>
+          <p>We only collect information necessary for the administration of the BSG exams, such as your BSG ID, Name, Section, and District. This ensures you are eligible for the specific examination.</p>
 
           <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">2. Examination Monitoring</h2>
           <p>During examinations, we monitor browser activity strictly to ensure test integrity. This includes tracking if you leave the exam window, switch tabs, or attempt to copy/paste text. All such activities are recorded for anti-cheat purposes.</p>

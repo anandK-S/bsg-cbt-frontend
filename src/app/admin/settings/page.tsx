@@ -11,7 +11,7 @@ export default function AdminSettings() {
   const [saved, setSaved] = useState(false);
 
   const [settings, setSettings] = useState({
-    platformName: 'BSG CBT Portal',
+    platformName: 'BSG Portal',
     supportEmail: 'support@bsg-india.org',
     maintenanceMode: false,
     termsUrl: '',
@@ -63,7 +63,7 @@ export default function AdminSettings() {
         <Settings className="w-8 h-8 text-bsg-blue" />
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Portal Settings</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage global configuration for the CBT platform.</p>
+          <p className="text-sm text-gray-500 mt-1">Manage global configuration for the BSG platform.</p>
         </div>
       </div>
 

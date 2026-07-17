@@ -9,7 +9,7 @@ import { Menu, X, CheckCircle2, Circle, Clock, UserCircle, Save, Eraser, Bookmar
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { io } from 'socket.io-client';
 
-// Status Types for Government CBT
+// Status Types for Government BSG
 type QuestionStatus = 'NotVisited' | 'Visited' | 'Answered' | 'MarkedForReview' | 'AnsweredAndMarkedForReview';
 
 export default function ExamTakePage() {
@@ -300,7 +300,7 @@ export default function ExamTakePage() {
     };
   }, [loading, isSubmitting, handleAutoSubmit]);
 
-  // CBT Actions
+  // BSG Actions
   const updateAnswerStatus = (index: number, changes: Partial<any>) => {
     const updatedAnswers = [...answers];
     const targetQId = questions[index]._id;
@@ -398,7 +398,7 @@ export default function ExamTakePage() {
     return `${m}:${s}`;
   };
 
-  if (loading || !_hasHydrated) return <LoadingScreen text="Initializing Secure CBT Environment..." />;
+  if (loading || !_hasHydrated) return <LoadingScreen text="Initializing Secure BSG Environment..." />;
   if (!questions.length) return <div className="p-8 text-center text-red-500 font-bold">Error loading exam questions.</div>;
 
   const currentQ = questions[currentQuestionIndex];
@@ -630,7 +630,7 @@ export default function ExamTakePage() {
                 
                 let badgeClass = '';
                 
-                // Colors exactly matching Government CBT styles
+                // Colors exactly matching Government BSG styles
                 if (status === 'NotVisited') {
                   badgeClass = 'bg-gray-200 border-gray-300 text-gray-700';
                 } else if (status === 'Visited') {
