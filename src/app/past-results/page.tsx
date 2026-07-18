@@ -121,53 +121,57 @@ export default function PastResultsPage() {
         </div>
 
       {pastExams.length > 0 && (
-        <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-lg border border-gray-100 mb-8 flex flex-col md:flex-row gap-4 items-end ring-1 ring-black/5">
-          <div className="flex items-center gap-2 text-bsg-blue-dark font-bold mb-1 w-full md:w-auto">
+        <div className="bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-100 mb-8 ring-1 ring-black/5">
+          <div className="flex items-center gap-2 text-bsg-blue-dark font-bold mb-3">
             <Filter size={18} /> Filters
           </div>
-          <div className="flex-1 min-w-[150px]">
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Status</label>
-            <select 
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none"
-            >
-              <option value="All">All Results</option>
-              <option value="Passed">Passed Only</option>
-              <option value="Failed">Failed Only</option>
-              <option value="Disqualified">Disqualified Only</option>
-            </select>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Status</label>
+              <select 
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none bg-white"
+              >
+                <option value="All">All Results</option>
+                <option value="Passed">Passed Only</option>
+                <option value="Failed">Failed Only</option>
+                <option value="Disqualified">Disqualified Only</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Examiner</label>
+              <select 
+                value={filterExaminer}
+                onChange={(e) => setFilterExaminer(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none bg-white"
+              >
+                <option value="All">All Examiners</option>
+                {examiners.map((ex: any) => (
+                  <option key={ex} value={ex}>{ex}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Date</label>
+              <input 
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none bg-white"
+              />
+            </div>
+            {(filterStatus !== 'All' || filterExaminer !== 'All' || filterDate !== '') && (
+              <div className="col-span-2 sm:col-span-3 flex justify-end">
+                <button 
+                  onClick={() => { setFilterStatus('All'); setFilterExaminer('All'); setFilterDate(''); }}
+                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 underline"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
           </div>
-          <div className="flex-1 min-w-[150px]">
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Examiner</label>
-            <select 
-              value={filterExaminer}
-              onChange={(e) => setFilterExaminer(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none"
-            >
-              <option value="All">All Examiners</option>
-              {examiners.map((ex: any) => (
-                <option key={ex} value={ex}>{ex}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1 min-w-[150px]">
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Date</label>
-            <input 
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none"
-            />
-          </div>
-          {(filterStatus !== 'All' || filterExaminer !== 'All' || filterDate !== '') && (
-            <button 
-              onClick={() => { setFilterStatus('All'); setFilterExaminer('All'); setFilterDate(''); }}
-              className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 underline"
-            >
-              Clear Filters
-            </button>
-          )}
         </div>
       )}
 

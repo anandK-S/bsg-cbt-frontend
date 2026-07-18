@@ -53,8 +53,13 @@ export default function ExamReviewPage() {
   const isPassed = percentage >= 50;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50/50 relative py-8 px-4 sm:px-6 lg:px-8">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-bsg-blue/5 to-transparent pointer-events-none"></div>
+      <div className="absolute top-20 right-0 w-96 h-96 bg-bsg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-40 left-0 w-72 h-72 bg-bsg-blue-light/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-5xl mx-auto space-y-6 relative z-10">
         
         {/* Navigation */}
         <Link href={user?.role === 'Candidate' ? '/dashboard' : `/examiner/exams/${exam._id}`} className="inline-flex items-center text-gray-500 hover:text-gray-900 transition-colors font-medium">
@@ -62,29 +67,28 @@ export default function ExamReviewPage() {
         </Link>
 
         {/* Header Summary */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className={`p-8 text-white ${isPassed ? 'bg-gradient-to-r from-green-600 to-emerald-500' : 'bg-gradient-to-r from-red-600 to-rose-500'}`}>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 overflow-hidden ring-1 ring-black/5">
+          <div className={`p-6 sm:p-8 text-white ${isPassed ? 'bg-gradient-to-br from-green-600 to-emerald-500' : 'bg-gradient-to-br from-red-600 to-rose-500'}`}>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
               <div>
                 <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-3 inline-block">
                   {exam.title}
                 </span>
-                <h1 className="text-3xl md:text-4xl font-extrabold mb-2">
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold mb-1 sm:mb-2">
                   {isPassed ? 'Congratulations! 🎉' : 'Keep Practicing! 💪'}
                 </h1>
-                <p className="text-white/90 text-lg">You scored {result.score} out of {result.totalMarks} marks.</p>
-
+                <p className="text-white/90 text-sm sm:text-lg">You scored {result.score} out of {result.totalMarks} marks.</p>
               </div>
-              <div className="bg-white/20 px-8 py-6 rounded-2xl text-center backdrop-blur-md border border-white/30 shadow-lg">
-                <span className="block text-sm font-bold uppercase tracking-wider text-white/90 mb-1">Total Score</span>
-                <span className="text-5xl font-black">{percentage.toFixed(0)}%</span>
+              <div className="bg-white px-6 sm:px-8 py-4 sm:py-6 rounded-2xl text-center shadow-lg border border-gray-100 shrink-0">
+                <span className="block text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-500 mb-1">Total Score</span>
+                <span className={`text-3xl sm:text-5xl font-black ${isPassed ? 'text-green-600' : 'text-red-600'}`}>{percentage.toFixed(0)}%</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Detailed Breakdown */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 print:border-none print:shadow-none">
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 print:border-none print:shadow-none ring-1 ring-black/5">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <h2 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
               Question Breakdown
@@ -108,7 +112,7 @@ export default function ExamReviewPage() {
                   window.print();
                   document.title = originalTitle;
                 }}
-                className="px-5 py-2.5 bg-gradient-to-r from-bsg-blue to-bsg-blue-dark text-white font-bold rounded-xl hover:from-bsg-blue-dark hover:to-bsg-blue transition-all shadow-lg transform hover:-translate-y-0.5"
+                className="px-5 py-2.5 bg-bsg-gold text-bsg-blue-dark font-bold rounded-xl hover:bg-yellow-500 transition-all shadow-lg transform hover:-translate-y-0.5"
               >
                 Download Question Paper
               </button>

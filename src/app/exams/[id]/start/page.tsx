@@ -181,25 +181,31 @@ export default function ExamStartPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    <div className="min-h-screen bg-gray-50/50 relative py-12 px-4 sm:px-6">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-bsg-blue/5 to-transparent pointer-events-none"></div>
+      <div className="absolute top-20 right-0 w-96 h-96 bg-bsg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-40 left-0 w-72 h-72 bg-bsg-blue-light/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-3xl mx-auto relative z-10">
       <div className="mb-6">
-        <Link href="/dashboard" className="text-bsg-blue hover:text-blue-800 text-sm font-semibold transition-colors flex items-center gap-1">
+        <Link href="/dashboard" className="text-gray-500 hover:text-gray-900 text-sm font-semibold transition-colors flex items-center gap-1">
           &larr; Return to Dashboard
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 overflow-hidden ring-1 ring-black/5">
         {/* Header Section */}
-        <div className="p-8 border-b border-gray-100">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
-                {exam?.title || 'Assessment'}
-              </h1>
-              <p className="text-gray-500 font-medium">
-                {exam?.description || 'Please carefully review the instructions before proceeding.'}
-              </p>
-            </div>
+        <div className="bg-gradient-to-br from-bsg-blue to-bsg-blue-dark p-6 sm:p-8 text-white relative overflow-hidden">
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-bsg-gold opacity-20 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="relative z-10">
+            <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight mb-2">
+              {exam?.title || 'Assessment'}
+            </h1>
+            <p className="text-blue-100 font-medium text-sm sm:text-base">
+              {exam?.description || 'Please carefully review the instructions before proceeding.'}
+            </p>
           </div>
         </div>
 
@@ -273,13 +279,14 @@ export default function ExamStartPage() {
             <button
               onClick={handleStartExam}
               disabled={starting || !!errorMsg || !agreed}
-              className="inline-flex items-center gap-2 px-8 py-3 bg-bsg-blue hover:bg-blue-800 text-white font-bold rounded-lg transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               {starting ? 'Initializing...' : 'I understand, start exam'}
               {!starting && <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />}
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
