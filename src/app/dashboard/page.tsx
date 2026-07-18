@@ -92,28 +92,27 @@ export default function CandidateDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {/* Header Profile Section */}
-        <div className="bg-gradient-to-br from-bsg-blue to-bsg-blue-dark rounded-[2rem] p-6 md:p-10 mb-10 text-white shadow-2xl flex flex-col sm:flex-row justify-between items-center sm:items-start gap-8 relative overflow-hidden ring-1 ring-white/10">
+        <div className="bg-gradient-to-br from-bsg-blue to-bsg-blue-dark rounded-2xl md:rounded-[2rem] p-4 sm:p-6 md:p-10 mb-6 md:mb-10 text-white shadow-2xl flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4 md:gap-8 relative overflow-hidden ring-1 ring-white/10">
         {/* Abstract background shapes */}
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-bsg-gold opacity-20 rounded-full blur-2xl pointer-events-none"></div>
         
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative z-10 text-center sm:text-left w-full">
+        <div className="flex flex-row items-center sm:items-start gap-3 sm:gap-6 relative z-10 text-left w-full">
           <div className="relative shrink-0">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-full flex items-center justify-center text-bsg-blue text-3xl font-extrabold shadow-inner overflow-hidden border-4 border-white/20">
+            <div className="w-14 h-14 sm:w-24 sm:h-24 bg-white rounded-full flex items-center justify-center text-bsg-blue text-2xl md:text-3xl font-extrabold shadow-inner overflow-hidden border-2 sm:border-4 border-white/20">
               {user?.profileImage ? (
                 <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'; }} />
               ) : (
-                <UserCircle size={48} className="text-gray-300" />
+                <UserCircle size={48} className="text-gray-300 w-full h-full p-2" />
               )}
             </div>
           </div>
-          <div className="flex-1 mt-2 sm:mt-0">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-1">Welcome, {user?.name}</h1>
-            <div className="flex flex-wrap items-center sm:items-start gap-2 text-blue-100 font-medium mt-2">
-              <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm shadow-sm border border-white/10">BSG ID: {user?.bsgId}</span>
-              {user?.district && <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm shadow-sm border border-white/10">District: {user.district}</span>}
-              {user?.section && <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm shadow-sm border border-white/10">Section: {user.section}</span>}
-              {user?.unitName && <span className="bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm shadow-sm border border-white/10">Unit: {user.unitNumber ? `#${user.unitNumber} ` : ''}{user.unitName}</span>}
+          <div className="flex-1">
+            <h1 className="text-lg sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-1 sm:mb-2 line-clamp-1">Welcome, {user?.name}</h1>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-blue-100 font-medium">
+              <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm backdrop-blur-sm shadow-sm border border-white/10 whitespace-nowrap">ID: {user?.bsgId}</span>
+              {user?.district && <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm backdrop-blur-sm shadow-sm border border-white/10 whitespace-nowrap hidden sm:inline-block">Dist: {user.district}</span>}
+              {user?.section && <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm backdrop-blur-sm shadow-sm border border-white/10 whitespace-nowrap">{user.section}</span>}
             </div>
           </div>
         </div>
@@ -239,7 +238,7 @@ export default function CandidateDashboard() {
                     return (
                       <Link 
                         href={`/exams/${exam._id}/start`} 
-                        className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-bsg-blue to-bsg-blue-dark hover:from-bsg-blue-dark hover:to-bsg-blue hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                        className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-bsg-blue-dark bg-bsg-gold hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transition-all"
                       >
                         Start Exam Now &rarr;
                       </Link>
