@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
+import { Filter } from 'lucide-react';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface PastResult {
@@ -26,6 +27,9 @@ export default function PastResultsPage() {
   
   const [pastExams, setPastExams] = useState<PastResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [filterExaminer, setFilterExaminer] = useState('All');
+  const [filterDate, setFilterDate] = useState('');
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -72,6 +76,31 @@ export default function PastResultsPage() {
   if (loading || !_hasHydrated) return <LoadingScreen text="Loading Past Results..." />;
   if (!isAuthenticated || user?.role !== 'Candidate') return null;
 
+  
+  // Derived state for filtering
+  const examiners = Array.from(new Set(pastExams.map(r => (r.examId as any)?.creatorId?.name || 'Unknown')));
+  const filteredExams = pastExams.filter((result: any) => {
+    const percentage = result.totalMarks > 0 ? Math.round((result.score / result.totalMarks) * 100) : 0;
+    const isPassed = percentage >= 50;
+    const examiner = (result.examId as any)?.creatorId?.name || 'Unknown';
+    
+    // Status Filter
+    if (filterStatus === 'Passed' && (!isPassed || result.violationReason)) return false;
+    if (filterStatus === 'Failed' && (isPassed && !result.violationReason)) return false;
+    if (filterStatus === 'Disqualified' && !result.violationReason) return false;
+    
+    // Examiner Filter
+    if (filterExaminer !== 'All' && examiner !== filterExaminer) return false;
+    
+    // Date Filter
+    if (filterDate) {
+      const resultDate = new Date(result.createdAt).toISOString().split('T')[0];
+      if (resultDate !== filterDate) return false;
+    }
+    
+    return true;
+  });
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -79,7 +108,58 @@ export default function PastResultsPage() {
         <p className="text-gray-500 font-medium">Review your completed examinations and feedback.</p>
       </div>
 
-      {pastExams.length === 0 ? (
+      {pastExams.length > 0 && (
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-4 items-end">
+          <div className="flex items-center gap-2 text-gray-700 font-bold mb-1 w-full md:w-auto">
+            <Filter size={18} /> Filters
+          </div>
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Status</label>
+            <select 
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none"
+            >
+              <option value="All">All Results</option>
+              <option value="Passed">Passed Only</option>
+              <option value="Failed">Failed Only</option>
+              <option value="Disqualified">Disqualified Only</option>
+            </select>
+          </div>
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Examiner</label>
+            <select 
+              value={filterExaminer}
+              onChange={(e) => setFilterExaminer(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none"
+            >
+              <option value="All">All Examiners</option>
+              {examiners.map((ex: any) => (
+                <option key={ex} value={ex}>{ex}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Date</label>
+            <input 
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none"
+            />
+          </div>
+          {(filterStatus !== 'All' || filterExaminer !== 'All' || filterDate !== '') && (
+            <button 
+              onClick={() => { setFilterStatus('All'); setFilterExaminer('All'); setFilterDate(''); }}
+              className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 underline"
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
+      )}
+
+      {filteredExams.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-16 text-center text-gray-500 flex flex-col items-center justify-center min-h-[50vh]">
           <span className="text-6xl mb-4">📊</span>
           <h3 className="text-xl font-bold text-gray-900 mb-2">No Results Yet</h3>
@@ -91,7 +171,7 @@ export default function PastResultsPage() {
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-6 space-y-4">
-            {pastExams.map((result: PastResult & { attemptId?: any }) => {
+            {filteredExams.map((result: PastResult & { attemptId?: any }) => {
               const percentage = result.totalMarks > 0 ? Math.round((result.score / result.totalMarks) * 100) : 0;
               const isPassed = percentage >= 50;
               

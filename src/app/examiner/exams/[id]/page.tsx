@@ -78,7 +78,20 @@ export default function ExamDetails() {
   const [showManualModal, setShowManualModal] = useState(false);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
-  const [manualQuestion, setManualQuestion] = useState({
+  interface ManualQuestionState {
+    text: string;
+    textHindi?: string;
+    options: string[];
+    optionsHindi?: string[];
+    correctOptionIndex: number;
+    acceptableAnswers: string[];
+    category: string;
+    section: string;
+    marks: number;
+    type: string;
+    mediaUrl: string;
+  }
+  const [manualQuestion, setManualQuestion] = useState<ManualQuestionState>({
     text: '',
     options: ['', '', '', ''],
     correctOptionIndex: 0,
@@ -351,10 +364,16 @@ export default function ExamDetails() {
     document.body.removeChild(link);
   };
 
-  const updateOptionText = (index: number, text: string) => {
-    const newOptions = [...manualQuestion.options];
-    newOptions[index] = text;
-    setManualQuestion({ ...manualQuestion, options: newOptions });
+  const updateOptionText = (index: number, text: string, lang: 'en' | 'hi' = 'en') => {
+    if (lang === 'en') {
+      const newOptions = [...manualQuestion.options];
+      newOptions[index] = text;
+      setManualQuestion({...manualQuestion, options: newOptions});
+    } else {
+      const newOptions = [...(manualQuestion.optionsHindi || manualQuestion.options.map(()=>''))];
+      newOptions[index] = text;
+      setManualQuestion({...manualQuestion, optionsHindi: newOptions});
+    }
   };
 
   const addOption = () => {
@@ -363,17 +382,18 @@ export default function ExamDetails() {
 
   const removeOption = (index: number) => {
     if (manualQuestion.options.length <= 2) {
-      setManualError('A question must have at least 2 options');
+      setManualError('Must have at least 2 options');
       return;
     }
-    const newOptions = manualQuestion.options.filter((_, i) => i !== index);
-    let newCorrectIndex = manualQuestion.correctOptionIndex;
-    if (newCorrectIndex === index) {
-      newCorrectIndex = 0;
-    } else if (newCorrectIndex > index) {
-      newCorrectIndex -= 1;
-    }
-    setManualQuestion({ ...manualQuestion, options: newOptions, correctOptionIndex: newCorrectIndex });
+    const newOptions = manualQuestion.options.filter((_: any, i: number) => i !== index);
+    const newOptionsHindi = (manualQuestion.optionsHindi || manualQuestion.options.map(()=>'')).filter((_: any, i: number) => i !== index);
+    const newCorrectIndex = manualQuestion.correctOptionIndex === index ? 0 : manualQuestion.correctOptionIndex > index ? manualQuestion.correctOptionIndex - 1 : manualQuestion.correctOptionIndex;
+    setManualQuestion({
+      ...manualQuestion,
+      options: newOptions,
+      optionsHindi: newOptionsHindi,
+      correctOptionIndex: newCorrectIndex
+    });
   };
 
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-bsg-blue font-semibold text-xl">Loading configuration...</div>;
@@ -881,19 +901,21 @@ export default function ExamDetails() {
                             {new Date(result.createdAt).toLocaleString()}
                           </td>
                           <td className="px-8 py-5 whitespace-nowrap text-right flex items-center justify-end gap-3">
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await axios.put(`${API_URL}/api/attempts/results/${result._id}/release`, {}, { withCredentials: true });
-                                  setResults(results.map(r => r._id === result._id ? { ...r, isReleased: !(r as any).isReleased } : r));
-                                } catch (err) {
-                                  alert('Failed to toggle result release');
-                                }
-                              }}
-                              className={`font-black px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 ${(result as any).isReleased ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                            >
-                              {(result as any).isReleased ? 'Released' : 'Unreleased'}
-                            </button>
+                            {!exam?.releaseResultsInstantly && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await axios.put(`${API_URL}/api/attempts/results/${result._id}/release`, {}, { withCredentials: true });
+                                    setResults(results.map(r => r._id === result._id ? { ...r, isReleased: !(r as any).isReleased } : r));
+                                  } catch (err) {
+                                    alert('Failed to toggle result release');
+                                  }
+                                }}
+                                className={`font-black px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 ${(result as any).isReleased ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                              >
+                                {(result as any).isReleased ? 'Released' : 'Unreleased'}
+                              </button>
+                            )}
                             <Link href={`/exams/${result._id}/review`} className="text-bsg-blue hover:text-bsg-blue-dark font-black hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors flex items-center gap-2">
                               <Eye size={16} /> Review
                             </Link>
@@ -944,7 +966,7 @@ export default function ExamDetails() {
             </div>
             
             {results.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8">
                   <h3 className="text-xl font-black text-gray-900 mb-6">Score Distribution</h3>
                   <div className="h-[300px] w-full">
@@ -1029,6 +1051,63 @@ export default function ExamDetails() {
                       <div className="w-3 h-3 rounded-full bg-red-500"></div>
                       <span className="text-sm font-bold text-gray-600">Failed</span>
                     </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8">
+                  <h3 className="text-xl font-black text-gray-900 mb-6">Questions by Section</h3>
+                  <div className="h-[300px] w-full relative">
+                    {(() => {
+                      const { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } = require('recharts');
+                      const sectionsMap: Record<string, number> = {};
+                      exam.questions?.forEach((q: any) => {
+                        const sec = q.questionId?.section || 'General';
+                        sectionsMap[sec] = (sectionsMap[sec] || 0) + 1;
+                      });
+                      
+                      const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'];
+                      const data = Object.keys(sectionsMap).map((sec, i) => ({
+                        name: sec,
+                        value: sectionsMap[sec],
+                        color: colors[i % colors.length]
+                      }));
+
+                      if (data.length === 0) {
+                        return <div className="h-full flex items-center justify-center text-gray-400 font-bold">No sections defined</div>;
+                      }
+                      
+                      return (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={data}
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={100}
+                              dataKey="value"
+                              stroke="none"
+                              labelLine={false}
+                              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+                                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                                const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+                                const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+                                return percent > 0.05 ? (
+                                  <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="text-xs font-bold">
+                                    {`${(percent * 100).toFixed(0)}%`}
+                                  </text>
+                                ) : null;
+                              }}
+                            >
+                              {data.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                            <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 'bold' }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

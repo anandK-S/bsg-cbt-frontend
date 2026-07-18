@@ -26,6 +26,7 @@ export default function ExamTakePage() {
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [language, setLanguage] = useState<'en' | 'hi'>('en');
   const [isMobilePaletteOpen, setIsMobilePaletteOpen] = useState(false);
   const [warnings, setWarnings] = useState(0);
   const [submissionResult, setSubmissionResult] = useState<any>(null);
@@ -448,7 +449,22 @@ export default function ExamTakePage() {
       {/* Top Header - Strict Government Style */}
       <header className="bg-white border-b border-gray-300 px-4 py-2 flex justify-between items-center shadow-sm shrink-0">
         <div className="flex flex-col">
-          <h1 className="font-extrabold text-lg text-bsg-blue truncate max-w-[200px] sm:max-w-md uppercase tracking-wide">{examTitle}</h1>
+          <h1 className="font-extrabold text-lg text-bsg-blue truncate max-w-[150px] sm:max-w-md uppercase tracking-wide">{examTitle}</h1>
+        </div>
+        
+        <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg border border-gray-200 ml-2">
+          <button 
+            onClick={() => setLanguage('en')}
+            className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            English
+          </button>
+          <button 
+            onClick={() => setLanguage('hi')}
+            className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            हिंदी
+          </button>
         </div>
         
         <div className="flex items-center gap-6">
@@ -498,13 +514,13 @@ export default function ExamTakePage() {
 
           {/* Question Content */}
           <div className="flex-1 overflow-y-auto p-6 md:p-8">
-            <h2 className="text-lg sm:text-xl font-medium text-gray-900 mb-8 whitespace-pre-wrap leading-relaxed">
-              {currentQ.text}
+            <h2 className="text-lg sm:text-xl font-medium text-gray-900 mb-6 whitespace-pre-wrap leading-relaxed break-words">
+              {language === 'hi' && currentQ.textHindi ? currentQ.textHindi : currentQ.text}
             </h2>
 
             {currentQ.mediaUrl && (
-              <div className="mb-8 rounded-lg overflow-hidden border border-gray-200 inline-block max-w-full">
-                <img src={currentQ.mediaUrl.startsWith('http') ? currentQ.mediaUrl : `${API_URL}${currentQ.mediaUrl}`} alt="Question Graphic" className="max-h-[300px] object-contain" />
+              <div className="mb-8 rounded-lg overflow-hidden border border-gray-200 inline-block max-w-full text-center">
+                <img src={currentQ.mediaUrl.startsWith('http') ? currentQ.mediaUrl : `${API_URL}${currentQ.mediaUrl}`} alt="Question Graphic" className="max-h-[300px] max-w-full object-contain mx-auto" />
               </div>
             )}
 
@@ -516,12 +532,13 @@ export default function ExamTakePage() {
                     onChange={(e) => updateSubjectiveAnswer(e.target.value)}
                     disabled={isSubmitting}
                     className="w-full min-h-[150px] p-4 border-2 border-gray-300 rounded-lg focus:border-bsg-blue focus:ring-4 focus:ring-bsg-blue/10 outline-none resize-y text-lg text-gray-900 font-medium disabled:opacity-60 disabled:cursor-not-allowed"
-                    placeholder="Type your answer here..."
+                    placeholder={language === 'hi' ? "अपना उत्तर यहाँ लिखें..." : "Type your answer here..."}
                   />
                 </div>
               ) : (
                 currentQ.options.map((opt: string, idx: number) => {
                   const isSelected = currentAnswer.selectedOptionIndex === idx;
+                  const displayOpt = language === 'hi' && currentQ.optionsHindi && currentQ.optionsHindi[idx] ? currentQ.optionsHindi[idx] : opt;
                   return (
                     <div 
                       key={idx}
@@ -537,77 +554,15 @@ export default function ExamTakePage() {
                           <div className="w-5 h-5 rounded-full border-2 border-gray-400 bg-white"></div>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <span className={`text-base font-medium ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
-                          {opt}
+                      <div className="flex-1 min-w-0">
+                        <span className={`text-base font-medium break-words ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
+                          {displayOpt}
                         </span>
                       </div>
                     </div>
                   );
                 })
               )}
-            </div>
-          </div>
-
-          {/* Bottom Action Bar */}
-          <div className="bg-white border-t border-gray-200 p-4 sm:px-6 flex flex-wrap gap-3 justify-between items-center mt-auto shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-            <div className="flex flex-wrap items-center gap-3 w-full justify-between sm:justify-start">
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => {
-                    if (currentQuestionIndex > 0) {
-                      setCurrentQuestionIndex(currentQuestionIndex - 1);
-                    }
-                  }}
-                  disabled={currentQuestionIndex === 0}
-                  className="px-4 py-2.5 sm:px-6 bg-white hover:bg-gray-50 text-gray-700 font-bold rounded-xl shadow-sm flex items-center gap-2 border border-gray-300 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  &larr; Prev
-                </button>
-                
-                <button 
-                  onClick={clearResponse}
-                  disabled={isSubmitting}
-                  className="px-4 py-2.5 sm:px-6 bg-white hover:bg-red-50 text-red-600 font-bold rounded-xl shadow-sm flex items-center gap-2 border border-gray-300 hover:border-red-200 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Eraser size={16} /> Clear
-                </button>
-              </div>
-
-              <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 ml-auto">
-                <button 
-                  onClick={markForReviewAndNext}
-                  disabled={isSubmitting}
-                  className={`px-4 py-2.5 sm:px-6 font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 border transition-all duration-300 text-sm flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed ${
-                    currentAnswer.status === 'MarkedForReview' || currentAnswer.status === 'AnsweredAndMarkedForReview'
-                      ? 'bg-purple-100 text-purple-700 border-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.4)]'
-                      : 'bg-white hover:bg-purple-50 text-purple-700 border-gray-300 hover:border-purple-300'
-                  }`}
-                >
-                  <BookmarkPlus size={16} className={currentAnswer.status === 'MarkedForReview' || currentAnswer.status === 'AnsweredAndMarkedForReview' ? 'animate-bounce' : ''} /> 
-                  Review
-                </button>
-
-                <button 
-                  onClick={saveAndNext}
-                  disabled={isSubmitting}
-                  className={`px-6 py-2.5 sm:px-8 font-bold rounded-xl shadow-md flex items-center justify-center gap-2 border transition-all duration-300 text-sm flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed ${
-                    currentQuestionIndex === questions.length - 1 
-                      ? 'bg-gradient-to-r from-bsg-blue to-bsg-blue-light hover:from-blue-700 hover:to-blue-600 text-white border-transparent hover:shadow-lg transform hover:-translate-y-0.5' 
-                      : 'bg-green-600 hover:bg-green-700 text-white border-green-700 hover:shadow-lg'
-                  }`}
-                >
-                  {currentQuestionIndex === questions.length - 1 ? (
-                    <>
-                      <CheckCircle2 size={18} /> Submit
-                    </>
-                  ) : (
-                    <>
-                      <Save size={16} /> Next
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
           </div>
         </div>

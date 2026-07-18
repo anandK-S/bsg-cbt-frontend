@@ -29,6 +29,7 @@ export default function LiveMonitor() {
         data.forEach((attempt: any) => {
           attemptsMap[attempt.candidateId._id] = {
             candidateId: attempt.candidateId._id,
+            attemptId: attempt._id,
             name: attempt.candidateId.name,
             bsgId: attempt.candidateId.bsgId,
             district: attempt.candidateId.district,
@@ -70,22 +71,52 @@ export default function LiveMonitor() {
     };
   }, [isAuthenticated, user, router]);
 
-  const forcePause = (candidateId: string) => {
-    if (confirm("Are you sure you want to cancel this candidate's exam? This cannot be undone.")) {
-      if (socket) {
-        socket.emit('force-pause', { candidateId });
+  const cancelAttempt = async (candidateId: string, attemptId: string) => {
+    if (confirm("Are you sure you want to completely cancel and remove this candidate's attempt? This cannot be undone.")) {
+      try {
+        await axios.post(`${API_URL}/api/attempts/${attemptId}/cancel`, {}, { withCredentials: true });
+        if (socket) {
+          socket.emit('force-pause', { candidateId }); // Still emit just in case they are online
+        }
+        // Remove from UI
+        setCandidates(prev => {
+          const newMap = { ...prev };
+          delete newMap[candidateId];
+          return newMap;
+        });
+      } catch (err) {
+        alert("Failed to cancel attempt. They might have already submitted.");
       }
     }
   };
 
-  const cancelAllExams = () => {
+  const cancelAllExams = async () => {
     if (confirm("Are you sure you want to cancel ALL active exams? This cannot be undone.")) {
-      if (socket) {
-        Object.keys(candidates).forEach((cid) => {
-          if (candidates[cid].status === 'Active' || candidates[cid].status === 'In-Progress') {
-            socket.emit('force-pause', { candidateId: cid });
-          }
-        });
+      const activeAttempts = Object.values(candidates).filter(c => c.status === 'Active' || c.status === 'In-Progress');
+      
+      if (activeAttempts.length === 0) {
+        alert("No active attempts to cancel.");
+        return;
+      }
+      
+      try {
+        await Promise.all(activeAttempts.map(c => 
+          axios.post(`${API_URL}/api/attempts/${c.attemptId}/cancel`, {}, { withCredentials: true })
+        ));
+        
+        if (socket) {
+          Object.keys(candidates).forEach((cid) => {
+            if (candidates[cid].status === 'Active' || candidates[cid].status === 'In-Progress') {
+              socket.emit('force-pause', { candidateId: cid });
+            }
+          });
+        }
+        
+        alert("All active attempts have been cancelled.");
+        setCandidates({}); // Clear local state, next refresh will fetch remaining
+      } catch (err) {
+        console.error(err);
+        alert("Error occurred while cancelling some attempts.");
       }
     }
   };
@@ -155,14 +186,26 @@ export default function LiveMonitor() {
             return (
             <div key={c.candidateId} className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden group hover:shadow-md transition-shadow relative">
               <div className={`h-2 w-full ${statusColor}`}></div>
-              <div className="p-6">
+              <div className="p-6 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-black text-gray-900">{c.name || `Candidate ${c.candidateId.substring(0,6)}`}</h3>
-                    <p className="text-sm text-gray-500 font-medium mt-1">ID: <span className="font-bold">{c.bsgId || c.candidateId.substring(0,8)}</span></p>
-                    {c.district && <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">{c.district}</p>}
+                    <h3 className="text-xl font-black text-gray-900 truncate">{c.name || `Candidate ${c.candidateId.substring(0,6)}`}</h3>
+                    <p className="text-sm text-gray-500 font-medium mt-1 truncate">ID: <span className="font-bold">{c.bsgId || c.candidateId.substring(0,8)}</span></p>
+                    {c.district && <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider truncate">{c.district}</p>}
                   </div>
                   <div className={`p-2 rounded-xl ${displayStatus === 'Blocked' ? 'bg-red-50 text-red-600' : displayStatus === 'Offline' ? 'bg-orange-50 text-orange-600' : displayStatus === 'Completed' ? 'bg-gray-100 text-gray-600' : 'bg-green-50 text-green-600'}`}>
+                    {displayStatus === 'Blocked' ? <ShieldAlert size={20} /> : displayStatus === 'Offline' ? <AlertTriangle size={20} /> : displayStatus === 'Completed' ? <StopCircle size={20} /> : <PlayCircle size={20} />}
+                  </div>
+                </div>
+                <div className="mt-auto flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">Warnings: {c.warnings || 0}</span>
+                  <button onClick={() => cancelAttempt(c.candidateId, c.attemptId)} className="text-red-500 hover:text-red-700 text-sm font-semibold">Cancel</button>
+                </div>
+              </div>
+            </div>
+            );
+          })}
+
                     {displayStatus === 'Blocked' ? <ShieldAlert size={20} /> : displayStatus === 'Offline' ? <AlertTriangle size={20} /> : displayStatus === 'Completed' ? <StopCircle size={20} /> : <PlayCircle size={20} />}
                   </div>
                 </div>
@@ -199,7 +242,7 @@ export default function LiveMonitor() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => forcePause(c.candidateId)}
+                    onClick={() => cancelAttempt(c.candidateId, c.attemptId)}
                     disabled={c.status === 'Blocked' || c.status === 'Completed'}
                     className="flex-1 bg-red-50 text-red-600 font-black py-2.5 rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50 disabled:hover:bg-red-50 border border-red-100"
                   >

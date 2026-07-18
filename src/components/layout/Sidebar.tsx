@@ -43,6 +43,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       case 'Examiner':
         return [
           { name: 'Dashboard', href: '/examiner', icon: LayoutDashboard },
+          { name: 'Live Monitoring', href: '/examiner/live', icon: Activity },
           { name: 'Profile', href: '/profile', icon: UserIcon },
         ];
       case 'Candidate':

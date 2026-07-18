@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
-import { Search, FileText, Activity, Users, Settings, LogOut, CheckCircle, Clock, HelpCircle, Database } from 'lucide-react';
+import { Search, FileText, Activity, Users, Settings, LogOut, CheckCircle, Clock, HelpCircle, Database, Calendar } from 'lucide-react';
 import { API_URL } from '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
@@ -19,6 +19,7 @@ interface Exam {
   questions?: unknown[];
   questionCount?: number;
   attemptCount?: number;
+  createdAt?: string;
 }
 
 interface LiveAttempt {
@@ -247,6 +248,10 @@ export default function ExaminerDashboard() {
                         <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
                           <FileText size={16} className="text-bsg-gold" />
                           {exam.questionCount || 0} Qs
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
+                          <Calendar size={14} className="text-gray-400" />
+                          {exam.createdAt ? new Date(exam.createdAt).toLocaleDateString() : 'N/A'}
                         </div>
                         <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
                           <Users size={16} className="text-green-600" />
