@@ -72,6 +72,10 @@ export default function ExamStartPage() {
     setStarting(true);
     setErrorMsg(null);
     try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen().catch(err => console.log(err));
+      }
+
       const { data } = await axios.post(`${API_URL}/api/exams/${examId}/start`, {}, {
         withCredentials: true,
       });

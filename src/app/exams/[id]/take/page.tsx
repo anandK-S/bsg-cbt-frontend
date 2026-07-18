@@ -203,60 +203,55 @@ export default function ExamTakePage() {
     }
   };
 
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+
+  const enforceFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (err) {
+      console.log('User must interact first to enable fullscreen');
+    }
+  };
+
+  const handleWarning = useCallback((msg: string) => {
+    setWarnings(prev => {
+      const newWarnings = prev + 1;
+      if (newWarnings >= 3) {
+        handleAutoSubmit('Exceeded maximum exam environment violations.');
+      } else {
+        setWarningMessage(`${msg} Warning count: ${newWarnings}/3`);
+      }
+      return newWarnings;
+    });
+  }, [handleAutoSubmit]);
+
   // Anti-cheat mechanisms
   useEffect(() => {
     if (loading || isSubmitting) return;
 
-    const enforceFullscreen = async () => {
-      try {
-        if (!document.fullscreenElement) {
-          await document.documentElement.requestFullscreen();
-        }
-      } catch (err) {
-        console.log('User must interact first to enable fullscreen');
-      }
+    // Push initial state to trap back button
+    window.history.pushState(null, '', window.location.href);
+
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.href);
+      handleWarning('You tried to use the Back button or leave the page. This is strictly prohibited.');
     };
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        setWarnings(prev => {
-          const newWarnings = prev + 1;
-          alert(`Warning! Tab switching or leaving the window is strictly prohibited. Warning count: ${newWarnings}/3`);
-          if (newWarnings >= 3) {
-            handleAutoSubmit('Exceeded maximum tab switching/window leaving warnings.');
-          } else {
-            enforceFullscreen();
-          }
-          return newWarnings;
-        });
+        handleWarning('Tab switching or leaving the window is strictly prohibited.');
       }
     };
 
     const handleBlur = () => {
-      setWarnings(prev => {
-        const newWarnings = prev + 1;
-        alert(`Warning! You left the exam window or opened another app. Warning count: ${newWarnings}/3`);
-        if (newWarnings >= 3) {
-          handleAutoSubmit('Exceeded maximum window blur/focus warnings.');
-        } else {
-          enforceFullscreen();
-        }
-        return newWarnings;
-      });
+      handleWarning('You left the exam window or opened another app.');
     };
 
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
-        setWarnings(prev => {
-          const newWarnings = prev + 1;
-          alert(`Warning! You exited fullscreen mode. This is prohibited. Warning count: ${newWarnings}/3`);
-          if (newWarnings >= 3) {
-            handleAutoSubmit('Exceeded maximum fullscreen exit warnings.');
-          } else {
-            enforceFullscreen();
-          }
-          return newWarnings;
-        });
+        handleWarning('You exited fullscreen mode. This is prohibited.');
       }
     };
 
@@ -282,6 +277,7 @@ export default function ExamTakePage() {
       }
     };
 
+    window.addEventListener('popstate', handlePopState);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleBlur);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -292,6 +288,7 @@ export default function ExamTakePage() {
     setTimeout(enforceFullscreen, 1000);
 
     return () => {
+      window.removeEventListener('popstate', handlePopState);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -427,10 +424,6 @@ export default function ExamTakePage() {
                 <span className="text-red-600 text-sm mt-1">{submissionResult.violationReason}</span>
               </div>
             )}
-            <div className="pt-2 text-left">
-              <span className="text-gray-800 font-bold block text-sm">Feedback</span>
-              <span className="text-gray-600 text-sm mt-1 block leading-relaxed">{submissionResult.aiFeedback}</span>
-            </div>
           </div>
 
           <button 
@@ -446,6 +439,30 @@ export default function ExamTakePage() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gray-50 overflow-hidden select-none absolute inset-0 z-[100]">
+      {/* Warning Modal */}
+      {warningMessage && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative text-center border-4 border-red-500">
+            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6 animate-pulse">
+              <AlertTriangle className="h-10 w-10 text-red-600" />
+            </div>
+            <h3 className="text-3xl font-black text-gray-900 mb-4">Security Warning</h3>
+            <p className="text-gray-600 mb-8 font-bold text-lg leading-relaxed">
+              {warningMessage}
+            </p>
+            <button
+              onClick={() => {
+                setWarningMessage(null);
+                enforceFullscreen();
+              }}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-4 px-4 rounded-xl shadow-md transition-all active:scale-95 text-lg uppercase tracking-wider"
+            >
+              Resume Exam & Fullscreen
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Header - Strict Government Style */}
       <header className="bg-white border-b border-gray-300 px-4 py-2 flex justify-between items-center shadow-sm shrink-0">
         <div className="flex flex-col">
@@ -564,6 +581,33 @@ export default function ExamTakePage() {
                 })
               )}
             </div>
+          </div>
+          
+          {/* Action Buttons Footer */}
+          <div className="bg-gray-50 border-t border-gray-300 p-4 md:px-6 flex flex-wrap justify-between items-center gap-3 shrink-0">
+            <div className="flex gap-2 w-full sm:w-auto">
+              <button 
+                onClick={clearResponse} 
+                disabled={isSubmitting}
+                className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-700 bg-white hover:bg-gray-100 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                Clear Response
+              </button>
+              <button 
+                onClick={markForReviewAndNext} 
+                disabled={isSubmitting}
+                className="flex-1 sm:flex-none px-4 py-2 border border-purple-600 rounded-lg text-sm font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                Mark for Review & Next
+              </button>
+            </div>
+            <button 
+              onClick={saveAndNext} 
+              disabled={isSubmitting}
+              className="w-full sm:w-auto px-8 py-2 border border-green-700 rounded-lg text-sm font-extrabold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 transition-colors shadow-sm"
+            >
+              {currentQuestionIndex === questions.length - 1 ? 'Save & Submit' : 'Save & Next'}
+            </button>
           </div>
         </div>
 
