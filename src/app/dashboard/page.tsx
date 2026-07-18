@@ -84,9 +84,15 @@ export default function CandidateDashboard() {
   if (!isAuthenticated || user?.role !== 'Candidate') return null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header Profile Section */}
-      <div className="bg-gradient-to-r from-bsg-blue to-bsg-blue-light rounded-2xl p-6 md:p-8 mb-8 text-white shadow-lg flex flex-col sm:flex-row justify-between items-center sm:items-start gap-6 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-50/50 relative">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-bsg-blue/5 to-transparent pointer-events-none"></div>
+      <div className="absolute top-20 right-0 w-96 h-96 bg-bsg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-40 left-0 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        {/* Header Profile Section */}
+        <div className="bg-gradient-to-br from-bsg-blue to-bsg-blue-dark rounded-[2rem] p-6 md:p-10 mb-10 text-white shadow-2xl flex flex-col sm:flex-row justify-between items-center sm:items-start gap-8 relative overflow-hidden ring-1 ring-white/10">
         {/* Abstract background shapes */}
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-bsg-gold opacity-20 rounded-full blur-2xl pointer-events-none"></div>
@@ -215,7 +221,7 @@ export default function CandidateDashboard() {
 
                     if (hasEnded) {
                       return (
-                        <div className="w-full text-center px-4 py-3 border border-transparent text-sm font-bold rounded-xl text-red-700 bg-red-100 cursor-not-allowed">
+                        <div className="w-full text-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-red-700 bg-red-100/80 cursor-not-allowed">
                           Test is Closed
                         </div>
                       );
@@ -224,7 +230,7 @@ export default function CandidateDashboard() {
                       return (
                         <Link 
                           href={`/exams/${exam._id}/start`} 
-                          className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-bold rounded-xl text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors shadow-sm"
+                          className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-blue-700 bg-blue-100 hover:bg-blue-200 hover:shadow-lg transition-all"
                         >
                           Starts Soon - View Timer &rarr;
                         </Link>
@@ -233,7 +239,7 @@ export default function CandidateDashboard() {
                     return (
                       <Link 
                         href={`/exams/${exam._id}/start`} 
-                        className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-bold rounded-xl text-bsg-blue-dark bg-bsg-gold hover:bg-yellow-500 transition-colors shadow-sm"
+                        className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-bsg-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all"
                       >
                         Start Exam Now &rarr;
                       </Link>
@@ -245,6 +251,7 @@ export default function CandidateDashboard() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

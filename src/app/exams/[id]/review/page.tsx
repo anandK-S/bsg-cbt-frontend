@@ -101,20 +101,17 @@ export default function ExamReviewPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue flex-1 min-w-[200px]"
               />
-              {/* Only show download option to candidates who failed */}
-              {!isPassed && (
-                <button 
-                  onClick={() => {
-                    const originalTitle = document.title;
-                    document.title = `${exam.title} - Question Paper`;
-                    window.print();
-                    document.title = originalTitle;
-                  }}
-                  className="px-4 py-2 bg-bsg-blue text-white font-bold rounded-lg hover:bg-blue-800 transition-colors shadow-sm"
-                >
-                  Download Question Paper
-                </button>
-              )}
+              <button 
+                onClick={() => {
+                  const originalTitle = document.title;
+                  document.title = `${exam.title} - Question Paper`;
+                  window.print();
+                  document.title = originalTitle;
+                }}
+                className="px-5 py-2.5 bg-gradient-to-r from-bsg-blue to-blue-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg transform hover:-translate-y-0.5"
+              >
+                Download Question Paper
+              </button>
             </div>
           </div>
 

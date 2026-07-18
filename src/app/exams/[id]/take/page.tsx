@@ -232,22 +232,28 @@ export default function ExamTakePage() {
   useEffect(() => {
     if (loading || isSubmitting) return;
 
-    // Push initial state to trap back button
-    window.history.pushState(null, '', window.location.href);
-
-    const handlePopState = () => {
+    // Push initial state to trap back button deeply for mobile edge swipes
+    for (let i = 0; i < 3; i++) {
       window.history.pushState(null, '', window.location.href);
-      handleWarning('You tried to use the Back button or leave the page. This is strictly prohibited.');
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      // Force them back forward if they swipe back
+      window.history.pushState(null, '', window.location.href);
+      handleWarning('You tried to use the Back button or swipe back gesture. This is strictly prohibited.');
     };
 
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        handleWarning('Tab switching or leaving the window is strictly prohibited.');
+      if (document.hidden || document.visibilityState === 'hidden') {
+        // If they press the home button or switch apps on phone, this triggers.
+        // We log a severe warning that pauses their ability to interact.
+        handleWarning('App minimized or tab switched. This is a severe security violation.');
       }
     };
 
     const handleBlur = () => {
-      handleWarning('You left the exam window or opened another app.');
+      // On some mobile devices, blur fires before visibilitychange when switching apps
+      handleWarning('You left the exam window or opened another app/overlay.');
     };
 
     const handleFullscreenChange = () => {
