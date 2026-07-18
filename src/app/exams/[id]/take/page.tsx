@@ -436,27 +436,27 @@ export default function ExamTakePage() {
       )}
 
       {/* Top Header - Strict Government Style */}
-      <header className="bg-white border-b border-gray-300 px-4 py-2 flex justify-between items-center shadow-sm shrink-0">
-        <div className="flex flex-col">
-          <h1 className="font-extrabold text-lg text-bsg-blue truncate max-w-[150px] sm:max-w-md uppercase tracking-wide">{examTitle}</h1>
+      <header className="bg-white border-b border-gray-300 px-2 md:px-4 py-2 flex flex-wrap justify-between items-center shadow-sm shrink-0 gap-y-2">
+        <div className="flex flex-col flex-shrink-0">
+          <h1 className="font-extrabold text-base md:text-lg text-bsg-blue truncate max-w-[120px] sm:max-w-md uppercase tracking-wide">{examTitle}</h1>
         </div>
         
-        <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg border border-gray-200 ml-2">
+        <div className="flex items-center gap-1 md:gap-2 bg-gray-100 p-1 rounded-lg border border-gray-200">
           <button 
             onClick={() => setLanguage('en')}
-            className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`px-2 md:px-3 py-1 text-xs font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
             English
           </button>
           <button 
             onClick={() => setLanguage('hi')}
-            className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`px-2 md:px-3 py-1 text-xs font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
             हिंदी
           </button>
         </div>
         
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 md:gap-6 flex-shrink-0">
           <div className="hidden md:flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
             {user?.profileImage ? (
               <img src={user.profileImage} alt={user.name} className="w-8 h-8 rounded-full border object-cover" />
@@ -469,17 +469,17 @@ export default function ExamTakePage() {
             </div>
           </div>
           
-          <div className={`flex flex-col items-center justify-center px-4 py-1 rounded-lg border-2 ${timeRemaining < 300 ? 'bg-red-50 text-red-600 border-red-500 animate-pulse' : 'bg-white text-gray-900 border-gray-300'}`}>
-            <span className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-0.5">Time Left</span>
-            <div className="flex items-center gap-1.5">
+          <div className={`flex flex-col items-center justify-center px-2 md:px-4 py-1 rounded-lg border-2 ${timeRemaining < 300 ? 'bg-red-50 text-red-600 border-red-500 animate-pulse' : 'bg-white text-gray-900 border-gray-300'}`}>
+            <span className="hidden md:block text-xs font-bold uppercase tracking-widest text-gray-500 mb-0.5">Time Left</span>
+            <div className="flex items-center gap-1 md:gap-1.5">
               <Clock size={16} className={timeRemaining < 300 ? 'text-red-500' : 'text-gray-400'} />
-              <span className="tabular-nums font-black text-xl leading-none">{formatTime(timeRemaining)}</span>
+              <span className="tabular-nums font-black text-base md:text-xl leading-none">{formatTime(timeRemaining)}</span>
             </div>
           </div>
           
           <button 
             onClick={() => setIsMobilePaletteOpen(!isMobilePaletteOpen)}
-            className="md:hidden p-2 bg-gray-100 rounded-lg text-gray-600 border border-gray-300"
+            className="md:hidden p-1.5 md:p-2 bg-gray-100 rounded-lg text-gray-600 border border-gray-300"
           >
             {isMobilePaletteOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
