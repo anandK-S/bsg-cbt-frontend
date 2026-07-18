@@ -23,6 +23,7 @@ interface ExamDetailsData {
   status: string;
   category?: string;
   questions: any[];
+  issueCertificate?: boolean;
 }
 
 interface ResultData {
@@ -53,6 +54,7 @@ export default function ExamDetails() {
     durationSeconds?: number | '';
     allowMultipleAttempts?: boolean;
     releaseResultsInstantly?: boolean;
+    issueCertificate?: boolean;
     scheduledStartDate?: string;
     scheduledEndDate?: string;
   }>({});
@@ -127,6 +129,7 @@ export default function ExamDetails() {
         durationSeconds: s || '',
         allowMultipleAttempts: data.allowMultipleAttempts,
         releaseResultsInstantly: data.releaseResultsInstantly !== false,
+        issueCertificate: data.issueCertificate !== false,
         scheduledStartDate: data.scheduledStartDate ? new Date(data.scheduledStartDate).toISOString().slice(0,16) : '',
         scheduledEndDate: data.scheduledEndDate ? new Date(data.scheduledEndDate).toISOString().slice(0,16) : '',
       });
@@ -164,6 +167,7 @@ export default function ExamDetails() {
         durationSeconds: totalSeconds,
         scheduledStartDate: editForm.scheduledStartDate || null,
         scheduledEndDate: editForm.scheduledEndDate || null,
+        issueCertificate: editForm.issueCertificate,
       };
 
       await axios.put(`${API_URL}/api/exams/${examId}`, payload, { withCredentials: true });
@@ -618,8 +622,25 @@ export default function ExamDetails() {
                         <span className="text-xs text-gray-500">If disabled, candidates won't see their scores.</span>
                       </div>
                     </label>
-                  </div>
-                  <div className="pt-4 border-t border-gray-100 flex justify-between items-center mt-6">
+
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                       <div className="relative">
+                         <input 
+                           type="checkbox" 
+                           className="sr-only"
+                           checked={editForm.issueCertificate || false}
+                           onChange={(e) => setEditForm({...editForm, issueCertificate: e.target.checked})}
+                         />
+                         <div className={`block w-12 h-6 rounded-full transition-colors ${editForm.issueCertificate ? 'bg-bsg-blue' : 'bg-gray-300'}`}></div>
+                         <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${editForm.issueCertificate ? 'transform translate-x-6' : ''}`}></div>
+                       </div>
+                       <div>
+                         <span className="text-sm font-bold text-gray-700 block group-hover:text-bsg-blue transition-colors">Issue Certificate</span>
+                         <span className="text-xs text-gray-500">If enabled, candidates will receive a certificate upon passing.</span>
+                       </div>
+                     </label>
+                   </div>
+                   <div className="pt-4 border-t border-gray-100 flex justify-between items-center mt-6">
                     <button 
                       onClick={async () => {
                         if (confirm("Are you sure you want to permanently delete this exam? This action cannot be undone.")) {

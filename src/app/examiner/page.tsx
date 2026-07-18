@@ -193,14 +193,14 @@ export default function ExaminerDashboard() {
         {/* ── Tab Navigation ── */}
         <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 ring-1 ring-black/5 mb-6 overflow-hidden">
           <div className="flex border-b border-gray-100 overflow-x-auto">
-            {[
-              { id: 'tests', icon: FileText, label: 'My Tests' },
-              { id: 'live', icon: Activity, label: 'Live Monitoring' },
-              { id: 'help', icon: HelpCircle, label: 'Help & Tutorials' },
-            ].map(tab => (
+            {([
+              { id: 'tests', icon: FileText, label: 'My Tests', nav: null },
+              { id: 'live', icon: Activity, label: 'Live Monitoring', nav: '/examiner/live' },
+              { id: 'help', icon: HelpCircle, label: 'Help & Tutorials', nav: null },
+            ] as {id: string; icon: any; label: string; nav: string|null}[]).map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => tab.nav ? router.push(tab.nav) : setActiveTab(tab.id)}
                 className={`flex items-center gap-2 whitespace-nowrap px-5 py-4 text-sm font-bold transition-all border-b-2 ${
                   activeTab === tab.id
                     ? 'border-bsg-blue text-bsg-blue bg-blue-50/50'
@@ -209,11 +209,6 @@ export default function ExaminerDashboard() {
               >
                 <tab.icon size={16} />
                 {tab.label}
-                {tab.id === 'live' && liveAttempts.length > 0 && (
-                  <span className="bg-red-500 text-white text-xs font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                    {liveAttempts.length}
-                  </span>
-                )}
               </button>
             ))}
           </div>
@@ -306,9 +301,8 @@ export default function ExaminerDashboard() {
                       <div className="bg-gray-50 px-4 py-3 border-t border-gray-100">
                         <Link
                           href={`/examiner/exams/${exam._id}`}
-                          className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-bsg-blue hover:text-bsg-blue text-gray-700 font-bold py-2 rounded-xl transition-all text-sm shadow-sm"
+                          className="w-full flex items-center justify-center gap-2 bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark font-bold py-2 rounded-xl transition-all text-sm shadow-sm"
                         >
-                          <Eye size={15} />
                           Manage Test
                           <ChevronRight size={14} className="ml-auto" />
                         </Link>
