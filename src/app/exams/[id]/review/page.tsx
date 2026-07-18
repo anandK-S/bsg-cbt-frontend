@@ -101,12 +101,20 @@ export default function ExamReviewPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue flex-1 min-w-[200px]"
               />
-              <button 
-                onClick={() => window.print()}
-                className="px-4 py-2 bg-bsg-blue text-white font-bold rounded-lg hover:bg-blue-800 transition-colors shadow-sm"
-              >
-                Download Test Paper
-              </button>
+              {/* Only show download option to candidates who failed */}
+              {!isPassed && (
+                <button 
+                  onClick={() => {
+                    const originalTitle = document.title;
+                    document.title = `${exam.title} - Question Paper`;
+                    window.print();
+                    document.title = originalTitle;
+                  }}
+                  className="px-4 py-2 bg-bsg-blue text-white font-bold rounded-lg hover:bg-blue-800 transition-colors shadow-sm"
+                >
+                  Download Question Paper
+                </button>
+              )}
             </div>
           </div>
 

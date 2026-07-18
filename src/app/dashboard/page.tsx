@@ -125,34 +125,36 @@ export default function CandidateDashboard() {
             </span>
           </div>
           
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <input 
               type="text" 
               placeholder="Search exams..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none min-w-[200px]"
+              className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none w-full sm:min-w-[220px] shadow-sm transition-all"
             />
-            <select 
-              value={filterCategory} 
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none"
-            >
-              <option value="All">All Categories</option>
-              {Array.from(new Set(availableExams.map(e => e.category || 'General'))).map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <select 
-              value={filterExaminer} 
-              onChange={(e) => setFilterExaminer(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none"
-            >
-              <option value="All">All Examiners</option>
-              {Array.from(new Set(availableExams.map(e => e.creatorName || 'Unknown Examiner'))).map(e => (
-                <option key={e} value={e}>{e}</option>
-              ))}
-            </select>
+            <div className="flex gap-3 w-full sm:w-auto">
+              <select 
+                value={filterCategory} 
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none flex-1 shadow-sm transition-all bg-white"
+              >
+                <option value="All">All Categories</option>
+                {Array.from(new Set(availableExams.map(e => e.category || 'General'))).map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <select 
+                value={filterExaminer} 
+                onChange={(e) => setFilterExaminer(e.target.value)}
+                className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none flex-1 shadow-sm transition-all bg-white"
+              >
+                <option value="All">All Examiners</option>
+                {Array.from(new Set(availableExams.map(e => e.creatorName || 'Unknown Examiner'))).map(e => (
+                  <option key={e} value={e}>{e}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
         
@@ -170,17 +172,17 @@ export default function CandidateDashboard() {
               .filter(exam => exam.title.toLowerCase().includes(searchQuery.toLowerCase()))
               .map((exam: Exam) => (
               <div key={exam._id} className="glass-card rounded-3xl overflow-hidden flex flex-col transform hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 animate-[fade-in_0.5s_ease-out] group">
-                <div className="p-6 flex-1 flex flex-col bg-white/40">
+                <div className="p-5 md:p-6 flex-1 flex flex-col bg-white/40">
                   <div className="flex justify-between items-start mb-4">
-                    <span className="px-3 py-1 bg-bsg-gold/20 text-yellow-800 text-xs font-extrabold uppercase tracking-wider rounded-full">
+                    <span className="px-3 py-1 bg-bsg-gold/20 text-yellow-800 text-xs font-extrabold uppercase tracking-wider rounded-full shadow-sm">
                       {exam.category || 'General'}
                     </span>
-                    <span className="flex items-center text-gray-500 text-sm font-bold bg-gray-100 px-3 py-1 rounded-full">
+                    <span className="flex items-center text-gray-500 text-xs font-bold bg-gray-100 border border-gray-200 px-3 py-1 rounded-full shadow-sm">
                       ⏱️ {exam.durationMinutes} mins
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight group-hover:text-bsg-blue transition-colors">{exam.title}</h3>
-                  <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-grow">{exam.description || 'No description provided.'}</p>
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 leading-tight group-hover:text-bsg-blue transition-colors">{exam.title}</h3>
+                  <p className="text-gray-500 text-xs md:text-sm mb-4 line-clamp-2 flex-grow">{exam.description || 'No description provided.'}</p>
                   
                   <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4">
                     <div className="flex justify-between items-center mb-1">
