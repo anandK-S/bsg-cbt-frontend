@@ -184,9 +184,9 @@ export default function LiveMonitor() {
             if (c.status === 'Blocked') statusColor = 'bg-red-500';
 
             return (
-            <div key={c.candidateId} className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden group hover:shadow-md transition-shadow relative">
-              <div className={`h-2 w-full ${statusColor}`}></div>
-              <div className="p-6 flex flex-col h-full">
+            <div key={c.candidateId} className="glass-card rounded-3xl overflow-hidden group hover:shadow-2xl transition-all duration-300 animate-[fade-in_0.5s_ease-out] relative transform hover:-translate-y-1">
+              <div className={`absolute top-0 left-0 h-full w-1.5 ${statusColor}`}></div>
+              <div className="p-6 flex flex-col h-full pl-8 bg-white/40">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-black text-gray-900 truncate">{c.name || `Candidate ${c.candidateId.substring(0,6)}`}</h3>
@@ -197,19 +197,7 @@ export default function LiveMonitor() {
                     {displayStatus === 'Blocked' ? <ShieldAlert size={20} /> : displayStatus === 'Offline' ? <AlertTriangle size={20} /> : displayStatus === 'Completed' ? <StopCircle size={20} /> : <PlayCircle size={20} />}
                   </div>
                 </div>
-                <div className="mt-auto flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Warnings: {c.warnings || 0}</span>
-                  <button onClick={() => cancelAttempt(c.candidateId, c.attemptId)} className="text-red-500 hover:text-red-700 text-sm font-semibold">Cancel</button>
-                </div>
-              </div>
-            </div>
-            );
-          })}
 
-                    {displayStatus === 'Blocked' ? <ShieldAlert size={20} /> : displayStatus === 'Offline' ? <AlertTriangle size={20} /> : displayStatus === 'Completed' ? <StopCircle size={20} /> : <PlayCircle size={20} />}
-                  </div>
-                </div>
-                
                 <div className="bg-gray-50 rounded-2xl p-4 mb-4 space-y-3 border border-gray-100">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-gray-500 flex items-center gap-2">

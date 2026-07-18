@@ -104,39 +104,51 @@ export default function Register() {
         <p className="mt-4 text-lg font-bold text-bsg-blue animate-pulse">Creating your account...</p>
       </div>
     )}
-    <div className="flex-1 bg-background flex flex-col py-6 sm:py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/20 dark:bg-bsg-blue/30 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-gold/10 dark:bg-bsg-gold/20 blur-[100px] pointer-events-none" />
-
-      <div className="m-auto w-full max-w-lg">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative z-10"
-        >
-        <div className="flex justify-center mb-4">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform -rotate-3">
-            <span className="font-extrabold text-white text-xl sm:text-2xl">BSG</span>
+    <div className="flex-1 bg-background flex min-h-screen relative overflow-hidden">
+      {/* Left Decorative Panel (Hidden on Mobile) */}
+      <div className="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
+        <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
+          <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+            <span className="font-extrabold text-bsg-gold text-4xl">BSG</span>
           </div>
+          <h1 className="text-4xl font-black mb-4 tracking-tight leading-tight">Join the BSG Portal</h1>
+          <p className="text-lg text-blue-100 max-w-md font-medium">Create your account to unlock access to exclusive computer-based tests and resources.</p>
         </div>
-        <h2 className="text-center text-3xl font-extrabold text-foreground tracking-tight">
-          Create an Account
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
-          Join the BSG Portal
-        </p>
-      </motion.div>
+      </div>
 
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg relative z-10"
-      >
-        <div className="bg-card/80 backdrop-blur-xl py-6 px-4 shadow-2xl sm:rounded-2xl sm:px-10 border border-border">
-          <form className="space-y-4" onSubmit={handleSubmit}>
+      {/* Right Register Panel */}
+      <div className="flex-1 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-20 relative z-10 max-h-screen overflow-y-auto custom-scrollbar">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/10 blur-[100px] pointer-events-none lg:hidden" />
+        
+        <div className="mx-auto w-full max-w-lg mt-8 mb-8 lg:mt-0 lg:mb-0">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center lg:text-left mb-6"
+          >
+            <div className="flex justify-center lg:hidden mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform rotate-3">
+                <span className="font-extrabold text-white text-2xl">BSG</span>
+              </div>
+            </div>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+              Create an Account
+            </h2>
+            <p className="mt-2 text-sm text-gray-500 font-medium">
+              Join the BSG CBT platform today
+            </p>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <div className="glass-card py-6 px-4 sm:px-10 rounded-3xl">
+              <form className="space-y-5" onSubmit={handleSubmit}>
             {error && (
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
@@ -366,6 +378,7 @@ export default function Register() {
           </div>
         </div>
         </motion.div>
+      </div>
       </div>
     </div>
     </>

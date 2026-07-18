@@ -498,10 +498,10 @@ export default function ExamTakePage() {
       </header>
 
       {/* Main Content Area - 70/30 Split */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative p-2 md:p-4 gap-4 bg-background">
         
         {/* Left Side: Question Area (70%) */}
-        <div className="flex-1 flex flex-col w-full md:w-[70%] lg:w-[75%] border-r border-gray-300 bg-white">
+        <div className="flex-1 flex flex-col w-full md:w-[70%] lg:w-[75%] glass-card rounded-2xl md:rounded-3xl overflow-hidden shadow-sm animate-[fade-in_0.5s_ease-out]">
           {/* Question Header */}
           <div className="bg-gray-100 border-b border-gray-300 px-6 py-2 flex justify-between items-center flex-wrap gap-2">
             <span className="font-extrabold text-gray-700 text-lg">Question No. {currentQuestionIndex + 1}</span>
@@ -568,7 +568,7 @@ export default function ExamTakePage() {
         </div>
 
         {/* Right Side: Navigation Palette (30%) */}
-        <div className={`fixed md:static inset-y-0 right-0 z-40 w-80 md:w-[30%] lg:w-[25%] bg-blue-50 border-l border-gray-300 transform transition-transform duration-300 flex flex-col ${isMobilePaletteOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full md:translate-x-0'}`}>
+        <div className={`fixed md:static inset-y-0 right-0 z-40 w-80 md:w-[30%] lg:w-[25%] glass-card rounded-2xl md:rounded-3xl border border-gray-200 shadow-sm overflow-hidden transform transition-transform duration-300 flex flex-col animate-[fade-in_0.5s_ease-out] ${isMobilePaletteOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full md:translate-x-0'}`} style={{ animationDelay: '0.1s' }}>
           <div className="p-4 bg-white border-b border-gray-300 flex justify-between items-center md:hidden">
             <h3 className="font-extrabold text-gray-900 uppercase">Question Palette</h3>
             <button onClick={() => setIsMobilePaletteOpen(false)} className="p-2 bg-gray-100 rounded text-gray-700 border border-gray-300">

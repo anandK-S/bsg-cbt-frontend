@@ -304,9 +304,9 @@ export default function AdminDashboard() {
     switch (activeTab) {
       case 'users':
         return (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-gray-100 bg-gray-50/50 flex flex-col lg:flex-row justify-between gap-4">
-              <div className="relative w-full lg:max-w-md">
+          <div className="glass-card rounded-3xl overflow-hidden animate-[fade-in_0.4s_ease-out]">
+            <div className="p-4 sm:p-5 border-b border-gray-200/50 bg-white/50 flex flex-col lg:flex-row justify-between gap-4">
+              <div className="relative w-full lg:max-w-md group">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                 <input type="text" placeholder="Search users..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue outline-none text-sm" />
               </div>
@@ -580,13 +580,13 @@ export default function AdminDashboard() {
                 { label: 'Blocked Accounts', value: users.filter(u => u.status === 'Blocked').length, icon: UserX, color: 'text-rose-600', bg: 'bg-rose-50' },
                 { label: 'Total Exams', value: exams.length, icon: Database, color: 'text-purple-600', bg: 'bg-purple-50' }
               ].map((stat, i) => (
-                <div key={i} className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm flex items-center gap-4">
-                  <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
-                    <stat.icon size={22} className="stroke-[2.5]" />
+                <div key={i} className="glass-card rounded-3xl p-5 border-gray-100/50 shadow-sm flex items-center gap-4 transform transition-all duration-300 hover:translate-y-[-4px] hover:shadow-lg animate-[fade-in_0.5s_ease-out]" style={{ animationDelay: `${i * 0.1}s` }}>
+                  <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color} shadow-inner`}>
+                    <stat.icon size={24} className="stroke-[2.5]" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{stat.label}</p>
-                    <h3 className="text-2xl font-black text-gray-900 mt-0.5">{stat.value}</h3>
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-wider">{stat.label}</p>
+                    <h3 className="text-3xl font-black text-gray-900 mt-1">{stat.value}</h3>
                   </div>
                 </div>
               ))}

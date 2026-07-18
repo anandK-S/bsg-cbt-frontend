@@ -225,9 +225,9 @@ export default function ExaminerDashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredExams.map(exam => (
-                  <div key={exam._id} className="bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
-                    <div className="p-6 flex-1">
+                {filteredExams.map((exam, i) => (
+                  <div key={exam._id} className="glass-card rounded-3xl overflow-hidden flex flex-col transform transition-all duration-300 hover:translate-y-[-4px] animate-[fade-in_0.5s_ease-out]" style={{ animationDelay: `${i * 0.05}s` }}>
+                    <div className="p-6 flex-1 bg-white/40">
                       <div className="flex justify-between items-start mb-4 gap-2">
                         <span className="bg-gray-100 text-gray-700 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full">
                           {exam.category || 'Uncategorized'}

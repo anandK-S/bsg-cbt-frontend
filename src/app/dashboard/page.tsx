@@ -169,8 +169,8 @@ export default function CandidateDashboard() {
               .filter(exam => filterExaminer === 'All' || (exam.creatorName || 'Unknown Examiner') === filterExaminer)
               .filter(exam => exam.title.toLowerCase().includes(searchQuery.toLowerCase()))
               .map((exam: Exam) => (
-              <div key={exam._id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-200 overflow-hidden flex flex-col transform hover:-translate-y-1 group">
-                <div className="p-6 flex-1 flex flex-col">
+              <div key={exam._id} className="glass-card rounded-3xl overflow-hidden flex flex-col transform hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 animate-[fade-in_0.5s_ease-out] group">
+                <div className="p-6 flex-1 flex flex-col bg-white/40">
                   <div className="flex justify-between items-start mb-4">
                     <span className="px-3 py-1 bg-bsg-gold/20 text-yellow-800 text-xs font-extrabold uppercase tracking-wider rounded-full">
                       {exam.category || 'General'}
