@@ -29,7 +29,7 @@ export default function ExamTakePage() {
   const [language, setLanguage] = useState<'en' | 'hi'>('en');
   const [isMobilePaletteOpen, setIsMobilePaletteOpen] = useState(false);
   const [warnings, setWarnings] = useState(0);
-  const [submissionResult, setSubmissionResult] = useState<any>(null);
+
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const attemptIdRef = useRef<string | null>(null);
@@ -121,7 +121,7 @@ export default function ExamTakePage() {
         withCredentials: true,
       });
       localStorage.removeItem(`attempt_answers_${attemptIdRef.current}`);
-      setSubmissionResult(data);
+      router.push('/dashboard');
     } catch (e: any) {
       if (e.response?.status === 400) {
         localStorage.removeItem(`attempt_answers_${attemptIdRef.current}`);
@@ -341,11 +341,11 @@ export default function ExamTakePage() {
   };
 
   const selectOption = (optionIndex: number) => {
-    updateAnswerStatus(currentQuestionIndex, { selectedOptionIndex: optionIndex });
+    updateAnswerStatus(currentQuestionIndex, { selectedOptionIndex: optionIndex, status: 'Answered' });
   };
 
   const updateSubjectiveAnswer = (text: string) => {
-    updateAnswerStatus(currentQuestionIndex, { subjectiveAnswer: text });
+    updateAnswerStatus(currentQuestionIndex, { subjectiveAnswer: text, status: text.trim() ? 'Answered' : 'Visited' });
   };
 
   const clearResponse = () => {
@@ -402,40 +402,7 @@ export default function ExamTakePage() {
   const currentQ = questions[currentQuestionIndex];
   const currentAnswer = answers.find(a => a.questionId === currentQ._id) || {};
 
-  if (submissionResult) {
-    const isFail = (submissionResult.score / submissionResult.totalMarks) < 0.33; // Assume 33% passing if not provided
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-8 text-center border border-gray-200">
-          <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${isFail ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-            {isFail ? <AlertTriangle size={40} /> : <CheckCircle2 size={40} />}
-          </div>
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Exam Submitted!</h2>
-          <p className="text-gray-500 mb-8 font-medium">Your assessment has been successfully recorded.</p>
-          
-          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 mb-8 space-y-4">
-            <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-              <span className="text-gray-600 font-semibold">Your Score</span>
-              <span className="text-2xl font-black text-gray-900">{submissionResult.score} <span className="text-lg text-gray-400">/ {submissionResult.totalMarks}</span></span>
-            </div>
-            {submissionResult.violationReason && (
-              <div className="pt-2 text-left bg-red-50 p-3 rounded border border-red-200">
-                <span className="text-red-800 font-bold block text-sm">Violation Recorded:</span>
-                <span className="text-red-600 text-sm mt-1">{submissionResult.violationReason}</span>
-              </div>
-            )}
-          </div>
 
-          <button 
-            onClick={() => router.push('/dashboard')}
-            className="w-full bg-bsg-blue hover:bg-blue-800 text-white font-extrabold py-4 rounded-xl shadow-md transition-colors"
-          >
-            Return to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-gray-50 overflow-hidden select-none absolute inset-0 z-[100]">
@@ -585,7 +552,14 @@ export default function ExamTakePage() {
           
           {/* Action Buttons Footer */}
           <div className="bg-gray-50 border-t border-gray-300 p-4 md:px-6 flex flex-wrap justify-between items-center gap-3 shrink-0">
-            <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+              <button 
+                onClick={() => { if (currentQuestionIndex > 0) navigateToQuestion(currentQuestionIndex - 1); }}
+                disabled={isSubmitting || currentQuestionIndex === 0}
+                className="flex-1 sm:flex-none px-4 py-2 border border-blue-600 rounded-lg text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 disabled:opacity-50 transition-colors shadow-sm whitespace-nowrap"
+              >
+                Previous
+              </button>
               <button 
                 onClick={clearResponse} 
                 disabled={isSubmitting}
