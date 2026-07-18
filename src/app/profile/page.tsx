@@ -55,16 +55,30 @@ export default function ProfilePage() {
   if (!_hasHydrated || !user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <Link href={user.role === 'Candidate' ? '/dashboard' : '/examiner'} className="text-gray-500 hover:text-gray-900 font-medium">
-            &larr; Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-extrabold text-gray-900">Profile Settings</h1>
+    <div className="min-h-screen bg-gray-50/50 relative py-12 px-4 sm:px-6 lg:px-8">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-bsg-blue/5 to-transparent pointer-events-none"></div>
+      <div className="absolute top-20 right-0 w-96 h-96 bg-bsg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-40 left-0 w-72 h-72 bg-bsg-blue-light/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-3xl mx-auto space-y-8 relative z-10">
+        <div className="flex items-center justify-between bg-gradient-to-br from-bsg-blue to-bsg-blue-dark rounded-2xl md:rounded-[2rem] p-6 md:p-10 text-white shadow-2xl relative overflow-hidden ring-1 ring-white/10">
+          {/* Abstract background shapes */}
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-bsg-gold opacity-20 rounded-full blur-2xl pointer-events-none"></div>
+          
+          <div className="relative z-10 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">Profile Settings</h1>
+              <p className="text-blue-100 font-medium">Manage your personal information and preferences.</p>
+            </div>
+            <Link href={user.role === 'Candidate' ? '/dashboard' : '/examiner'} className="bg-white/10 hover:bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-white font-bold text-sm border border-white/20 transition-all text-center">
+              &larr; Back to Dashboard
+            </Link>
+          </div>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-lg border border-gray-100 ring-1 ring-black/5">
           <div className="flex flex-col sm:flex-row gap-8 items-start">
             
             {/* Avatar Preview */}
@@ -143,7 +157,7 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 w-full bg-bsg-blue hover:bg-bsg-blue-dark text-white font-extrabold py-4 rounded-xl shadow-md transition-colors disabled:opacity-50"
+                  className="flex-1 w-full bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark font-extrabold py-4 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50"
                 >
                   {loading ? 'Saving...' : 'Save Profile Changes'}
                 </button>

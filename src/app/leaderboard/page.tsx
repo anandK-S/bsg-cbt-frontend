@@ -82,21 +82,30 @@ export default function LeaderboardPage() {
   if (!isAuthenticated) return null;
 
   return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
-        {/* Premium Header */}
-        <div className="bg-gradient-to-r from-bsg-gold to-yellow-500 rounded-3xl p-8 mb-8 text-bsg-blue-dark shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-20 blur-3xl pointer-events-none"></div>
+    <div className="min-h-screen bg-gray-50/50 relative">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-bsg-blue/5 to-transparent pointer-events-none"></div>
+      <div className="absolute top-20 right-0 w-96 h-96 bg-bsg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-40 left-0 w-72 h-72 bg-bsg-blue-light/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        {/* Premium Header matching Dashboard */}
+        <div className="bg-gradient-to-br from-bsg-blue to-bsg-blue-dark rounded-2xl md:rounded-[2rem] p-6 md:p-10 mb-8 text-white shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden ring-1 ring-white/10">
+          {/* Abstract background shapes */}
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-bsg-gold opacity-20 rounded-full blur-2xl pointer-events-none"></div>
+          
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between w-full">
             <div>
-              <h1 className="text-4xl font-black mb-2 tracking-tight flex items-center gap-3">
+              <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight flex items-center gap-3">
                 🏆 Global Leaderboard
               </h1>
-              <p className="text-blue-900 text-lg font-medium">Top performing scouts across all examinations.</p>
+              <p className="text-blue-100 font-medium">Top performing scouts across all examinations.</p>
             </div>
             
-            <div className="mt-6 md:mt-0 flex flex-wrap items-center gap-3 bg-white/20 backdrop-blur-sm p-3 rounded-2xl border border-white/30">
+            <div className="mt-6 md:mt-0 flex flex-wrap items-center gap-3 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/20 shadow-inner">
               <div className="flex items-center gap-2">
-                <label htmlFor="startDate" className="text-bsg-blue-dark font-bold text-sm whitespace-nowrap hidden sm:block">From:</label>
+                <label htmlFor="startDate" className="text-white font-bold text-sm whitespace-nowrap hidden sm:block">From:</label>
                 <input 
                   type="date"
                   id="startDate"
@@ -106,7 +115,7 @@ export default function LeaderboardPage() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <label htmlFor="endDate" className="text-bsg-blue-dark font-bold text-sm whitespace-nowrap hidden sm:block">To:</label>
+                <label htmlFor="endDate" className="text-white font-bold text-sm whitespace-nowrap hidden sm:block">To:</label>
                 <input 
                   type="date"
                   id="endDate"
@@ -131,7 +140,7 @@ export default function LeaderboardPage() {
         </div>
 
         {leaderboard.length > 0 ? (
-          <div className="bg-white shadow-sm overflow-hidden sm:rounded-3xl border border-gray-100 mb-10 flex flex-col">
+          <div className="bg-white/80 backdrop-blur-md shadow-lg overflow-hidden sm:rounded-2xl border border-gray-100 mb-10 flex flex-col ring-1 ring-black/5">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-100">
                 <thead className="bg-gray-50">
@@ -227,5 +236,6 @@ export default function LeaderboardPage() {
           </div>
         )}
       </div>
+    </div>
   );
 }
