@@ -108,7 +108,7 @@ export default function ExamReviewPage() {
                   window.print();
                   document.title = originalTitle;
                 }}
-                className="px-5 py-2.5 bg-gradient-to-r from-bsg-blue to-blue-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg transform hover:-translate-y-0.5"
+                className="px-5 py-2.5 bg-gradient-to-r from-bsg-blue to-bsg-blue-dark text-white font-bold rounded-xl hover:from-bsg-blue-dark hover:to-bsg-blue transition-all shadow-lg transform hover:-translate-y-0.5"
               >
                 Download Question Paper
               </button>

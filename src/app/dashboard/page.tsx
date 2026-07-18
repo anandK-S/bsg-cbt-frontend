@@ -88,7 +88,7 @@ export default function CandidateDashboard() {
       {/* Decorative Background Elements */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-bsg-blue/5 to-transparent pointer-events-none"></div>
       <div className="absolute top-20 right-0 w-96 h-96 bg-bsg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute top-40 left-0 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-40 left-0 w-72 h-72 bg-bsg-blue-light/20 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {/* Header Profile Section */}
@@ -197,8 +197,8 @@ export default function CandidateDashboard() {
                     </div>
                     {exam.scheduledStartDate ? (
                       <div className="flex justify-between items-center">
-                        <p className="text-xs text-blue-500 font-medium">Scheduled For:</p>
-                        <p className="text-xs font-bold text-blue-700">{new Date(exam.scheduledStartDate).toLocaleString()}</p>
+                        <p className="text-xs text-bsg-blue-light font-medium">Scheduled For:</p>
+                        <p className="text-xs font-bold text-bsg-blue">{new Date(exam.scheduledStartDate).toLocaleString()}</p>
                       </div>
                     ) : (
                       <div className="flex justify-between items-center">
@@ -209,8 +209,8 @@ export default function CandidateDashboard() {
                   </div>
                   
                   <div className="flex items-center justify-between text-sm mt-auto pt-4 border-t border-gray-100">
-                    <span className="font-semibold text-gray-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400"></span> {exam.questionCount || 0} Qs</span>
-                    <span className="font-semibold text-gray-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400"></span> {exam.maxScore || 0} Marks</span>
+                    <span className="font-semibold text-gray-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-bsg-blue"></span> {exam.questionCount || 0} Qs</span>
+                    <span className="font-semibold text-gray-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-bsg-gold"></span> {exam.maxScore || 0} Marks</span>
                   </div>
                 </div>
                 <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-col justify-end">
@@ -230,7 +230,7 @@ export default function CandidateDashboard() {
                       return (
                         <Link 
                           href={`/exams/${exam._id}/start`} 
-                          className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-blue-700 bg-blue-100 hover:bg-blue-200 hover:shadow-lg transition-all"
+                          className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-bsg-blue-dark bg-bsg-blue/10 hover:bg-bsg-blue/20 hover:shadow-lg transition-all"
                         >
                           Starts Soon - View Timer &rarr;
                         </Link>
@@ -239,7 +239,7 @@ export default function CandidateDashboard() {
                     return (
                       <Link 
                         href={`/exams/${exam._id}/start`} 
-                        className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-bsg-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                        className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-bsg-blue to-bsg-blue-dark hover:from-bsg-blue-dark hover:to-bsg-blue hover:shadow-lg hover:-translate-y-0.5 transition-all"
                       >
                         Start Exam Now &rarr;
                       </Link>
