@@ -105,11 +105,11 @@ export default function Register() {
         </div>
       )}
       
-      {/* Changed to min-h-[100dvh] for better mobile browser support and removed strict overflow-hidden on mobile */}
       <div className="flex-1 bg-background flex min-h-[100dvh] relative lg:overflow-hidden">
         
         {/* Left Decorative Panel (Hidden on Mobile) */}
-        <div className="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden">
+        {/* Added pt-20 to clear the global header on desktop */}
+        <div className="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden pt-20">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
           <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
           <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
@@ -122,17 +122,16 @@ export default function Register() {
         </div>
 
         {/* Right Register Panel */}
-        {/* Adjusted padding and scrolling for mobile vs desktop */}
-        <div className="flex-1 flex flex-col justify-center py-6 px-4 sm:px-6 lg:px-20 relative z-10 lg:h-screen lg:overflow-y-auto custom-scrollbar">
+        {/* Added pt-28 lg:pt-32 pb-12 to perfectly position form below the global header on PC */}
+        <div className="flex-1 flex flex-col justify-center pt-28 lg:pt-32 pb-12 px-4 sm:px-6 lg:px-20 relative z-10 lg:h-screen lg:overflow-y-auto custom-scrollbar">
           <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/10 blur-[100px] pointer-events-none lg:hidden" />
           
-          {/* Removed mt-8 mb-8 that was pushing content off screen on mobile */}
-          <div className="mx-auto w-full max-w-lg my-auto pb-6 lg:pb-0">
+          <div className="mx-auto w-full max-w-lg my-auto">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-center lg:text-left mb-6 mt-4 lg:mt-0"
+              className="text-center lg:text-left mb-6"
             >
               <div className="flex justify-center lg:hidden mb-4">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform rotate-3">
