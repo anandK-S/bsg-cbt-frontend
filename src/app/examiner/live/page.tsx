@@ -1,62 +1,91 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
-import { RefreshCw, ShieldAlert, Clock, User, AlertTriangle, PlayCircle, StopCircle, RefreshCcw } from 'lucide-react';
+import { 
+  ShieldAlert, 
+  Clock, 
+  AlertTriangle, 
+  PlayCircle, 
+  StopCircle, 
+  RefreshCcw, 
+  ArrowLeft, 
+  Wifi, 
+  WifiOff, 
+  RefreshCw 
+} from 'lucide-react';
+import Link from 'next/link';
 
 export default function LiveMonitor() {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore();
   const router = useRouter();
+  
   const [candidates, setCandidates] = useState<{ [key: string]: any }>({});
   const [socket, setSocket] = useState<Socket | null>(null);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(Date.now());
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Fetch Live Data (used for initial load and polling)
+  const fetchLiveAttempts = useCallback(async (showRefreshing = false) => {
+    if (showRefreshing) setIsRefreshing(true);
+    try {
+      const { data } = await axios.get(`${API_URL}/api/attempts/live`, { withCredentials: true });
+      const attemptsMap: { [key: string]: any } = {};
+      
+      data.forEach((attempt: any) => {
+        const candidateId = attempt.candidateId?._id || attempt.candidateId;
+        attemptsMap[candidateId] = {
+          candidateId,
+          attemptId: attempt._id,
+          name: attempt.candidateId?.name || 'Unknown Candidate',
+          bsgId: attempt.candidateId?.bsgId,
+          district: attempt.candidateId?.district,
+          examTitle: attempt.examId?.title || 'Unknown Exam',
+          status: attempt.status === 'In-Progress' ? 'Active' : attempt.status,
+          warnings: attempt.warnings || 0,
+          lastUpdate: attempt.updatedAt,
+        };
+      });
+      setCandidates(attemptsMap);
+      setLastRefresh(new Date());
+    } catch (err) {
+      console.error("Failed to fetch live attempts", err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  // Initial Auth Check & Polling Setup
   useEffect(() => {
+    if (!_hasHydrated) return;
     if (!isAuthenticated || (user?.role !== 'Examiner' && user?.role !== 'Admin')) {
       router.push('/');
       return;
     }
 
-    // Fetch initial state
-    const fetchLiveAttempts = async () => {
-      try {
-        const { data } = await axios.get(`${API_URL}/api/attempts/live`, { withCredentials: true });
-        const attemptsMap: { [key: string]: any } = {};
-        data.forEach((attempt: any) => {
-          attemptsMap[attempt.candidateId._id] = {
-            candidateId: attempt.candidateId._id,
-            attemptId: attempt._id,
-            name: attempt.candidateId.name,
-            bsgId: attempt.candidateId.bsgId,
-            district: attempt.candidateId.district,
-            examId: attempt.examId.title || attempt.examId._id,
-            status: attempt.status === 'In-Progress' ? 'Active' : attempt.status,
-            warnings: attempt.warnings || 0,
-            lastUpdate: attempt.updatedAt,
-          };
-        });
-        setCandidates(attemptsMap);
-      } catch (err) {
-        console.error("Failed to fetch live attempts", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchLiveAttempts();
-
-    const newSocket = io(API_URL, {
-      withCredentials: true,
-    });
     
+    // Fallback polling for Vercel (every 10 seconds)
+    const interval = setInterval(() => fetchLiveAttempts(), 10000);
+    return () => clearInterval(interval);
+  }, [_hasHydrated, isAuthenticated, user, router, fetchLiveAttempts]);
+
+  // Socket.io Real-time Setup
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const newSocket = io(API_URL, { withCredentials: true });
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
-      newSocket.emit('join-monitor-room'); // Admin/Examiner subscribes
+      newSocket.emit('join-monitor-room'); 
     });
 
     newSocket.on('candidate-status', (data) => {
@@ -69,16 +98,21 @@ export default function LiveMonitor() {
     return () => {
       newSocket.disconnect();
     };
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated]);
+
+  // Clock for detecting offline status
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const cancelAttempt = async (candidateId: string, attemptId: string) => {
-    if (confirm("Are you sure you want to completely cancel and remove this candidate's attempt? This cannot be undone.")) {
+    if (confirm("Are you sure you want to cancel this candidate's attempt? This cannot be undone.")) {
       try {
         await axios.post(`${API_URL}/api/attempts/${attemptId}/cancel`, {}, { withCredentials: true });
         if (socket) {
-          socket.emit('force-pause', { candidateId }); // Still emit just in case they are online
+          socket.emit('force-pause', { candidateId }); 
         }
-        // Remove from UI
         setCandidates(prev => {
           const newMap = { ...prev };
           delete newMap[candidateId];
@@ -113,7 +147,7 @@ export default function LiveMonitor() {
         }
         
         alert("All active attempts have been cancelled.");
-        setCandidates({}); // Clear local state, next refresh will fetch remaining
+        setCandidates({}); 
       } catch (err) {
         console.error(err);
         alert("Error occurred while cancelling some attempts.");
@@ -121,138 +155,189 @@ export default function LiveMonitor() {
     }
   };
 
-  // Run a timer to periodically force re-render for offline detection
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 5000);
-    return () => clearInterval(interval);
-  }, []);
+  if (!_hasHydrated || loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <RefreshCw className="animate-spin text-bsg-blue mx-auto mb-4" size={36} />
+        <p className="text-gray-600 font-bold text-lg">Connecting to live feed...</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || (user?.role !== 'Examiner' && user?.role !== 'Admin')) return null;
 
+  const candidateList = Object.values(candidates);
+  const activeCount = candidateList.filter(c => c.status === 'Active' || c.status === 'In-Progress').length;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen bg-gray-50/50">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-        <div>
-          <h1 className="text-3xl font-black text-gray-900 flex items-center gap-3">
-            <span className="relative flex h-4 w-4">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
-            </span>
-            Live Monitoring
-          </h1>
-          <p className="text-gray-500 font-medium mt-1">Real-time candidate activity and exam integrity tracking</p>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-2">
-            <User size={16} className="text-bsg-blue" />
-            <span className="font-black text-bsg-blue">{Object.keys(candidates).length} Active</span>
+    <div className="min-h-screen bg-gray-50/50 pb-12">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-bsg-blue to-bsg-blue-dark text-white shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+            <div className="flex items-center gap-4">
+              <Link href="/examiner" className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors">
+                <ArrowLeft size={18} />
+              </Link>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                  <h1 className="text-2xl font-extrabold tracking-tight">Live Monitoring</h1>
+                </div>
+                <p className="text-blue-200 text-sm font-medium mt-0.5">Real-time candidate activity tracking</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={cancelAllExams}
+                className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
+              >
+                Cancel All Active
+              </button>
+            </div>
           </div>
           
-          <button 
-            onClick={cancelAllExams}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
-          >
-            Cancel All Active
-          </button>
-          
-          <button 
-            onClick={() => window.location.reload()}
-            className="p-2 text-gray-400 hover:text-bsg-blue hover:bg-blue-50 rounded-xl transition-all"
-            title="Refresh Connection"
-          >
-            <RefreshCcw size={20} />
-          </button>
+          <div className="grid grid-cols-3 gap-3 md:gap-6 max-w-2xl">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
+              <p className="text-2xl md:text-3xl font-black">{candidateList.length}</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-1">Live Sessions</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
+              <p className="text-2xl md:text-3xl font-black text-green-300">{activeCount}</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-1">Active Now</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
+              <p className="text-2xl md:text-3xl font-black text-yellow-300">{candidateList.filter(c => c.warnings > 0).length}</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-1">Warnings</p>
+            </div>
+          </div>
         </div>
       </div>
       
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <RefreshCw className="animate-spin text-bsg-blue mb-4" size={32} />
-          <p className="text-gray-500 font-bold">Connecting to live feed...</p>
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Wifi size={16} className="text-green-500" />
+            <span className="font-bold text-gray-700">Auto-refreshing every 10s</span>
+            {lastRefresh && (
+              <span className="text-gray-400">· Last check: {lastRefresh.toLocaleTimeString()}</span>
+            )}
+          </div>
+          <button
+            onClick={() => fetchLiveAttempts(true)}
+            disabled={isRefreshing}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gray-50 border border-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors shadow-sm disabled:opacity-50 text-sm"
+          >
+            <RefreshCcw size={15} className={isRefreshing ? 'animate-spin' : ''} />
+            Force Refresh
+          </button>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.values(candidates).map((c: any) => {
-            const timeSinceLastUpdate = now - new Date(c.lastUpdate).getTime();
-            const isOffline = timeSinceLastUpdate > 20000 && (c.status === 'Active' || c.status === 'In-Progress');
-            const displayStatus = isOffline ? 'Offline' : (c.status === 'In-Progress' ? 'Active' : c.status);
-            
-            let statusColor = 'bg-green-500';
-            if (c.status === 'Blocked' || c.status === 'Completed') statusColor = 'bg-gray-400';
-            if (isOffline) statusColor = 'bg-orange-500';
-            if (c.status === 'Blocked') statusColor = 'bg-red-500';
 
-            return (
-            <div key={c.candidateId} className="glass-card rounded-3xl overflow-hidden group hover:shadow-2xl transition-all duration-300 animate-[fade-in_0.5s_ease-out] relative transform hover:-translate-y-1">
-              <div className={`absolute top-0 left-0 h-full w-1.5 ${statusColor}`}></div>
-              <div className="p-6 flex flex-col h-full pl-8 bg-white/40">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-black text-gray-900 truncate">{c.name || `Candidate ${c.candidateId.substring(0,6)}`}</h3>
-                    <p className="text-sm text-gray-500 font-medium mt-1 truncate">ID: <span className="font-bold">{c.bsgId || c.candidateId.substring(0,8)}</span></p>
-                    {c.district && <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider truncate">{c.district}</p>}
-                  </div>
-                  <div className={`p-2 rounded-xl ${displayStatus === 'Blocked' ? 'bg-red-50 text-red-600' : displayStatus === 'Offline' ? 'bg-orange-50 text-orange-600' : displayStatus === 'Completed' ? 'bg-gray-100 text-gray-600' : 'bg-green-50 text-green-600'}`}>
-                    {displayStatus === 'Blocked' ? <ShieldAlert size={20} /> : displayStatus === 'Offline' ? <AlertTriangle size={20} /> : displayStatus === 'Completed' ? <StopCircle size={20} /> : <PlayCircle size={20} />}
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-2xl p-4 mb-4 space-y-3 border border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-gray-500 flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${statusColor}`}></div>
-                      Status
-                    </span>
-                    <span className={`text-sm font-black ${displayStatus === 'Blocked' ? 'text-red-600' : displayStatus === 'Offline' ? 'text-orange-600' : displayStatus === 'Completed' ? 'text-gray-600' : 'text-green-600'}`}>
-                      {displayStatus}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-gray-500 flex items-center gap-2">
-                      <AlertTriangle size={14} className={c.warnings > 0 ? 'text-yellow-500' : 'text-gray-400'} />
-                      Warnings
-                    </span>
-                    <span className={`text-sm font-black px-2 py-0.5 rounded-md ${c.warnings >= 3 ? 'bg-red-100 text-red-700' : c.warnings > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-600'}`}>
-                      {c.warnings} / 3
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-gray-500 flex items-center gap-2">
-                      <Clock size={14} />
-                      Last Ping
-                    </span>
-                    <span className={`text-sm font-black ${isOffline ? 'text-orange-600' : 'text-gray-700'}`}>
-                      {new Date(c.lastUpdate).toLocaleTimeString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => cancelAttempt(c.candidateId, c.attemptId)}
-                    disabled={c.status === 'Blocked' || c.status === 'Completed'}
-                    className="flex-1 bg-red-50 text-red-600 font-black py-2.5 rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50 disabled:hover:bg-red-50 border border-red-100"
-                  >
-                    Cancel Exam
-                  </button>
-                </div>
-              </div>
+        {candidateList.length === 0 ? (
+          <div className="bg-white rounded-3xl border-2 border-dashed border-gray-200 p-16 text-center">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <WifiOff size={32} className="text-gray-300" />
             </div>
-            );
-          })}
-          
-          {Object.keys(candidates).length === 0 && (
-            <div className="col-span-full flex flex-col items-center justify-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200 text-center px-4">
-              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                <ShieldAlert size={32} className="text-gray-400" />
-              </div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">No active candidates</h3>
-              <p className="text-gray-500 max-w-md">Waiting for candidates to join the exam or send live status updates. Their sessions will appear here automatically.</p>
-            </div>
-          )}
-        </div>
-      )}
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">No Active Candidates</h3>
+            <p className="text-gray-500 max-w-sm mx-auto mb-6">
+              No candidates are currently taking your exams. Sessions appear here automatically once they start.
+            </p>
+            <button
+              onClick={() => fetchLiveAttempts(true)}
+              className="inline-flex items-center gap-2 bg-bsg-blue text-white font-bold px-6 py-2.5 rounded-xl hover:bg-bsg-blue-dark transition-colors"
+            >
+              <RefreshCcw size={16} /> Check Again
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {candidateList.map((c: any) => {
+              const timeSinceUpdate = now - new Date(c.lastUpdate).getTime();
+              const isOffline = timeSinceUpdate > 20000 && (c.status === 'Active' || c.status === 'In-Progress');
+              const displayStatus = isOffline ? 'Offline' : (c.status === 'In-Progress' ? 'Active' : c.status);
+
+              let statusColor = 'bg-green-500';
+              let statusTextColor = 'text-green-600';
+              let statusBg = 'bg-green-50';
+              
+              if (isOffline) { statusColor = 'bg-orange-500'; statusTextColor = 'text-orange-600'; statusBg = 'bg-orange-50'; }
+              if (c.status === 'Blocked') { statusColor = 'bg-red-500'; statusTextColor = 'text-red-600'; statusBg = 'bg-red-50'; }
+              if (c.status === 'Completed') { statusColor = 'bg-gray-400'; statusTextColor = 'text-gray-600'; statusBg = 'bg-gray-50'; }
+
+              return (
+                <div key={c.candidateId} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all overflow-hidden flex flex-col">
+                  {/* Top Status line */}
+                  <div className={`h-1.5 w-full ${statusColor}`}></div>
+                  
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1 min-w-0 pr-3">
+                        <h3 className="text-lg font-extrabold text-gray-900 truncate">{c.name}</h3>
+                        <p className="text-sm text-gray-500 font-medium">BSG ID: {c.bsgId || '—'}</p>
+                        {c.district && <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5 truncate">{c.district}</p>}
+                      </div>
+                      <div className={`${statusBg} p-2.5 rounded-xl flex-shrink-0`}>
+                        {displayStatus === 'Blocked' ? <ShieldAlert size={22} className={statusTextColor} /> :
+                          displayStatus === 'Offline' ? <AlertTriangle size={22} className={statusTextColor} /> :
+                          displayStatus === 'Completed' ? <StopCircle size={22} className={statusTextColor} /> :
+                          <PlayCircle size={22} className={statusTextColor} />}
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-50/50 rounded-xl px-3 py-2.5 mb-4 text-xs font-bold text-bsg-blue truncate border border-blue-100">
+                      📝 {c.examTitle}
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-xl p-3.5 space-y-3 mb-5 border border-gray-100">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5">
+                          <div className={`w-2 h-2 rounded-full ${statusColor}`}></div>
+                          Status
+                        </span>
+                        <span className={`text-xs font-extrabold ${statusTextColor}`}>{displayStatus}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5">
+                          <AlertTriangle size={12} className={c.warnings > 0 ? 'text-yellow-500' : 'text-gray-300'} />
+                          Warnings
+                        </span>
+                        <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${c.warnings >= 3 ? 'bg-red-100 text-red-700' : c.warnings > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-600'}`}>
+                          {c.warnings} / 3
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5">
+                          <Clock size={12} />
+                          Last Ping
+                        </span>
+                        <span className={`text-xs font-extrabold ${isOffline ? 'text-orange-600' : 'text-gray-700'}`}>
+                          {new Date(c.lastUpdate).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto pt-2">
+                      <button
+                        onClick={() => cancelAttempt(c.candidateId, c.attemptId)}
+                        disabled={c.status === 'Blocked' || c.status === 'Completed'}
+                        className="w-full bg-white text-red-600 font-bold py-2.5 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-40 disabled:hover:bg-white border-2 border-red-100 text-sm"
+                      >
+                        Cancel Exam
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

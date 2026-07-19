@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
 import { API_URL } from '@/utils/apiConfig';
-import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2, Edit2, Mic } from 'lucide-react';
+import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2, Edit2, Mic, BookOpen, Calendar, Clock } from 'lucide-react';
 
 interface ExamDetailsData {
   _id: string;
@@ -406,20 +406,21 @@ export default function ExamDetails() {
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)] bg-gray-50">
       
-      {/* Top Header & Horizontal Tabs */}
-      <div className="bg-white border-b border-gray-200">
+      {/* Premium Gradient Header */}
+      <div className="bg-gradient-to-r from-bsg-blue to-bsg-blue-dark text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header row */}
           <div className="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Link href="/examiner" className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-bsg-blue hover:text-white transition-colors flex-shrink-0">
+              <Link href="/examiner" className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors flex-shrink-0">
                 <ArrowLeft size={18} />
               </Link>
               <div>
-                <h1 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">{exam.title}</h1>
+                <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">{exam.title}</h1>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className={`px-2 py-0.5 text-xs font-bold uppercase rounded-full ${exam.status === 'Published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{exam.status}</span>
-                  <span className="text-sm font-medium text-gray-500">{exam.questions.length} Questions</span>
+                  <span className={`px-2 py-0.5 text-xs font-bold uppercase rounded-full ${exam.status === 'Published' ? 'bg-green-400/20 text-green-200 border border-green-300/30' : 'bg-white/20 text-blue-100 border border-white/20'}`}>{exam.status}</span>
+                  <span className="text-blue-200 text-sm font-medium">{exam.questions.length} Questions</span>
+                  {exam.category && <span className="text-blue-300 text-xs font-bold bg-white/10 px-2 py-0.5 rounded-full">{exam.category}</span>}
                 </div>
               </div>
             </div>
@@ -429,48 +430,42 @@ export default function ExamDetails() {
                 <button 
                   onClick={handlePublish}
                   disabled={isPublishing}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+                  className="bg-green-500 hover:bg-green-400 text-white font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center gap-2 shadow-lg disabled:opacity-50 text-sm"
                 >
-                  <CheckCircle size={18} /> {isPublishing ? 'Publishing...' : 'Publish Test'}
+                  <CheckCircle size={16} /> {isPublishing ? 'Publishing...' : 'Publish Test'}
                 </button>
               ) : (
                 <button 
                   onClick={handleUnpublish}
                   disabled={isPublishing}
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-5 rounded-lg transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+                  className="bg-orange-400 hover:bg-orange-300 text-white font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center gap-2 shadow-lg disabled:opacity-50 text-sm"
                 >
-                  <Trash2 size={18} /> {isPublishing ? 'Unpublishing...' : 'Unpublish'}
+                  <Trash2 size={16} /> {isPublishing ? 'Unpublishing...' : 'Unpublish'}
                 </button>
               )}
             </div>
           </div>
 
           {/* Horizontal Tabs */}
-          <div className="flex space-x-8 overflow-x-auto custom-scrollbar mt-2">
-            <button 
-              onClick={() => setActiveTab('basic')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm ${activeTab === 'basic' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center gap-2`}
-            >
-              <Settings size={18} /> Basic Settings
-            </button>
-            <button 
-              onClick={() => setActiveTab('questions')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm ${activeTab === 'questions' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center gap-2`}
-            >
-              <ListChecks size={18} /> Question Manager
-            </button>
-            <button 
-              onClick={() => setActiveTab('results')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm ${activeTab === 'results' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center gap-2`}
-            >
-              <Users size={18} /> Results Table
-            </button>
-            <button 
-              onClick={() => setActiveTab('stats')}
-              className={`whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm ${activeTab === 'stats' ? 'border-bsg-blue text-bsg-blue' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} flex items-center gap-2`}
-            >
-              <BarChart2 size={18} /> Statistics
-            </button>
+          <div className="flex space-x-1 overflow-x-auto pb-px">
+            {[
+              { id: 'basic', icon: Settings, label: 'Basic Settings' },
+              { id: 'questions', icon: ListChecks, label: 'Questions' },
+              { id: 'results', icon: Users, label: 'Results' },
+              { id: 'stats', icon: BarChart2, label: 'Statistics' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`whitespace-nowrap py-3 px-4 border-b-2 font-bold text-sm flex items-center gap-2 transition-all ${
+                  activeTab === tab.id 
+                    ? 'border-white text-white' 
+                    : 'border-transparent text-blue-200 hover:text-white hover:border-white/50'
+                }`}
+              >
+                <tab.icon size={16} /> {tab.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -480,8 +475,63 @@ export default function ExamDetails() {
         
         {/* BASIC SETTINGS */}
         {activeTab === 'basic' && (
-          <div className="max-w-3xl">
-            <h1 className="text-3xl font-black text-gray-900 mb-6">Basic Settings</h1>
+          <div className="max-w-3xl space-y-4">
+            {/* General Info card */}
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 ring-1 ring-black/5 p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+                  <BookOpen size={18} className="text-bsg-blue" />
+                </div>
+                <h3 className="text-base font-extrabold text-gray-900">General Information</h3>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Test Title</label>
+                  <input 
+                    type="text" 
+                    value={editForm.title || ''}
+                    onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue focus:outline-none transition-all text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Category</label>
+                    <input 
+                      type="text" 
+                      list="exam-categories"
+                      value={editForm.category || ''}
+                      onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                      placeholder="e.g. General, Pravesh"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue focus:outline-none transition-all text-sm"
+                    />
+                    <datalist id="exam-categories">
+                      <option value="Pravesh" />
+                      <option value="Pratham Sopan" />
+                      <option value="Dwitiya Sopan" />
+                      <option value="Tritiya Sopan" />
+                      <option value="Rajya Puraskar" />
+                      <option value="Rashtrapati Scout/Guide" />
+                      <option value="First Aid" />
+                      <option value="Pioneering" />
+                    </datalist>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Description</label>
+                    <textarea 
+                      value={editForm.description || ''}
+                      onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                      rows={2}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue focus:outline-none resize-none transition-all text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* OLD BASIC SETTINGS (hidden after here) */}
+            <div className="hidden">
+              <h1 className="text-3xl font-black text-gray-900 mb-6">Basic Settings OLD</h1>
             
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-8">
               <div>
@@ -799,8 +849,13 @@ export default function ExamDetails() {
                         </button>
                       </div>
                     </div>
-                    <div className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-5">
+                      {q.questionId.mediaUrl && (
+                        <div className="mb-4 flex justify-center">
+                          <img src={`${API_URL}${q.questionId.mediaUrl}`} alt="Question Media" className="max-h-48 max-w-full rounded-xl border border-gray-200 shadow-sm object-contain" />
+                        </div>
+                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {q.questionId.options.map((opt: string, optIdx: number) => (
                           <div key={optIdx} className={`px-4 py-3 rounded-xl border-2 flex items-center gap-3 ${q.questionId.correctOptionIndex === optIdx ? 'border-green-500 bg-green-50' : 'border-gray-100 bg-white'}`}>
                             <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${q.questionId.correctOptionIndex === optIdx ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
@@ -812,11 +867,7 @@ export default function ExamDetails() {
                           </div>
                         ))}
                       </div>
-                      {q.questionId.mediaUrl && (
-                        <div className="mt-6 flex justify-center">
-                          <img src={`${API_URL}${q.questionId.mediaUrl}`} alt="Question Media" className="max-h-48 max-w-full rounded-xl border border-gray-200 shadow-sm object-contain" />
-                        </div>
-                      )}
+
                     </div>
                   </div>
                 ))}
@@ -873,13 +924,7 @@ export default function ExamDetails() {
                 >
                   <FileText size={18} /> Export to CSV
                 </button>
-                <button 
-                  onClick={() => window.print()}
-                  disabled={results.length === 0}
-                  className="bg-gray-800 text-white font-black px-5 py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
-                >
-                  <FileText size={18} /> Print PDF
-                </button>
+
               </div>
             </div>
             <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">

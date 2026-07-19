@@ -184,8 +184,8 @@ export default function ExaminerDashboard() {
               <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-0.5">Published</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center border border-white/20">
-              <p className="text-2xl sm:text-3xl font-black">{totalAttempts}</p>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-0.5">Attempts</p>
+              <p className="text-2xl sm:text-3xl font-black">{draftCount}</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-0.5">Drafts</p>
             </div>
           </div>
         </div>
@@ -301,10 +301,10 @@ export default function ExaminerDashboard() {
                       <div className="bg-gray-50 px-4 py-3 border-t border-gray-100">
                         <Link
                           href={`/examiner/exams/${exam._id}`}
-                          className="w-full flex items-center justify-center gap-2 bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark font-bold py-2 rounded-xl transition-all text-sm shadow-sm"
+                          className="w-full flex items-center justify-between bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark font-bold py-2.5 px-4 rounded-xl transition-all text-sm shadow-sm"
                         >
-                          Manage Test
-                          <ChevronRight size={14} className="ml-auto" />
+                          <span>Manage Test</span>
+                          <ChevronRight size={16} />
                         </Link>
                       </div>
                     </div>
