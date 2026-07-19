@@ -6,7 +6,6 @@ import { useAuthStore } from '@/store/useAuthStore';
 import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
-import '@/utils/apiConfig';
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff, BadgeInfo, UserPlus, ShieldCheck } from 'lucide-react';
 
@@ -14,6 +13,7 @@ export default function Register() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const _hasHydrated = useAuthStore((state) => state._hasHydrated);
+  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -98,289 +98,293 @@ export default function Register() {
 
   return (
     <>
-    {loading && (
-      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-300">
-        <div className="w-16 h-16 border-4 border-bsg-blue/30 border-t-bsg-blue rounded-full animate-spin shadow-lg"></div>
-        <p className="mt-4 text-lg font-bold text-bsg-blue animate-pulse">Creating your account...</p>
-      </div>
-    )}
-    <div className="flex-1 bg-background flex min-h-screen relative overflow-hidden">
-      {/* Left Decorative Panel (Hidden on Mobile) */}
-      <div className="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
-        <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
-          <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-            <span className="font-extrabold text-bsg-gold text-4xl">BSG</span>
-          </div>
-          <h1 className="text-4xl font-black mb-4 tracking-tight leading-tight">Join the BSG Portal</h1>
-          <p className="text-lg text-blue-100 max-w-md font-medium">Create your account to unlock access to exclusive computer-based tests and resources.</p>
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-300">
+          <div className="w-16 h-16 border-4 border-bsg-blue/30 border-t-bsg-blue rounded-full animate-spin shadow-lg"></div>
+          <p className="mt-4 text-lg font-bold text-bsg-blue animate-pulse">Creating your account...</p>
         </div>
-      </div>
-
-      {/* Right Register Panel */}
-      <div className="flex-1 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-20 relative z-10 max-h-screen overflow-y-auto custom-scrollbar">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/10 blur-[100px] pointer-events-none lg:hidden" />
+      )}
+      
+      {/* Changed to min-h-[100dvh] for better mobile browser support and removed strict overflow-hidden on mobile */}
+      <div className="flex-1 bg-background flex min-h-[100dvh] relative lg:overflow-hidden">
         
-        <div className="mx-auto w-full max-w-lg mt-8 mb-8 lg:mt-0 lg:mb-0">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center lg:text-left mb-6"
-          >
-            <div className="flex justify-center lg:hidden mb-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform rotate-3">
-                <span className="font-extrabold text-white text-2xl">BSG</span>
-              </div>
+        {/* Left Decorative Panel (Hidden on Mobile) */}
+        <div className="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
+          <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
+            <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+              <span className="font-extrabold text-bsg-gold text-4xl">BSG</span>
             </div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight">
-              Create an Account
-            </h2>
-            <p className="mt-2 text-sm text-gray-500 font-medium">
-              Join the BSG CBT platform today
-            </p>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <div className="glass-card py-6 px-4 sm:px-10 rounded-3xl">
-              <form className="space-y-5" onSubmit={handleSubmit}>
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className={`${error.supportEmail ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-red-500/10 text-red-500 border-red-500/20'} p-4 rounded-xl border flex flex-col gap-2 font-medium text-sm`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full ${error.supportEmail ? 'bg-amber-500' : 'bg-red-500'}`} />
-                  <span className="font-bold">{error.platformName ? `${error.platformName} is Under Maintenance` : 'Error'}</span>
-                </div>
-                <p>{error.message}</p>
-                {error.supportEmail && (
-                  <p className="mt-2 text-xs font-bold bg-amber-100 p-2 rounded-lg text-amber-900 inline-block text-center border border-amber-200">
-                    Contact Support: {error.supportEmail}
-                  </p>
-                )}
-              </motion.div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="md:col-span-2">
-                <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-1.5">Surname and First Name</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
-                    <User size={18} />
-                  </div>
-                  <input
-                    id="name"
-                    type="text"
-                    required
-                    className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="Surname First Name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="md:col-span-2">
-                <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">Email Address</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
-                    <Mail size={18} />
-                  </div>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="bsgId" className="block text-sm font-semibold text-foreground mb-1.5">BSG ID</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
-                    <BadgeInfo size={18} />
-                  </div>
-                  <input
-                    id="bsgId"
-                    type="text"
-                    required
-                    maxLength={8}
-                    className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="Enter exactly 8 digits"
-                    value={bsgId}
-                    onChange={(e) => setBsgId(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="section" className="block text-sm font-semibold text-foreground mb-1.5">Section</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
-                    <ShieldCheck size={18} />
-                  </div>
-                  <select
-                    id="section"
-                    required
-                    className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm appearance-none"
-                    value={section}
-                    onChange={(e) => setSection(e.target.value)}
-                  >
-                    <option value="Scout">Scout</option>
-                    <option value="Guide">Guide</option>
-                    <option value="Rover">Rover</option>
-                    <option value="Ranger">Ranger</option>
-                    <option value="Leader">Leader</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="district" className="block text-sm font-semibold text-foreground mb-1.5">District</label>
-                <div className="relative group">
-                  <select
-                    id="district"
-                    required
-                    className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all sm:text-sm"
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                  >
-                    <option value="Vadodara">Vadodara</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="unitNumber" className="block text-sm font-semibold text-foreground mb-1.5">Unit/Group Number</label>
-                <input
-                  id="unitNumber"
-                  type="number"
-                  required
-                  className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all sm:text-sm"
-                  placeholder="e.g. 33"
-                  value={unitNumber}
-                  onChange={(e) => setUnitNumber(e.target.value)}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label htmlFor="unitName" className="block text-sm font-semibold text-foreground mb-1.5">Unit/Group Name</label>
-                <input
-                  id="unitName"
-                  type="text"
-                  required
-                  className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all sm:text-sm"
-                  placeholder="e.g. NAIR, B.P Group"
-                  value={unitName}
-                  onChange={(e) => setUnitName(e.target.value)}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1.5">Password</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
-                    <Lock size={18} />
-                  </div>
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    className="block w-full pl-10 pr-10 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                <p className="text-[10px] text-gray-500 mt-1">letter number special character mixed password</p>
-              </div>
-
-              {(globalSettings?.termsUrl || globalSettings?.privacyUrl) && (
-                <div className="md:col-span-2 flex items-start mt-2">
-                  <div className="flex items-center h-5">
-                    <input
-                      id="terms"
-                      type="checkbox"
-                      checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="w-4 h-4 text-bsg-blue bg-gray-100 border-gray-300 rounded focus:ring-bsg-blue focus:ring-2"
-                    />
-                  </div>
-                  <div className="ml-2 text-sm">
-                    <label htmlFor="terms" className="font-medium text-gray-700">
-                      I agree to the{' '}
-                      {globalSettings?.termsUrl && (
-                        <a href={globalSettings.termsUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
-                          Terms & Conditions
-                        </a>
-                      )}
-                      {globalSettings?.termsUrl && globalSettings?.privacyUrl && ' and '}
-                      {globalSettings?.privacyUrl && (
-                        <a href={globalSettings.privacyUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
-                          Privacy Policy
-                        </a>
-                      )}
-                    </label>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="pt-2 flex flex-col sm:flex-row gap-3">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="w-full sm:w-1/3 flex justify-center items-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full sm:w-2/3 flex justify-center items-center gap-2 bg-gradient-to-r from-bsg-blue to-bsg-blue-light hover:opacity-90 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all text-sm disabled:opacity-70 transform active:scale-95"
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Registering...
-                  </span>
-                ) : (
-                  <>
-                    Create Account <UserPlus size={18} />
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-          
-          <div className="mt-8 pt-6 border-t border-border text-center text-sm">
-            <span className="text-gray-500">Already have an account? </span>
-            <Link href="/login" className="text-bsg-blue dark:text-bsg-gold font-bold hover:underline transition-all">
-              Sign In
-            </Link>
+            <h1 className="text-4xl font-black mb-4 tracking-tight leading-tight">Join the BSG Portal</h1>
+            <p className="text-lg text-blue-100 max-w-md font-medium">Create your account to unlock access to exclusive computer-based tests and resources.</p>
           </div>
         </div>
-        </motion.div>
+
+        {/* Right Register Panel */}
+        {/* Adjusted padding and scrolling for mobile vs desktop */}
+        <div className="flex-1 flex flex-col justify-center py-6 px-4 sm:px-6 lg:px-20 relative z-10 lg:h-screen lg:overflow-y-auto custom-scrollbar">
+          <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/10 blur-[100px] pointer-events-none lg:hidden" />
+          
+          {/* Removed mt-8 mb-8 that was pushing content off screen on mobile */}
+          <div className="mx-auto w-full max-w-lg my-auto pb-6 lg:pb-0">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center lg:text-left mb-6 mt-4 lg:mt-0"
+            >
+              <div className="flex justify-center lg:hidden mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform rotate-3">
+                  <span className="font-extrabold text-white text-2xl">BSG</span>
+                </div>
+              </div>
+              <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+                Create an Account
+              </h2>
+              <p className="mt-2 text-sm text-gray-500 font-medium">
+                Join the BSG CBT platform today
+              </p>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <div className="glass-card py-6 px-4 sm:p-8 rounded-3xl">
+                <form className="space-y-5" onSubmit={handleSubmit}>
+                  {error && (
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`${error.supportEmail ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-red-500/10 text-red-500 border-red-500/20'} p-4 rounded-xl border flex flex-col gap-2 font-medium text-sm`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${error.supportEmail ? 'bg-amber-500' : 'bg-red-500'}`} />
+                        <span className="font-bold">{error.platformName ? `${error.platformName} is Under Maintenance` : 'Error'}</span>
+                      </div>
+                      <p>{error.message}</p>
+                      {error.supportEmail && (
+                        <p className="mt-2 text-xs font-bold bg-amber-100 p-2 rounded-lg text-amber-900 inline-block text-center border border-amber-200">
+                          Contact Support: {error.supportEmail}
+                        </p>
+                      )}
+                    </motion.div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="md:col-span-2">
+                      <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-1.5">Surname and First Name</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <User size={18} />
+                        </div>
+                        <input
+                          id="name"
+                          type="text"
+                          required
+                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          placeholder="Surname First Name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">Email Address</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <Mail size={18} />
+                        </div>
+                        <input
+                          id="email"
+                          type="email"
+                          required
+                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          placeholder="you@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="bsgId" className="block text-sm font-semibold text-foreground mb-1.5">BSG ID</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <BadgeInfo size={18} />
+                        </div>
+                        <input
+                          id="bsgId"
+                          type="text"
+                          required
+                          maxLength={8}
+                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          placeholder="Exactly 8 digits"
+                          value={bsgId}
+                          onChange={(e) => setBsgId(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="section" className="block text-sm font-semibold text-foreground mb-1.5">Section</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <ShieldCheck size={18} />
+                        </div>
+                        <select
+                          id="section"
+                          required
+                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base appearance-none"
+                          value={section}
+                          onChange={(e) => setSection(e.target.value)}
+                        >
+                          <option value="Scout">Scout</option>
+                          <option value="Guide">Guide</option>
+                          <option value="Rover">Rover</option>
+                          <option value="Ranger">Ranger</option>
+                          <option value="Leader">Leader</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="district" className="block text-sm font-semibold text-foreground mb-1.5">District</label>
+                      <select
+                        id="district"
+                        required
+                        className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all text-sm sm:text-base"
+                        value={district}
+                        onChange={(e) => setDistrict(e.target.value)}
+                      >
+                        <option value="Vadodara">Vadodara</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="unitNumber" className="block text-sm font-semibold text-foreground mb-1.5">Unit/Group Number</label>
+                      <input
+                        id="unitNumber"
+                        type="number"
+                        required
+                        className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all text-sm sm:text-base"
+                        placeholder="e.g. 33"
+                        value={unitNumber}
+                        onChange={(e) => setUnitNumber(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="unitName" className="block text-sm font-semibold text-foreground mb-1.5">Unit/Group Name</label>
+                      <input
+                        id="unitName"
+                        type="text"
+                        required
+                        className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all text-sm sm:text-base"
+                        placeholder="e.g. NAIR, B.P Group"
+                        value={unitName}
+                        onChange={(e) => setUnitName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1.5">Password</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <Lock size={18} />
+                        </div>
+                        <input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          className="block w-full pl-10 pr-10 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-1">Include a letter, number, and special character</p>
+                    </div>
+
+                    {(globalSettings?.termsUrl || globalSettings?.privacyUrl) && (
+                      <div className="md:col-span-2 flex items-start mt-2">
+                        <div className="flex items-center h-5">
+                          <input
+                            id="terms"
+                            type="checkbox"
+                            checked={agreeTerms}
+                            onChange={(e) => setAgreeTerms(e.target.checked)}
+                            className="w-4 h-4 text-bsg-blue bg-gray-100 border-gray-300 rounded focus:ring-bsg-blue focus:ring-2"
+                          />
+                        </div>
+                        <div className="ml-2 text-sm">
+                          <label htmlFor="terms" className="font-medium text-gray-700">
+                            I agree to the{' '}
+                            {globalSettings?.termsUrl && (
+                              <a href={globalSettings.termsUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
+                                Terms & Conditions
+                              </a>
+                            )}
+                            {globalSettings?.termsUrl && globalSettings?.privacyUrl && ' and '}
+                            {globalSettings?.privacyUrl && (
+                              <a href={globalSettings.privacyUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
+                                Privacy Policy
+                              </a>
+                            )}
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2 flex flex-col-reverse sm:flex-row gap-3">
+                    <button
+                      type="button"
+                      onClick={() => router.back()}
+                      className="w-full sm:w-1/3 flex justify-center items-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full sm:w-2/3 flex justify-center items-center gap-2 bg-gradient-to-r from-bsg-blue to-bsg-blue-light hover:opacity-90 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all text-sm disabled:opacity-70 transform active:scale-95"
+                    >
+                      {loading ? (
+                        <span className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Registering...
+                        </span>
+                      ) : (
+                        <>
+                          Create Account <UserPlus size={18} />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+                
+                <div className="mt-6 pt-6 border-t border-border text-center text-sm">
+                  <span className="text-gray-500">Already have an account? </span>
+                  <Link href="/login" className="text-bsg-blue dark:text-bsg-gold font-bold hover:underline transition-all">
+                    Sign In
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </div>
-      </div>
-    </div>
     </>
   );
 }
