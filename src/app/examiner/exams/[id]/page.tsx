@@ -718,6 +718,7 @@ export default function ExamDetails() {
               </div>
             </div>
           </div>
+        </div>
         )}
 
         {/* QUESTION MANAGER */}
