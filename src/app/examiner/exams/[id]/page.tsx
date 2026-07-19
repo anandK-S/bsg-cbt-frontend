@@ -473,252 +473,218 @@ export default function ExamDetails() {
       {/* Main Content Area */}
       <div className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         
-        {/* BASIC SETTINGS */}
+        {/* BASIC SETTINGS TAB */}
         {activeTab === 'basic' && (
-          <div className="max-w-3xl space-y-4">
-            {/* General Info card */}
-            <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 ring-1 ring-black/5 p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
-                  <BookOpen size={18} className="text-bsg-blue" />
+          <div className="space-y-6 animate-[fade-in_0.3s_ease-out]">
+            
+            {/* General Information */}
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-bsg-blue">
+                  <BookOpen size={20} />
                 </div>
-                <h3 className="text-base font-extrabold text-gray-900">General Information</h3>
+                <h2 className="text-xl font-black text-gray-900">General Information</h2>
               </div>
-              <div className="space-y-4">
+              
+              <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Test Title</label>
-                  <input 
-                    type="text" 
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Exam Title <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
                     value={editForm.title || ''}
-                    onChange={(e) => setEditForm({...editForm, title: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue focus:outline-none transition-all text-sm"
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all font-medium text-sm"
+                    placeholder="e.g., Rajya Puraskar Mock Test 2026"
                   />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Category</label>
-                    <input 
-                      type="text" 
-                      list="exam-categories"
-                      value={editForm.category || ''}
-                      onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                      placeholder="e.g. General, Pravesh"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue focus:outline-none transition-all text-sm"
-                    />
-                    <datalist id="exam-categories">
-                      <option value="Pravesh" />
-                      <option value="Pratham Sopan" />
-                      <option value="Dwitiya Sopan" />
-                      <option value="Tritiya Sopan" />
-                      <option value="Rajya Puraskar" />
-                      <option value="Rashtrapati Scout/Guide" />
-                      <option value="First Aid" />
-                      <option value="Pioneering" />
-                    </datalist>
+                
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Description <span className="text-red-500">*</span></label>
+                  <textarea
+                    value={editForm.description || ''}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all min-h-[100px] text-sm font-medium resize-none"
+                    placeholder="Provide a brief description or instructions for the candidates..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Category <span className="text-red-500">*</span></label>
+                  <select
+                    value={editForm.category || 'General'}
+                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all font-medium text-sm appearance-none bg-white"
+                  >
+                    <option value="General">General</option>
+                    <option value="Scout">Scout</option>
+                    <option value="Guide">Guide</option>
+                    <option value="Rover">Rover</option>
+                    <option value="Ranger">Ranger</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Timing & Scoring */}
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
+                  <Clock size={20} />
+                </div>
+                <h2 className="text-xl font-black text-gray-900">Timing & Scoring</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Duration <span className="text-red-500">*</span></label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all">
+                      <input
+                        type="number"
+                        min="0"
+                        value={Math.floor((editForm.durationMinutes || 0) / 60)}
+                        onChange={(e) => {
+                          const hrs = parseInt(e.target.value) || 0;
+                          const mins = (editForm.durationMinutes || 0) % 60;
+                          setEditForm({ ...editForm, durationMinutes: (hrs * 60) + mins });
+                        }}
+                        className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
+                        placeholder="0"
+                      />
+                      <span className="text-xs font-bold text-gray-500 ml-1">hr</span>
+                    </div>
+                    <span className="text-gray-300 font-bold">:</span>
+                    <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all">
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={(editForm.durationMinutes || 0) % 60}
+                        onChange={(e) => {
+                          const hrs = Math.floor((editForm.durationMinutes || 0) / 60);
+                          const mins = parseInt(e.target.value) || 0;
+                          setEditForm({ ...editForm, durationMinutes: (hrs * 60) + mins });
+                        }}
+                        className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
+                        placeholder="0"
+                      />
+                      <span className="text-xs font-bold text-gray-500 ml-1">min</span>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Description</label>
-                    <textarea 
-                      value={editForm.description || ''}
-                      onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                      rows={2}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue focus:outline-none resize-none transition-all text-sm"
+                  <p className="text-xs font-medium text-gray-400 mt-2">Leave fields empty to default to 0.</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Passing Criteria (%) <span className="text-red-500">*</span></label>
+                  <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all w-32">
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={editForm.passPercentage || 50}
+                      onChange={(e) => setEditForm({ ...editForm, passPercentage: parseInt(e.target.value) || 0 })}
+                      className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
                     />
+                    <span className="text-sm font-bold text-gray-500 ml-1">%</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* OLD BASIC SETTINGS (hidden after here) */}
-            <div className="hidden">
-              <h1 className="text-3xl font-black text-gray-900 mb-6">Basic Settings OLD</h1>
-            
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-8">
-              <div>
-                <h3 className="text-lg font-black text-gray-900 mb-4 border-b border-gray-100 pb-2">Initial Settings</h3>
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Test Name</label>
-                    <input 
-                      type="text" 
-                      value={editForm.title || ''}
-                      onChange={(e) => setEditForm({...editForm, title: e.target.value})}
-                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Category</label>
-                      <input 
-                        type="text" 
-                        list="exam-categories"
-                        value={editForm.category || ''}
-                        onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                        placeholder="e.g. Science, Math"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
-                      />
-                      <datalist id="exam-categories">
-                        <option value="Pravesh" />
-                        <option value="Pratham Sopan" />
-                        <option value="Dwitiya Sopan" />
-                        <option value="Tritiya Sopan" />
-                        <option value="Rajya Puraskar" />
-                        <option value="Rashtrapati Scout/Guide" />
-                        <option value="First Aid" />
-                        <option value="Pioneering" />
-                        <option value="Mapping" />
-                        <option value="Campcraft" />
-                      </datalist>
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Duration <span className="text-red-500">*</span></label>
-                      <div className="flex gap-2">
-                        <div className="flex-1 relative">
-                          <input
-                            type="number"
-                            min="0"
-                            className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
-                            value={editForm.durationHours}
-                            onChange={(e) => setEditForm({...editForm, durationHours: e.target.value ? parseInt(e.target.value) : ''})}
-                            placeholder="0"
-                          />
-                          <span className="absolute right-3 top-3.5 text-xs text-gray-400 font-bold uppercase">hr</span>
-                        </div>
-                        <div className="flex-1 relative">
-                          <input
-                            type="number"
-                            min="0"
-                            className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
-                            value={editForm.durationMinutes}
-                            onChange={(e) => setEditForm({...editForm, durationMinutes: e.target.value ? parseInt(e.target.value) : ''})}
-                            placeholder="0"
-                          />
-                          <span className="absolute right-3 top-3.5 text-xs text-gray-400 font-bold uppercase">min</span>
-                        </div>
-                        <div className="flex-1 relative">
-                          <input
-                            type="number"
-                            min="0"
-                            className="block w-full border border-gray-300 rounded-xl shadow-sm py-3 pl-4 pr-8 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-colors text-gray-900 font-medium"
-                            value={editForm.durationSeconds}
-                            onChange={(e) => setEditForm({...editForm, durationSeconds: e.target.value ? parseInt(e.target.value) : ''})}
-                            placeholder="0"
-                          />
-                          <span className="absolute right-3 top-3.5 text-xs text-gray-400 font-bold uppercase">sec</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Scheduled Start Date</label>
-                      <input 
-                        type="datetime-local" 
-                        value={editForm.scheduledStartDate || ''}
-                        onChange={(e) => setEditForm({...editForm, scheduledStartDate: e.target.value})}
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-1">Scheduled End Date</label>
-                      <input 
-                        type="datetime-local" 
-                        value={editForm.scheduledEndDate || ''}
-                        onChange={(e) => setEditForm({...editForm, scheduledEndDate: e.target.value})}
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
-                    <textarea 
-                      value={editForm.description || ''}
-                      onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                      rows={4}
-                      className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 font-medium focus:ring-2 focus:ring-bsg-blue focus:outline-none resize-none transition-all"
-                    />
-                  </div>
-                  <div className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <div className="relative">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only"
-                          checked={editForm.allowMultipleAttempts || false}
-                          onChange={(e) => setEditForm({...editForm, allowMultipleAttempts: e.target.checked})}
-                        />
-                        <div className={`block w-12 h-6 rounded-full transition-colors ${editForm.allowMultipleAttempts ? 'bg-bsg-blue' : 'bg-gray-300'}`}></div>
-                        <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${editForm.allowMultipleAttempts ? 'transform translate-x-6' : ''}`}></div>
-                      </div>
-                      <div>
-                        <span className="text-sm font-bold text-gray-700 block group-hover:text-bsg-blue transition-colors">Allow Multiple Attempts</span>
-                        <span className="text-xs text-gray-500">If enabled, candidates can take this exam more than once.</span>
-                      </div>
-                    </label>
+            {/* Scheduling & Access */}
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+                  <Calendar size={20} />
+                </div>
+                <h2 className="text-xl font-black text-gray-900">Scheduling & Access</h2>
+              </div>
 
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <div className="relative">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only"
-                          checked={editForm.releaseResultsInstantly !== false}
-                          onChange={(e) => setEditForm({...editForm, releaseResultsInstantly: e.target.checked})}
-                        />
-                        <div className={`block w-12 h-6 rounded-full transition-colors ${editForm.releaseResultsInstantly !== false ? 'bg-bsg-blue' : 'bg-gray-300'}`}></div>
-                        <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${editForm.releaseResultsInstantly !== false ? 'transform translate-x-6' : ''}`}></div>
-                      </div>
-                      <div>
-                        <span className="text-sm font-bold text-gray-700 block group-hover:text-bsg-blue transition-colors">Release Results Instantly</span>
-                        <span className="text-xs text-gray-500">If disabled, candidates won't see their scores.</span>
-                      </div>
-                    </label>
+              <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-6 flex gap-3 text-sm text-bsg-blue">
+                <span className="text-xl shrink-0">💡</span>
+                <p className="font-medium mt-0.5">If you set a Start Date, the exam will automatically publish at that time and unpublish at the End Date — even if the exam is in Draft status.</p>
+              </div>
 
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                       <div className="relative">
-                         <input 
-                           type="checkbox" 
-                           className="sr-only"
-                           checked={editForm.issueCertificate || false}
-                           onChange={(e) => setEditForm({...editForm, issueCertificate: e.target.checked})}
-                         />
-                         <div className={`block w-12 h-6 rounded-full transition-colors ${editForm.issueCertificate ? 'bg-bsg-blue' : 'bg-gray-300'}`}></div>
-                         <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${editForm.issueCertificate ? 'transform translate-x-6' : ''}`}></div>
-                       </div>
-                       <div>
-                         <span className="text-sm font-bold text-gray-700 block group-hover:text-bsg-blue transition-colors">Issue Certificate</span>
-                         <span className="text-xs text-gray-500">If enabled, candidates will receive a certificate upon passing.</span>
-                       </div>
-                     </label>
-                   </div>
-                   <div className="pt-4 border-t border-gray-100 flex justify-between items-center mt-6">
-                    <button 
-                      onClick={async () => {
-                        if (confirm("Are you sure you want to permanently delete this exam? This action cannot be undone.")) {
-                          try {
-                            await axios.delete(`${API_URL}/api/exams/${examId}`, { withCredentials: true });
-                            router.push('/examiner');
-                          } catch (err) {
-                            alert('Failed to delete exam');
-                          }
-                        }
-                      }}
-                      className="text-red-600 hover:text-red-700 font-bold px-4 py-3 rounded-xl hover:bg-red-50 transition-colors flex items-center gap-2"
-                    >
-                      <Trash2 size={18} /> Delete Exam
-                    </button>
-                    <button 
-                      onClick={handleSaveBasicSettings}
-                      disabled={isSavingBasic}
-                      className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-black px-8 py-3 rounded-xl transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
-                    >
-                      {isSavingBasic ? 'Saving...' : <><Save size={18} /> Save Configuration</>}
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Scheduled Start Date (Optional)</label>
+                  <input
+                    type="datetime-local"
+                    value={editForm.scheduledStartDate ? new Date(new Date(editForm.scheduledStartDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => setEditForm({ ...editForm, scheduledStartDate: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium text-sm"
+                  />
+                  <p className="text-xs font-medium text-gray-400 mt-1.5">Candidates cannot start before this time.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Scheduled End Date (Optional)</label>
+                  <input
+                    type="datetime-local"
+                    value={editForm.scheduledEndDate ? new Date(new Date(editForm.scheduledEndDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+                    onChange={(e) => setEditForm({ ...editForm, scheduledEndDate: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium text-sm"
+                  />
+                  <p className="text-xs font-medium text-gray-400 mt-1.5">Candidates cannot start after this time.</p>
                 </div>
               </div>
+
+              <div className="space-y-4">
+                <label className="flex items-start gap-3 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
+                  <div className="flex items-center h-5 mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={editForm.allowMultipleAttempts || false}
+                      onChange={(e) => setEditForm({ ...editForm, allowMultipleAttempts: e.target.checked })}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-600 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-bold text-gray-900 group-hover:text-purple-700 transition-colors">Allow Multiple Attempts</span>
+                    <span className="block text-xs font-medium text-gray-500 mt-0.5">Candidates can take this exam more than once.</span>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
+                  <div className="flex items-center h-5 mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={editForm.releaseResultsInstantly ?? true}
+                      onChange={(e) => setEditForm({ ...editForm, releaseResultsInstantly: e.target.checked })}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-600 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-bold text-gray-900 group-hover:text-purple-700 transition-colors">Release Results Instantly</span>
+                    <span className="block text-xs font-medium text-gray-500 mt-0.5">If disabled, candidates will not see their scores until you release them.</span>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
+                  <div className="flex items-center h-5 mt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={editForm.issueCertificate || false}
+                      onChange={(e) => setEditForm({ ...editForm, issueCertificate: e.target.checked })}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-600 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-bold text-gray-900 group-hover:text-purple-700 transition-colors">Issue Certificate on Pass</span>
+                    <span className="block text-xs font-medium text-gray-500 mt-0.5">Passing candidates will receive a downloadable certificate.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-4 border-t border-gray-200">
+              <button 
+                onClick={handleSaveBasicSettings}
+                className="bg-bsg-blue text-white px-6 py-3 rounded-xl font-bold hover:bg-bsg-blue-dark transition-colors shadow-sm flex items-center gap-2"
+              >
+                <Save size={18} /> Save Settings
+              </button>
             </div>
           </div>
-        </div>
         )}
 
         {/* QUESTION MANAGER */}
