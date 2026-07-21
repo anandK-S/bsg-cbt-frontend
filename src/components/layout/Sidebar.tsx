@@ -1,5 +1,6 @@
 'use client';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -18,6 +19,7 @@ import { API_URL } from '@/utils/apiConfig';
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const { user, isAuthenticated, logout, _hasHydrated } = useAuthStore();
+  const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
 
   if (!_hasHydrated || !isAuthenticated) return null;
@@ -121,6 +123,25 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         >
           <LogOut size={18} /> Logout
         </button>
+        
+        {/* Mobile Language Toggle */}
+        <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col items-center gap-2">
+          <span className="text-xs font-bold text-gray-500 uppercase">Language</span>
+          <div className="flex w-full bg-gray-100 p-1 rounded-lg border border-gray-200">
+            <button 
+              onClick={() => setLanguage('en')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              English
+            </button>
+            <button 
+              onClick={() => setLanguage('hi')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              हिंदी
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Zap, Brain, ChevronRight, X, BookOpen } from 'lucide-react';
 
 export default function Home() {
   const { isAuthenticated, user, _hasHydrated } = useAuthStore();
+  const { language, setLanguage } = useLanguage();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -66,7 +68,22 @@ export default function Home() {
             </span>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="flex items-center gap-2 sm:gap-4">
-            <Link href="/login" className="text-gray-600 hover:text-bsg-blue font-bold px-3 py-2 text-sm sm:text-base transition-colors">
+            <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+              <button 
+                onClick={() => setLanguage('en')}
+                className={`px-2 py-1 text-xs font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                EN
+              </button>
+              <button 
+                onClick={() => setLanguage('hi')}
+                className={`px-2 py-1 text-xs font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                HI
+              </button>
+            </div>
+            
+            <Link href="/login" className="text-gray-600 hover:text-bsg-blue font-bold px-3 py-2 text-sm sm:text-base transition-colors hidden sm:block">
               Sign In
             </Link>
             <Link href="/register" className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold px-4 py-2 sm:px-6 sm:py-2.5 text-sm sm:text-base rounded-xl transition-all shadow-[0_4px_14px_0_rgba(10,54,157,0.39)] hover:shadow-[0_6px_20px_rgba(10,54,157,0.23)] hover:-translate-y-0.5">
