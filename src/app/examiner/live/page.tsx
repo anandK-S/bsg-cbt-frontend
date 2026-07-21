@@ -261,7 +261,7 @@ export default function LiveMonitor() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {candidateList.map((c: any) => {
               const timeSinceUpdate = now - new Date(c.lastUpdate).getTime();
-              const isOffline = timeSinceUpdate > 20000 && (c.status === 'Active' || c.status === 'In-Progress');
+              const isOffline = timeSinceUpdate > 60000 && (c.status === 'Active' || c.status === 'In-Progress');
               
               let displayStatusEn = isOffline ? 'Offline' : (c.status === 'In-Progress' ? 'Active' : c.status);
               let displayStatusLocale = isOffline ? t('offline') || 'Offline' : (c.status === 'In-Progress' ? t('active') || 'Active' : (c.status === 'Blocked' ? t('blocked') || 'Blocked' : t('completed') || 'Completed'));
