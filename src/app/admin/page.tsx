@@ -10,8 +10,10 @@ import '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { 
   Users, ShieldCheck, UserX, UserCheck, Search, Filter, 
-  Trash2, ChevronRight, Database, Plus, List, UserCog, Key, Settings as SettingsIcon, TrendingUp, X, Menu, LogOut, Edit2
+  Trash2, ChevronRight, Database, Plus, List, UserCog, Key, Settings as SettingsIcon, TrendingUp, X, Menu, LogOut, Edit2, ShieldAlert, Download
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface User {
   _id: string;
@@ -51,12 +53,20 @@ interface GlobalSettings {
   defaultProctoringLevel: string;
 }
 
+interface AuditLog {
+  _id: string;
+  userId: { _id: string; name: string; email: string; role: string } | null;
+  action: string;
+  details: string;
+  timestamp: string;
+}
+
 export default function AdminDashboard() {
   const { t, language, setLanguage } = useLanguage();
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
   const router = useRouter();
   
-  const [activeTab, setActiveTab] = useState<'users' | 'exams' | 'profile' | 'settings'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'exams' | 'profile' | 'settings' | 'audit'>('users');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -64,6 +74,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings | null>(null);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -127,15 +138,17 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
       try {
-        const [usersRes, examsRes, settingsRes] = await Promise.all([
+        const [usersRes, examsRes, settingsRes, auditRes] = await Promise.all([
           axios.get(`${API_URL}/api/users`, { withCredentials: true }),
           axios.get(`${API_URL}/api/exams`, { withCredentials: true }),
-          axios.get(`${API_URL}/api/settings`, { withCredentials: true })
+          axios.get(`${API_URL}/api/settings`, { withCredentials: true }),
+          axios.get(`${API_URL}/api/users/audit-logs`, { withCredentials: true })
         ]);
         setUsers(usersRes.data);
         setExams(examsRes.data);
         setGlobalSettings(settingsRes.data);
         setSettingsForm(settingsRes.data);
+        setAuditLogs(auditRes.data);
       } catch (error: any) {
         if (error.response?.status === 401 || error.response?.status === 403) {
           logout();
@@ -229,6 +242,34 @@ export default function AdminDashboard() {
       console.error(error);
       alert("Failed to unlock user.");
     }
+  };
+
+  const exportAuditPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Admin Security Audit Log', 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    
+    const tableData = auditLogs.map(log => [
+      new Date(log.timestamp).toLocaleString(),
+      log.userId ? log.userId.name : 'Unknown User',
+      log.userId ? log.userId.role : 'N/A',
+      log.action,
+      log.details
+    ]);
+
+    (doc as any).autoTable({
+      startY: 40,
+      head: [['Timestamp', 'User', 'Role', 'Action', 'Details']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [15, 23, 42] }
+    });
+
+    doc.save('BSG-CBT-Security-Audit.pdf');
   };
 
   const handlePasswordReset = async () => {
@@ -498,6 +539,62 @@ export default function AdminDashboard() {
             </div>
           </div>
         );
+      case 'audit':
+        return (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Security Audit Logs</h3>
+                <p className="text-xs text-gray-500 font-medium mt-1">Full history of user logins and logouts.</p>
+              </div>
+              <button onClick={exportAuditPDF} className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors">
+                <Download size={16} /> Download PDF
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Timestamp</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">User</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Action</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Details</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {auditLogs.map((log: AuditLog) => (
+                    <tr key={log._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        {log.userId ? (
+                          <>
+                            <div className="text-sm font-bold text-gray-900">{log.userId.name}</div>
+                            <div className="text-xs text-gray-500">{log.userId.email} | <span className="font-bold text-gray-700">{log.userId.role}</span></div>
+                          </>
+                        ) : (
+                          <div className="text-sm text-gray-500 italic">Deleted / Unknown User</div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md ${log.action === 'LOGIN' ? 'bg-emerald-100 text-emerald-700' : log.action === 'LOGOUT' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'}`}>
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {log.details}
+                      </td>
+                    </tr>
+                  ))}
+                  {auditLogs.length === 0 && (
+                    <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500"><ShieldAlert className="mx-auto mb-3" size={24} />No audit logs found</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
       case 'profile':
         return (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden max-w-2xl">
@@ -618,6 +715,9 @@ export default function AdminDashboard() {
             </button>
             <button onClick={() => setActiveTab('settings')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'settings' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
               <SettingsIcon size={18} /> {t('globalSettings') || 'Global Settings'}
+            </button>
+            <button onClick={() => setActiveTab('audit')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'audit' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
+              <ShieldAlert size={18} /> Audit & History
             </button>
             <button onClick={() => setActiveTab('profile')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'profile' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
               <UserCog size={18} /> {t('adminProfile') || 'Admin Profile'}
