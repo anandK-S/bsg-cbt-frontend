@@ -10,7 +10,7 @@ import { ShieldCheck, Zap, Brain, ChevronRight, X, BookOpen } from 'lucide-react
 
 export default function Home() {
   const { isAuthenticated, user, _hasHydrated } = useAuthStore();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
