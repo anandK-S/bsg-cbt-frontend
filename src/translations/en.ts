@@ -37,5 +37,46 @@ export const en = {
   // Popups
   "selectLanguage": "Select Your Language",
   "selectLanguageDesc": "You can change this later from the navigation bar.",
-  "continue": "Continue"
+  "continue": "Continue",
+
+  // Landing Page
+  "welcomeTo": "Welcome to the",
+  "bsgPortal": "BSG Portal",
+  "landingDesc": "The official, highly secure examination portal engineered specifically for Bharat Scout & Guide testing.",
+  "startExamination": "Start Examination",
+  "candidateRegistration": "Candidate Registration",
+  "secureExamination": "Secure Examination",
+  "secureExamDesc": "Strict monitoring during BSG exam to maintain highest integrity.",
+  "reliableOffline": "Reliable & Offline-Safe",
+  "reliableOfflineDesc": "Data is auto-saved locally ensuring uninterrupted Bharat Scout and Guide tests.",
+  "instantInsights": "Instant Insights",
+  "instantInsightsDesc": "Get immediate scoring and detailed feedback on BSG exam performance.",
+  "developerArchitect": "Developer & Architect",
+  "termsConditions": "Terms & Conditions",
+  "privacyPolicy": "Privacy Policy",
+  "signIn": "Sign In",
+  
+  // Login Page
+  "welcomeBack": "Welcome Back!",
+  "signInToAccount": "Sign in to your account to continue",
+  "emailAddress": "Email Address",
+  "enterEmail": "Enter your email",
+  "password": "Password",
+  "enterPassword": "Enter your password",
+  "loggingIn": "Logging In...",
+  "dontHaveAccount": "Don't have an account?",
+  
+  // Register Page
+  "createAccount": "Create an Account",
+  "joinBsgPortal": "Join the BSG Portal to start your examination journey",
+  "fullName": "Full Name",
+  "enterFullName": "Enter your full name",
+  "bsgId": "BSG ID (Optional)",
+  "enterBsgId": "Enter your BSG ID",
+  "confirmPassword": "Confirm Password",
+  "reEnterPassword": "Re-enter your password",
+  "alreadyHaveAccount": "Already have an account?",
+  "creatingAccount": "Creating Account...",
+  "district": "District",
+  "enterDistrict": "Enter your district",
 };

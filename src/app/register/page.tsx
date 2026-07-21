@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
@@ -13,6 +14,7 @@ export default function Register() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const _hasHydrated = useAuthStore((state) => state._hasHydrated);
+  const { t } = useLanguage();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -139,10 +141,10 @@ export default function Register() {
                 </div>
               </div>
               <h2 className="text-3xl font-black text-gray-900 tracking-tight">
-                Create an Account
+                {t("createAccount")}
               </h2>
               <p className="mt-2 text-sm text-gray-500 font-medium">
-                Join the BSG CBT platform today
+                {t("joinBsgPortal")}
               </p>
             </motion.div>
 
@@ -174,7 +176,7 @@ export default function Register() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                     <div className="md:col-span-2">
-                      <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-1.5">Surname and First Name</label>
+                      <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-1.5">{t("fullName")}</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                           <User size={18} />
@@ -184,7 +186,7 @@ export default function Register() {
                           type="text"
                           required
                           className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
-                          placeholder="Surname First Name"
+                          placeholder={t("enterFullName")}
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                         />
@@ -192,7 +194,7 @@ export default function Register() {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">Email Address</label>
+                      <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">{t("emailAddress")}</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                           <Mail size={18} />
@@ -202,7 +204,7 @@ export default function Register() {
                           type="email"
                           required
                           className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
-                          placeholder="you@example.com"
+                          placeholder={t("enterEmail")}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                         />
@@ -210,7 +212,7 @@ export default function Register() {
                     </div>
 
                     <div>
-                      <label htmlFor="bsgId" className="block text-sm font-semibold text-foreground mb-1.5">BSG ID</label>
+                      <label htmlFor="bsgId" className="block text-sm font-semibold text-foreground mb-1.5">{t("bsgId")}</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                           <BadgeInfo size={18} />
@@ -221,7 +223,7 @@ export default function Register() {
                           required
                           maxLength={8}
                           className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
-                          placeholder="Exactly 8 digits"
+                          placeholder={t("enterBsgId")}
                           value={bsgId}
                           onChange={(e) => setBsgId(e.target.value.replace(/\D/g, '').slice(0, 8))}
                         />
@@ -251,7 +253,7 @@ export default function Register() {
                     </div>
 
                     <div>
-                      <label htmlFor="district" className="block text-sm font-semibold text-foreground mb-1.5">District</label>
+                      <label htmlFor="district" className="block text-sm font-semibold text-foreground mb-1.5">{t("district")}</label>
                       <select
                         id="district"
                         required
@@ -290,7 +292,7 @@ export default function Register() {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1.5">Password</label>
+                      <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1.5">{t("password")}</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                           <Lock size={18} />
@@ -366,7 +368,7 @@ export default function Register() {
                         </span>
                       ) : (
                         <>
-                          Create Account <UserPlus size={18} />
+                          {t("createAccount")} <UserPlus size={18} />
                         </>
                       )}
                     </button>
@@ -374,9 +376,9 @@ export default function Register() {
                 </form>
                 
                 <div className="mt-6 pt-6 border-t border-border text-center text-sm">
-                  <span className="text-gray-500">Already have an account? </span>
+                  <span className="text-gray-500">{t("alreadyHaveAccount")} </span>
                   <Link href="/login" className="text-bsg-blue dark:text-bsg-gold font-bold hover:underline transition-all">
-                    Sign In
+                    {t("signIn")}
                   </Link>
                 </div>
               </div>

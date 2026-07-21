@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
@@ -14,6 +15,7 @@ export default function Login() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const _hasHydrated = useAuthStore((state) => state._hasHydrated);
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -111,10 +113,10 @@ export default function Login() {
               </div>
             </div>
             <h2 className="text-3xl font-black text-gray-900 tracking-tight">
-              Welcome Back
+              {t("welcomeBack")}
             </h2>
             <p className="mt-2 text-sm text-gray-500 font-medium">
-              Please enter your credentials to continue
+              {t("signInToAccount")}
             </p>
           </motion.div>
 
@@ -159,7 +161,7 @@ export default function Login() {
                     required
                     autoComplete="email"
                     className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder="you@example.com or 8-digit BSG ID"
+                    placeholder={t("enterEmail")}
                     value={email}
                     onChange={(e) => {
                       let val = e.target.value;
@@ -260,7 +262,7 @@ export default function Login() {
                   </span>
                 ) : (
                   <>
-                    Sign In <LogIn size={18} />
+                    {t("signIn")} <LogIn size={18} />
                   </>
                 )}
               </button>
@@ -268,9 +270,9 @@ export default function Login() {
           </form>
           
           <div className="mt-8 pt-6 border-t border-border text-center text-sm">
-            <span className="text-gray-500">Don&apos;t have an account? </span>
+            <span className="text-gray-500">{t("dontHaveAccount")} </span>
             <Link href="/register" className="text-bsg-blue dark:text-bsg-gold font-bold hover:underline transition-all">
-              Register as candidate
+              {t("register")}
             </Link>
           </div>
         </div>

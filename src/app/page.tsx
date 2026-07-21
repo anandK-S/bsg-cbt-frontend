@@ -64,7 +64,7 @@ export default function Home() {
               <span className="font-extrabold text-sm">BSG</span>
             </div>
             <span className="text-gray-900 font-extrabold text-xl tracking-tight hidden sm:block">
-              BSG Portal
+              {t("bsgPortal")}
             </span>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="flex items-center gap-2 sm:gap-4">
@@ -84,10 +84,10 @@ export default function Home() {
             </div>
             
             <Link href="/login" className="text-gray-600 hover:text-bsg-blue font-bold px-3 py-2 text-sm sm:text-base transition-colors hidden sm:block">
-              Sign In
+              {t("signIn")}
             </Link>
             <Link href="/register" className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold px-4 py-2 sm:px-6 sm:py-2.5 text-sm sm:text-base rounded-xl transition-all shadow-[0_4px_14px_0_rgba(10,54,157,0.39)] hover:shadow-[0_6px_20px_rgba(10,54,157,0.23)] hover:-translate-y-0.5">
-              Register
+              {t("register")}
             </Link>
           </motion.div>
         </div>
@@ -101,27 +101,27 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bsg-blue opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-bsg-blue"></span>
             </span>
-            Bharat Scout & Guide
+            Bharat Scout & Guide Vadodara District
           </motion.div>
 
           <motion.h1 variants={itemVariants} className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-black text-gray-900 tracking-tight leading-[1.05] mb-6">
-            Welcome to the <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-bsg-blue to-blue-500">BSG Portal</span>
+            {t("welcomeTo")} <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-bsg-blue to-blue-500">{t("bsgPortal")}</span>
           </motion.h1>
 
           <motion.p variants={itemVariants} className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-            The official, highly secure examination portal engineered specifically for Bharat Scout & Guide testing.
+            {t("landingDesc")}
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 sm:px-0">
             <Link href="/login" className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white bg-gray-900 rounded-2xl overflow-hidden transition-all hover:bg-black shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:-translate-y-1">
               <span className="relative z-10 flex items-center gap-2 text-lg">
-                Start Examination <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                {t("startExamination")} <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
             
             <Link href="/register" className="inline-flex items-center justify-center px-8 py-4 font-bold text-gray-700 bg-white border-2 border-gray-100 rounded-2xl shadow-sm hover:border-gray-200 hover:bg-gray-50 transition-all text-lg hover:-translate-y-1">
-              Candidate Registration
+              {t("candidateRegistration")}
             </Link>
           </motion.div>
         </motion.div>
@@ -129,9 +129,9 @@ export default function Home() {
         {/* Feature Cards Grid */}
         <motion.div initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }} className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-24 sm:mt-32 max-w-6xl mx-auto w-full px-4 sm:px-6">
           {[
-            { icon: ShieldCheck, color: 'text-rose-500', bg: 'bg-rose-50', title: 'Secure Examination', desc: 'Strict monitoring during BSG exam to maintain highest integrity.' },
-            { icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50', title: 'Reliable & Offline-Safe', desc: 'Data is auto-saved locally ensuring uninterrupted Bharat Scout and Guide tests.' },
-            { icon: Brain, color: 'text-bsg-blue', bg: 'bg-blue-50', title: 'Instant Insights', desc: 'Get immediate scoring and detailed feedback on BSG exam performance.' }
+            { icon: ShieldCheck, color: 'text-rose-500', bg: 'bg-rose-50', title: t("secureExamination"), desc: t("secureExamDesc") },
+            { icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50', title: t("reliableOffline"), desc: t("reliableOfflineDesc") },
+            { icon: Brain, color: 'text-bsg-blue', bg: 'bg-blue-50', title: t("instantInsights"), desc: t("instantInsightsDesc") }
           ].map((feat, idx) => (
             <div key={idx} className="bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 rounded-3xl hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 group hover:-translate-y-2">
               <div className={`w-16 h-16 ${feat.bg} ${feat.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
@@ -158,7 +158,7 @@ export default function Home() {
             
             <div className="relative z-10 w-full md:w-2/3 text-center md:text-left space-y-5">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-blue-200 text-xs sm:text-sm font-bold uppercase tracking-widest backdrop-blur-sm border border-white/5">
-                Developer & Architect
+                {t("developerArchitect")}
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight">Anandkumar Sharma</h2>
               <p className="text-base sm:text-lg text-gray-300 font-medium leading-relaxed">
@@ -171,9 +171,9 @@ export default function Home() {
 
         {/* Footer */}
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-24 text-center text-sm font-medium text-gray-400 flex items-center justify-center gap-6 pb-8">
-          <button onClick={() => setShowTerms(true)} className="hover:text-gray-900 transition-colors flex items-center gap-2"><BookOpen size={16}/> Terms & Conditions</button>
+          <button onClick={() => setShowTerms(true)} className="hover:text-gray-900 transition-colors flex items-center gap-2"><BookOpen size={16}/> {t("termsConditions")}</button>
           <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-          <Link href="/privacy" className="hover:text-gray-900 transition-colors flex items-center gap-2"><ShieldCheck size={16}/> Privacy Policy</Link>
+          <Link href="/privacy" className="hover:text-gray-900 transition-colors flex items-center gap-2"><ShieldCheck size={16}/> {t("privacyPolicy")}</Link>
         </motion.div>
       </main>
       
@@ -185,7 +185,7 @@ export default function Home() {
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl max-h-[80vh] flex flex-col relative">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3"><BookOpen className="text-bsg-blue" /> Terms & Conditions</h2>
+                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3"><BookOpen className="text-bsg-blue" /> {t("termsConditions")}</h2>
                 <button onClick={() => setShowTerms(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><X size={20}/></button>
               </div>
               <div className="overflow-y-auto custom-scrollbar flex-1 pr-2 text-gray-600 text-sm space-y-4 font-medium">
