@@ -611,16 +611,16 @@ export default function AdminDashboard() {
           {/* Top Tabs */}
           <div className="mb-6 bg-white p-2 rounded-2xl shadow-sm border border-gray-200 flex flex-wrap gap-2 justify-center sm:justify-start">
             <button onClick={() => setActiveTab('users')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'users' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
-              <Users size={18} /> User Management
+              <Users size={18} /> {t('userManagement') || 'User Management'}
             </button>
             <button onClick={() => setActiveTab('exams')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'exams' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
-              <List size={18} /> Platform Exams
+              <List size={18} /> {t('platformExams') || 'Platform Exams'}
             </button>
             <button onClick={() => setActiveTab('settings')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'settings' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
-              <SettingsIcon size={18} /> Global Settings
+              <SettingsIcon size={18} /> {t('globalSettings') || 'Global Settings'}
             </button>
             <button onClick={() => setActiveTab('profile')} className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${activeTab === 'profile' ? 'bg-bsg-blue text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
-              <UserCog size={18} /> Admin Profile
+              <UserCog size={18} /> {t('adminProfile') || 'Admin Profile'}
             </button>
           </div>
           
@@ -628,10 +628,10 @@ export default function AdminDashboard() {
           {(activeTab === 'users' || activeTab === 'exams') && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
               {[
-                { label: 'Total Users', value: users.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-                { label: 'Active Candidates', value: users.filter(u => u.status === 'Active' && u.role === 'Candidate').length, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                { label: 'Blocked Accounts', value: users.filter(u => u.status === 'Blocked').length, icon: UserX, color: 'text-rose-600', bg: 'bg-rose-50' },
-                { label: 'Total Exams', value: exams.length, icon: Database, color: 'text-purple-600', bg: 'bg-purple-50' }
+                { label: t('totalUsers') || 'Total Users', value: users.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+                { label: t('activeCandidates') || 'Active Candidates', value: users.filter(u => u.status === 'Active' && u.role === 'Candidate').length, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                { label: t('blockedAccounts') || 'Blocked Accounts', value: users.filter(u => u.status === 'Blocked').length, icon: UserX, color: 'text-rose-600', bg: 'bg-rose-50' },
+                { label: t('totalExams') || 'Total Exams', value: exams.length, icon: Database, color: 'text-purple-600', bg: 'bg-purple-50' }
               ].map((stat, i) => (
                 <div key={i} className="glass-card rounded-3xl p-5 border-gray-100/50 shadow-sm flex items-center gap-4 transform transition-all duration-300 hover:translate-y-[-4px] hover:shadow-lg animate-[fade-in_0.5s_ease-out]" style={{ animationDelay: `${i * 0.1}s` }}>
                   <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color} shadow-inner`}>
