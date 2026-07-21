@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
@@ -23,6 +24,10 @@ interface User {
   status: string;
   profileImage?: string;
   district?: string;
+  lastLogin?: string;
+  lastLogout?: string;
+  failedLoginAttempts?: number;
+  lockedUntil?: string;
 }
 
 interface Exam {
@@ -47,6 +52,7 @@ interface GlobalSettings {
 }
 
 export default function AdminDashboard() {
+  const { t, language, setLanguage } = useLanguage();
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
   const router = useRouter();
   
@@ -63,6 +69,9 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [sectionFilter, setSectionFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [examSearch, setExamSearch] = useState('');
+  const [examStatusFilter, setExamStatusFilter] = useState('All');
 
   const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
 
@@ -209,6 +218,16 @@ export default function AdminDashboard() {
       setSettingsMsg({ text: error.response?.data?.message || 'Update failed', type: 'error' });
     } finally {
       setIsUpdatingSettings(false);
+    }
+  };
+
+  const handleUnlock = async (userId: string) => {
+    try {
+      const { data } = await axios.put(`${API_URL}/api/users/${userId}/unlock`, {}, { withCredentials: true });
+      setUsers(users.map(u => u._id === userId ? { ...u, failedLoginAttempts: 0, lockedUntil: undefined } : u));
+    } catch (error) {
+      console.error(error);
+      alert("Failed to unlock user.");
     }
   };
 
