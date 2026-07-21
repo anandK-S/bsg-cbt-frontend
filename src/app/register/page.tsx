@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Hash, Shield, MapPin, Building, Lock, Eye, EyeOff, Briefcase, Key } from 'lucide-react';
+// Make sure to import your auth store if you want to redirect logged-in users!
+// import { useAuthStore } from '@/store/useAuthStore'; 
 
 export default function Register() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<'Candidate' | 'Examiner'>('Candidate');
   
@@ -24,6 +27,11 @@ export default function Register() {
     designation: ''
   });
 
+  // Handle the mounting/hydration to show your loading screen
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -33,6 +41,23 @@ export default function Register() {
     console.log({ role, ...formData });
     // Add your registration logic here
   };
+
+  // YOUR LOADING SCREEN RESTORED!
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="relative flex items-center justify-center mb-6">
+          <div className="absolute inset-0 w-24 h-24 bg-[#002f6c]/20 rounded-full animate-ping"></div>
+          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-[#1e40af] to-[#3b82f6] rounded-2xl flex items-center justify-center shadow-2xl transform rotate-3 animate-bounce">
+            <span className="text-white font-extrabold text-2xl">BSG</span>
+          </div>
+        </div>
+        <div className="text-[#002f6c] font-black text-lg tracking-widest animate-pulse">
+          INITIALIZING...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen lg:h-screen flex bg-white pt-16 lg:pt-0 lg:overflow-hidden">
@@ -72,7 +97,6 @@ export default function Register() {
       </div>
 
       {/* Right Side - Form */}
-      {/* Removed overflow-y-auto and reduced padding to force fit onto one screen */}
       <div className="w-full lg:w-7/12 flex items-center justify-center p-4 sm:p-6 relative bg-white">
         <div className="absolute top-0 w-full h-16 bg-white lg:hidden"></div>
 
