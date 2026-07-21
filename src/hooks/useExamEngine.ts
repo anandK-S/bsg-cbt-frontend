@@ -160,8 +160,8 @@ export function useExamEngine(examId: string) {
       if (document.hidden) {
         setWarnings(prev => {
           const newWarnings = prev + 1;
-          alert(`Warning! Tab switching is not allowed. Warning count: ${newWarnings}/3`);
-          if (newWarnings >= 3) {
+          alert(`Warning! Tab switching is not allowed. Warning count: ${newWarnings}/1`);
+          if (newWarnings >= 1) {
             handleSubmit();
           }
           return newWarnings;

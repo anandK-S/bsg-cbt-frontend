@@ -311,8 +311,8 @@ export default function LiveMonitor() {
                           <AlertTriangle size={12} className={c.warnings > 0 ? 'text-yellow-500' : 'text-gray-300'} />
                           {t('warnings') || 'Warnings'}
                         </span>
-                        <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${c.warnings >= 3 ? 'bg-red-100 text-red-700' : c.warnings > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-600'}`}>
-                          {c.warnings} / 3
+                        <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${c.warnings >= 1 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'}`}>
+                          {c.warnings} / 1
                         </span>
                       </div>
                       <div className="flex justify-between items-center">

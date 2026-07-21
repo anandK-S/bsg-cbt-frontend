@@ -220,10 +220,10 @@ export default function ExamTakePage() {
   const handleWarning = useCallback((msg: string) => {
     setWarnings(prev => {
       const newWarnings = prev + 1;
-      if (newWarnings >= 3) {
+      if (newWarnings >= 1) {
         handleAutoSubmit('Exceeded maximum exam environment violations.');
       } else {
-        setWarningMessage(`${msg} Warning count: ${newWarnings}/3`);
+        setWarningMessage(`${msg} Warning count: ${newWarnings}/1`);
       }
       return newWarnings;
     });
