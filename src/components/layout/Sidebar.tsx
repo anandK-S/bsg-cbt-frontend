@@ -19,7 +19,7 @@ import { API_URL } from '@/utils/apiConfig';
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const { user, isAuthenticated, logout, _hasHydrated } = useAuthStore();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const pathname = usePathname();
 
   if (!_hasHydrated || !isAuthenticated) return null;
@@ -38,22 +38,22 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     switch (user?.role) {
       case 'Admin':
         return [
-          { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-          { name: 'Leaderboard', href: '/leaderboard', icon: Award },
-          { name: 'Settings', href: '/admin/settings', icon: Settings },
+          { name: t('dashboard') || 'Dashboard', href: '/admin', icon: LayoutDashboard },
+          { name: t('leaderboard') || 'Leaderboard', href: '/leaderboard', icon: Award },
+          { name: t('profileSettings') || 'Settings', href: '/admin/settings', icon: Settings },
         ];
       case 'Examiner':
         return [
-          { name: 'Dashboard', href: '/examiner', icon: LayoutDashboard },
-          { name: 'Live Monitoring', href: '/examiner/live', icon: Activity },
-          { name: 'Profile', href: '/profile', icon: UserIcon },
+          { name: t('dashboard') || 'Dashboard', href: '/examiner', icon: LayoutDashboard },
+          { name: t('liveMonitoring') || 'Live Monitoring', href: '/examiner/live', icon: Activity },
+          { name: t('profileSettings') || 'Profile', href: '/profile', icon: UserIcon },
         ];
       case 'Candidate':
         return [
-          { name: 'My Exams', href: '/dashboard', icon: LayoutDashboard },
-          { name: 'Past Results', href: '/past-results', icon: Activity },
-          { name: 'Leaderboard', href: '/leaderboard', icon: Award },
-          { name: 'Profile', href: '/profile', icon: UserIcon },
+          { name: t('dashboard') || 'My Exams', href: '/dashboard', icon: LayoutDashboard },
+          { name: t('pastResults') || 'Past Results', href: '/past-results', icon: Activity },
+          { name: t('leaderboard') || 'Leaderboard', href: '/leaderboard', icon: Award },
+          { name: t('profileSettings') || 'Profile', href: '/profile', icon: UserIcon },
         ];
       default:
         return [];
@@ -121,7 +121,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           onClick={handleLogout}
           className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 rounded-xl transition-colors text-sm border border-red-100"
         >
-          <LogOut size={18} /> Logout
+          <LogOut size={18} /> {t('logout') || 'Logout'}
         </button>
         
         {/* Mobile Language Toggle */}

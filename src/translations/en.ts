@@ -124,4 +124,23 @@ export const en = {
   "failed": "FAILED",
   "downloadCertificate": "Download Certificate",
   "viewFeedback": "View Feedback",
+
+  // Examiner Dashboard
+  "examinerPortal": "EXAMINER PORTAL",
+  "welcomeExaminer": "Welcome",
+  "newTest": "New Test",
+  "totalTests": "TOTAL TESTS",
+  "drafts": "DRAFTS",
+  "myTests": "My Tests",
+  "helpTutorials": "Help & Tutorials",
+  "allStatus": "All Status",
+  "newestFirst": "Newest First",
+  "oldestFirst": "Oldest First",
+  "manageTest": "Manage Test",
+  "createNewExam": "Create New Exam",
+  "examTitle": "Exam Title",
+  "enterExamTitle": "Enter a title for this exam...",
+  "cancel": "Cancel",
+  "createExam": "Create Exam",
+
 };

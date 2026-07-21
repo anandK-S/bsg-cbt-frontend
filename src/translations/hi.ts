@@ -124,4 +124,23 @@ export const hi = {
   "failed": "अनुत्तीर्ण",
   "downloadCertificate": "प्रमाणपत्र डाउनलोड करें",
   "viewFeedback": "फ़ीडबैक देखें",
+
+  // Examiner Dashboard
+  "examinerPortal": "परीक्षक पोर्टल",
+  "welcomeExaminer": "स्वागत है",
+  "newTest": "नया टेस्ट",
+  "totalTests": "कुल टेस्ट",
+  "drafts": "ड्राफ्ट",
+  "myTests": "मेरे टेस्ट",
+  "helpTutorials": "सहायता और ट्यूटोरियल",
+  "allStatus": "सभी स्थिति",
+  "newestFirst": "सबसे नए पहले",
+  "oldestFirst": "सबसे पुराने पहले",
+  "manageTest": "टेस्ट प्रबंधित करें",
+  "createNewExam": "नई परीक्षा बनाएँ",
+  "examTitle": "परीक्षा का शीर्षक",
+  "enterExamTitle": "इस परीक्षा के लिए एक शीर्षक दर्ज करें...",
+  "cancel": "रद्द करें",
+  "createExam": "परीक्षा बनाएँ",
+
 };

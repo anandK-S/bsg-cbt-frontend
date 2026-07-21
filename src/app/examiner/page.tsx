@@ -8,6 +8,7 @@ import axios from 'axios';
 import { Search, FileText, Activity, Users, HelpCircle, Database, Calendar, Clock, Plus, ChevronRight, Eye } from 'lucide-react';
 import { API_URL } from '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Exam {
   _id: string;
@@ -34,6 +35,7 @@ interface LiveAttempt {
 
 export default function ExaminerDashboard() {
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
+  const { t } = useLanguage();
   const router = useRouter();
   const [exams, setExams] = useState<Exam[]>([]);
   const [liveAttempts, setLiveAttempts] = useState<LiveAttempt[]>([]);
@@ -156,9 +158,9 @@ export default function ExaminerDashboard() {
                   </div>
                 )}
                 <div>
-                  <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Examiner Portal</p>
+                  <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">{t('examinerPortal')}</p>
                   <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-                    Welcome, {user?.name?.split(' ')[0] || 'Examiner'}
+                    {t('welcomeExaminer')}, {user?.name?.split(' ')[0] || 'Examiner'}
                   </h1>
                 </div>
               </div>
@@ -169,7 +171,7 @@ export default function ExaminerDashboard() {
               className="flex items-center gap-2 bg-bsg-gold hover:bg-yellow-400 text-bsg-blue-dark font-extrabold px-5 py-3 rounded-xl shadow-lg transition-all hover:-translate-y-0.5 active:scale-95 text-sm sm:text-base shrink-0"
             >
               <Plus size={18} />
-              <span>New Test</span>
+              <span>{t('newTest')}</span>
             </Link>
           </div>
 
@@ -177,15 +179,15 @@ export default function ExaminerDashboard() {
           <div className="relative z-10 mt-5 grid grid-cols-3 gap-2 sm:gap-4">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center border border-white/20">
               <p className="text-2xl sm:text-3xl font-black">{exams.length}</p>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-0.5">Total Tests</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-0.5">{t('totalTests')}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center border border-white/20">
               <p className="text-2xl sm:text-3xl font-black text-bsg-gold">{publishedCount}</p>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-0.5">Published</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-0.5">{t('published')}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 text-center border border-white/20">
               <p className="text-2xl sm:text-3xl font-black">{draftCount}</p>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-0.5">Drafts</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-0.5">{t('drafts')}</p>
             </div>
           </div>
         </div>
@@ -194,9 +196,9 @@ export default function ExaminerDashboard() {
         <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 ring-1 ring-black/5 mb-6 overflow-hidden">
           <div className="flex border-b border-gray-100 overflow-x-auto">
             {([
-              { id: 'tests', icon: FileText, label: 'My Tests', nav: null },
-              { id: 'live', icon: Activity, label: 'Live Monitoring', nav: '/examiner/live' },
-              { id: 'help', icon: HelpCircle, label: 'Help & Tutorials', nav: null },
+              { id: 'tests', icon: FileText, label: t('myTests'), nav: null },
+              { id: 'live', icon: Activity, label: t('liveMonitoring'), nav: '/examiner/live' },
+              { id: 'help', icon: HelpCircle, label: t('helpTutorials'), nav: null },
             ] as {id: string; icon: any; label: string; nav: string|null}[]).map(tab => (
               <button
                 key={tab.id}
@@ -233,17 +235,17 @@ export default function ExaminerDashboard() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all"
                 >
-                  <option value="All">All Status</option>
-                  <option value="Published">Published</option>
-                  <option value="Draft">Draft</option>
+                  <option value="All">{t('allStatus')}</option>
+                  <option value="Published">{t('published')}</option>
+                  <option value="Draft">{t('drafts')}</option>
                 </select>
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
                   className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all"
                 >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
+                  <option value="newest">{t('newestFirst')}</option>
+                  <option value="oldest">{t('oldestFirst')}</option>
                 </select>
               </div>
 
@@ -270,7 +272,7 @@ export default function ExaminerDashboard() {
                           </span>
                           <span className={`flex items-center gap-1.5 text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 ${exam.status === 'Published' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${exam.status === 'Published' ? 'bg-green-500' : 'bg-amber-500'}`}></span>
-                            {exam.status}
+                            {exam.status === 'Published' ? t('published') : t('drafts')}
                           </span>
                         </div>
                         <h3 className="text-base sm:text-lg font-extrabold text-gray-900 mb-1.5 line-clamp-2 leading-snug">{exam.title}</h3>
@@ -303,7 +305,7 @@ export default function ExaminerDashboard() {
                           href={`/examiner/exams/${exam._id}`}
                           className="w-full flex items-center justify-between bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark font-bold py-2.5 px-4 rounded-xl transition-all text-sm shadow-sm"
                         >
-                          <span>Manage Test</span>
+                          <span>{t('manageTest')}</span>
                           <ChevronRight size={16} />
                         </Link>
                       </div>
