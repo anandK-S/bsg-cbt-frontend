@@ -125,7 +125,7 @@ export default function ExamTakePage() {
       localStorage.removeItem(`attempt_answers_${attemptIdRef.current}`);
       router.push('/dashboard');
     } catch (e: any) {
-      if (e.response?.status === 400) {
+      if (e.response?.status === 400 || e.response?.status === 404) {
         localStorage.removeItem(`attempt_answers_${attemptIdRef.current}`);
         router.push(`/dashboard`);
       } else {
