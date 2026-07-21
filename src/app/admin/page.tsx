@@ -13,7 +13,7 @@ import {
   Trash2, ChevronRight, Database, Plus, List, UserCog, Key, Settings as SettingsIcon, TrendingUp, X, Menu, LogOut, Edit2, ShieldAlert, Download
 } from 'lucide-react';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 interface User {
   _id: string;
@@ -83,6 +83,10 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [examSearch, setExamSearch] = useState('');
   const [examStatusFilter, setExamStatusFilter] = useState('All');
+
+  // Audit Filters
+  const [auditRoleFilter, setAuditRoleFilter] = useState('All');
+  const [auditDateFilter, setAuditDateFilter] = useState('');
 
   const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
 
@@ -244,6 +248,15 @@ export default function AdminDashboard() {
     }
   };
 
+  const filteredAuditLogs = auditLogs.filter(log => {
+    if (auditRoleFilter !== 'All' && log.userId?.role !== auditRoleFilter) return false;
+    if (auditDateFilter) {
+      const logDate = new Date(log.timestamp).toISOString().split('T')[0];
+      if (logDate !== auditDateFilter) return false;
+    }
+    return true;
+  });
+
   const exportAuditPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(18);
@@ -251,9 +264,12 @@ export default function AdminDashboard() {
     doc.text('Admin Security Audit Log', 14, 22);
     doc.setFontSize(11);
     doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    let subtitle = `Generated on: ${new Date().toLocaleString()}`;
+    if (auditRoleFilter !== 'All') subtitle += ` | Role: ${auditRoleFilter}`;
+    if (auditDateFilter) subtitle += ` | Date: ${auditDateFilter}`;
+    doc.text(subtitle, 14, 30);
     
-    const tableData = auditLogs.map(log => [
+    const tableData = filteredAuditLogs.map(log => [
       new Date(log.timestamp).toLocaleString(),
       log.userId ? log.userId.name : 'Unknown User',
       log.userId ? log.userId.role : 'N/A',
@@ -261,7 +277,7 @@ export default function AdminDashboard() {
       log.details
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 40,
       head: [['Timestamp', 'User', 'Role', 'Action', 'Details']],
       body: tableData,
@@ -541,19 +557,28 @@ export default function AdminDashboard() {
         );
       case 'audit':
         return (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
+            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 flex-shrink-0">
               <div>
                 <h3 className="text-base font-bold text-gray-900">Security Audit Logs</h3>
                 <p className="text-xs text-gray-500 font-medium mt-1">Full history of user logins and logouts.</p>
               </div>
-              <button onClick={exportAuditPDF} className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors">
-                <Download size={16} /> Download PDF
-              </button>
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                <select value={auditRoleFilter} onChange={(e) => setAuditRoleFilter(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-gray-700 outline-none w-full sm:w-auto">
+                  <option value="All">All Roles</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Examiner">Examiner</option>
+                  <option value="Candidate">Candidate</option>
+                </select>
+                <input type="date" value={auditDateFilter} onChange={(e) => setAuditDateFilter(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-gray-700 outline-none w-full sm:w-auto" />
+                <button onClick={exportAuditPDF} className="bg-bsg-blue hover:bg-bsg-blue-dark text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors w-full sm:w-auto whitespace-nowrap">
+                  <Download size={16} /> Download PDF
+                </button>
+              </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto flex-1">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Timestamp</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">User</th>
@@ -562,7 +587,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
-                  {auditLogs.map((log: AuditLog) => (
+                  {filteredAuditLogs.map((log: AuditLog) => (
                     <tr key={log._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
                         {new Date(log.timestamp).toLocaleString()}
@@ -587,8 +612,8 @@ export default function AdminDashboard() {
                       </td>
                     </tr>
                   ))}
-                  {auditLogs.length === 0 && (
-                    <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500"><ShieldAlert className="mx-auto mb-3" size={24} />No audit logs found</td></tr>
+                  {filteredAuditLogs.length === 0 && (
+                    <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500"><ShieldAlert className="mx-auto mb-3" size={24} />No audit logs found for these filters</td></tr>
                   )}
                 </tbody>
               </table>
