@@ -39,6 +39,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       case 'Admin':
         return [
           { name: t('dashboard') || 'Dashboard', href: '/admin', icon: LayoutDashboard },
+          { name: t('liveMonitoring') || 'Live Monitoring', href: '/examiner/live', icon: Activity },
           { name: t('leaderboard') || 'Leaderboard', href: '/leaderboard', icon: Award },
           { name: t('profileSettings') || 'Settings', href: '/admin/settings', icon: Settings },
         ];

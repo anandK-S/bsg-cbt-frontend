@@ -312,6 +312,11 @@ export default function AdminDashboard() {
   if (!isAuthenticated || user?.role !== 'Admin') return null;
 
   const filteredUsers = users.filter((u) => {
+    const isLocked = u.lockedUntil && new Date(u.lockedUntil) > new Date();
+    const isOnline = u.lastLogin && (!u.lastLogout || new Date(u.lastLogin) > new Date(u.lastLogout));
+    if (statusFilter === 'Locked' && !isLocked) return false;
+    if (statusFilter === 'Online' && !isOnline) return false;
+
     return (roleFilter === 'All' || u.role === roleFilter) &&
            (sectionFilter === 'All' || u.section === sectionFilter) &&
            (u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -340,6 +345,13 @@ export default function AdminDashboard() {
                   </select>
                 </div>
                 <div className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-1 flex-1 sm:flex-none">
+                  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-transparent text-gray-700 text-sm focus:outline-none py-1.5 font-bold cursor-pointer w-full">
+                    <option value="All">All Status</option>
+                    <option value="Locked">Locked Accounts</option>
+                    <option value="Online">Online Now</option>
+                  </select>
+                </div>
+                <div className="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-1 flex-1 sm:flex-none">
                   <Filter size={14} className="text-gray-400 mr-2" />
                   <select value={sectionFilter} onChange={(e) => setSectionFilter(e.target.value)} className="bg-transparent text-gray-700 text-sm focus:outline-none py-1.5 font-bold cursor-pointer w-full">
                     <option value="All">All Sections</option>
@@ -361,7 +373,7 @@ export default function AdminDashboard() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Identity</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Role & Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Status & Activity</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase">Section</th>
                     <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase">Actions</th>
                   </tr>
@@ -375,8 +387,16 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1 items-start">
-                          <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md ${u.role === 'Admin' ? 'bg-purple-100 text-purple-700' : u.role === 'Examiner' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{u.role}</span>
-                          <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md ${u.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{u.status}</span>
+                          <div className="flex gap-1 items-center">
+                            <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md ${u.role === 'Admin' ? 'bg-purple-100 text-purple-700' : u.role === 'Examiner' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{u.role}</span>
+                            <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md ${u.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{u.status}</span>
+                            {(u.lockedUntil && new Date(u.lockedUntil) > new Date()) && (
+                              <span className="px-2.5 py-1 text-[10px] font-bold uppercase rounded-md bg-orange-100 text-orange-700">Locked</span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-gray-500 font-medium whitespace-nowrap">
+                            <span className="font-bold text-gray-700">In:</span> {u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Never'} | <span className="font-bold text-gray-700">Out:</span> {u.lastLogout ? new Date(u.lastLogout).toLocaleString() : 'Never'}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -385,6 +405,11 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1 sm:gap-2">
+                          {(u.lockedUntil && new Date(u.lockedUntil) > new Date()) && (
+                            <button onClick={() => handleUnlock(u._id)} className="text-orange-600 hover:text-orange-900 font-bold bg-orange-50 px-3 py-1.5 rounded-lg mr-2 transition-colors">
+                              Unlock
+                            </button>
+                          )}
                           {u.role !== 'Admin' && (
                             <>
                               <button onClick={() => { 
@@ -416,8 +441,20 @@ export default function AdminDashboard() {
       case 'exams':
         return (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-gray-50/50">
+            <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <h3 className="text-base font-bold text-gray-900">Platform Exams Overview</h3>
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="relative flex-1 md:w-64">
+                  <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input type="text" placeholder="Search exams..." value={examSearch} onChange={e => setExamSearch(e.target.value)} className="w-full pl-9 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-bsg-blue outline-none text-sm bg-white" />
+                </div>
+                <select value={examStatusFilter} onChange={(e) => setExamStatusFilter(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-gray-700 outline-none">
+                  <option value="All">All Status</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Published">Published</option>
+                  <option value="Archived">Archived</option>
+                </select>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -430,7 +467,12 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
-                  {exams.map((exam: Exam) => (
+                  {exams.filter((e) => {
+                    const mSearch = examSearch.toLowerCase();
+                    if (examSearch && !e.title.toLowerCase().includes(mSearch) && !(e.category || '').toLowerCase().includes(mSearch)) return false;
+                    if (examStatusFilter !== 'All' && e.status !== examStatusFilter) return false;
+                    return true;
+                  }).map((exam: Exam) => (
                     <tr key={exam._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="text-sm font-bold text-gray-900">{exam.title}</div>
@@ -519,14 +561,6 @@ export default function AdminDashboard() {
                         <div>
                           <label className="block text-sm font-bold text-gray-700 mb-1">Support Email</label>
                           <input type="email" value={settingsForm.supportEmail} onChange={e => setSettingsForm({...settingsForm, supportEmail: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-bold text-gray-700 mb-1">Terms & Conditions URL</label>
-                          <input type="url" placeholder="https://" value={settingsForm.termsUrl} onChange={e => setSettingsForm({...settingsForm, termsUrl: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-bold text-gray-700 mb-1">Privacy Policy URL</label>
-                          <input type="url" placeholder="https://" value={settingsForm.privacyUrl} onChange={e => setSettingsForm({...settingsForm, privacyUrl: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
                         </div>
                       </div>
                     </div>
