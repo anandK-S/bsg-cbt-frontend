@@ -117,7 +117,7 @@ export default function MasterQuestionPaper() {
                   {q.questionId.mediaUrl && (
                     <div className="my-4">
                       <img 
-                        src={q.questionId.mediaUrl.startsWith('http') ? q.questionId.mediaUrl : \`\${API_URL}\${q.questionId.mediaUrl}\`} 
+                        src={q.questionId.mediaUrl.startsWith('http') ? q.questionId.mediaUrl : `${API_URL}${q.questionId.mediaUrl}`} 
                         alt="Question image" 
                         className="max-h-48 border border-gray-300" 
                       />
@@ -146,7 +146,7 @@ export default function MasterQuestionPaper() {
         })}
       </div>
       
-      <style dangerouslySetInnerHTML={{__html: \`
+      <style dangerouslySetInnerHTML={{__html: `
         @media print {
           body { -webkit-print-color-adjust: exact; }
           .print\\:hidden { display: none !important; }
