@@ -1,16 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Hash, Shield, MapPin, Building, Lock, Eye, EyeOff, Briefcase, Key } from 'lucide-react';
-// Make sure to import your auth store if you want to redirect logged-in users!
-// import { useAuthStore } from '@/store/useAuthStore'; 
 
 export default function Register() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<'Candidate' | 'Examiner'>('Candidate');
   
@@ -27,12 +24,11 @@ export default function Register() {
     designation: ''
   });
 
-  // Handle the mounting/hydration to show your loading screen
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    // Only allow numbers for BSG ID and Unit Number
+    if ((e.target.name === 'bsgId' || e.target.name === 'unitNumber') && e.target.value !== '' && !/^\d+$/.test(e.target.value)) {
+      return;
+    }
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -42,25 +38,8 @@ export default function Register() {
     // Add your registration logic here
   };
 
-  // YOUR LOADING SCREEN RESTORED!
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="relative flex items-center justify-center mb-6">
-          <div className="absolute inset-0 w-24 h-24 bg-[#002f6c]/20 rounded-full animate-ping"></div>
-          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-[#1e40af] to-[#3b82f6] rounded-2xl flex items-center justify-center shadow-2xl transform rotate-3 animate-bounce">
-            <span className="text-white font-extrabold text-2xl">BSG</span>
-          </div>
-        </div>
-        <div className="text-[#002f6c] font-black text-lg tracking-widest animate-pulse">
-          INITIALIZING...
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen lg:h-screen flex bg-white pt-16 lg:pt-0 lg:overflow-hidden">
+    <div className="min-h-screen lg:h-screen flex bg-white lg:overflow-hidden pt-20 lg:pt-0">
       
       {/* Left Side - Branding (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-5/12 bg-[#002f6c] text-white flex-col justify-center items-center p-8 relative h-full">
@@ -97,41 +76,49 @@ export default function Register() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-7/12 flex items-center justify-center p-4 sm:p-6 relative bg-white">
-        <div className="absolute top-0 w-full h-16 bg-white lg:hidden"></div>
-
+      <div className="w-full lg:w-7/12 flex flex-col lg:items-center lg:justify-center px-5 sm:px-10 pb-10 relative bg-white lg:overflow-y-auto custom-scrollbar">
+        
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-[34rem] relative z-10"
+          className="w-full max-w-[34rem] mx-auto relative z-10"
         >
-          <div className="mb-4">
+          {/* Mobile-only Branding Header */}
+          <div className="lg:hidden flex flex-col items-center mb-8 mt-2">
+            <div className="w-14 h-14 bg-gradient-to-br from-[#1e40af] to-[#3b82f6] rounded-2xl flex items-center justify-center shadow-lg border border-blue-200 mb-3">
+              <span className="text-lg font-black text-[#fbbf24]">BSG</span>
+            </div>
+            <h1 className="text-2xl font-black text-[#002f6c] tracking-tight">BSG Portal</h1>
+          </div>
+
+          <div className="mb-4 text-center lg:text-left">
             <h2 className="text-2xl font-black text-[#002f6c] mb-1">Create an Account</h2>
             <p className="text-gray-500 text-xs font-medium">Join the BSG CBT platform today</p>
           </div>
 
-          <div className="flex p-1 bg-gray-100/80 rounded-lg mb-4 border border-gray-200">
+          {/* Role Toggle Switch */}
+          <div className="flex p-1 bg-gray-100/80 rounded-lg mb-5 border border-gray-200">
             <button
               type="button"
               onClick={() => setRole('Candidate')}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${role === 'Candidate' ? 'bg-white shadow-sm text-[#002f6c] border border-gray-200/50' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 py-2 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${role === 'Candidate' ? 'bg-white shadow-sm text-[#002f6c] border border-gray-200/50' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <User size={14} /> Candidate
             </button>
             <button
               type="button"
               onClick={() => setRole('Examiner')}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${role === 'Examiner' ? 'bg-white shadow-sm text-[#002f6c] border border-gray-200/50' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 py-2 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${role === 'Examiner' ? 'bg-white shadow-sm text-[#002f6c] border border-gray-200/50' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <Briefcase size={14} /> Examiner
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-[11px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Full Name</label>
+                <label className="block text-[11px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Surname and First Name</label>
                 <div className="relative flex items-center">
                   <div className="absolute left-3 text-gray-400"><User size={14} /></div>
                   <input
@@ -170,9 +157,9 @@ export default function Register() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="space-y-3 overflow-hidden"
+                  className="space-y-3.5 overflow-hidden"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                       <label className="block text-[11px] font-bold text-gray-700 mb-1 uppercase tracking-wider">BSG ID</label>
                       <div className="relative flex items-center">
@@ -183,8 +170,9 @@ export default function Register() {
                           value={formData.bsgId}
                           onChange={handleChange}
                           className="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] transition-all outline-none font-medium text-gray-900 text-sm"
-                          placeholder="Exactly 8 digits"
-                          maxLength={8}
+                          placeholder="Exactly 10 digits"
+                          maxLength={10}
+                          minLength={10}
                           required={role === 'Candidate'}
                         />
                       </div>
@@ -203,12 +191,13 @@ export default function Register() {
                           <option value="Guide">Guide</option>
                           <option value="Rover">Rover</option>
                           <option value="Ranger">Ranger</option>
+                          <option value="Leader">Leader</option>
                         </select>
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                       <label className="block text-[11px] font-bold text-gray-700 mb-1 uppercase tracking-wider">District</label>
                       <div className="relative flex items-center">
@@ -233,7 +222,9 @@ export default function Register() {
                           value={formData.unitNumber}
                           onChange={handleChange}
                           className="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] transition-all outline-none font-medium text-gray-900 text-sm"
-                          placeholder="e.g. 33"
+                          placeholder="e.g. 033"
+                          maxLength={3}
+                          minLength={3}
                           required={role === 'Candidate'}
                         />
                       </div>
@@ -262,9 +253,9 @@ export default function Register() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="space-y-3 overflow-hidden"
+                  className="space-y-3.5 overflow-hidden"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                       <label className="block text-[11px] font-bold text-gray-700 mb-1 uppercase tracking-wider">Designation</label>
                       <div className="relative flex items-center">
@@ -339,12 +330,12 @@ export default function Register() {
 
             <button
               type="submit"
-              className="w-full bg-[#002f6c] hover:bg-[#001f4d] text-white font-bold py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg mt-3 flex items-center justify-center gap-2 text-sm"
+              className="w-full bg-[#002f6c] hover:bg-[#001f4d] text-white font-bold py-3 rounded-lg transition-all shadow-md hover:shadow-lg mt-4 flex items-center justify-center gap-2 text-sm"
             >
               Register as {role}
             </button>
 
-            <p className="text-center text-xs text-gray-600 font-medium mt-3">
+            <p className="text-center text-xs text-gray-600 font-medium mt-4">
               Already have an account?{' '}
               <Link href="/login" className="text-[#002f6c] font-black hover:underline">
                 Sign in here
@@ -353,6 +344,23 @@ export default function Register() {
           </form>
         </motion.div>
       </div>
+
+      <style jsx global>{`
+        /* Minimalist Scrollbar just in case it scrolls on very small desktop screens */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #cbd5e1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: #94a3b8;
+        }
+      `}</style>
     </div>
   );
 }
