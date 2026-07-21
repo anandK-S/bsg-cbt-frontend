@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
@@ -27,7 +28,7 @@ export default function ExamTakePage() {
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  const { language, setLanguage, t } = useLanguage();
   const [isMobilePaletteOpen, setIsMobilePaletteOpen] = useState(false);
   const [warnings, setWarnings] = useState(0);
 
@@ -424,7 +425,7 @@ export default function ExamTakePage() {
             <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6 animate-pulse">
               <AlertTriangle className="h-10 w-10 text-red-600" />
             </div>
-            <h3 className="text-3xl font-black text-gray-900 mb-4">Security Warning</h3>
+            <h3 className="text-3xl font-black text-gray-900 mb-4">{t("securityWarning")}</h3>
             <p className="text-gray-600 mb-8 font-bold text-lg leading-relaxed">
               {warningMessage}
             </p>
@@ -435,7 +436,7 @@ export default function ExamTakePage() {
               }}
               className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-4 px-4 rounded-xl shadow-md transition-all active:scale-95 text-lg uppercase tracking-wider"
             >
-              Resume Exam & Fullscreen
+              {t("resumeExam")}
             </button>
           </div>
         </div>
@@ -476,7 +477,7 @@ export default function ExamTakePage() {
           </div>
           
           <div className={`flex flex-col items-center justify-center px-2 md:px-4 py-1 rounded-lg border-2 ${timeRemaining < 300 ? 'bg-red-50 text-red-600 border-red-500 animate-pulse' : 'bg-white text-gray-900 border-gray-300'}`}>
-            <span className="hidden md:block text-xs font-bold uppercase tracking-widest text-gray-500 mb-0.5">Time Left</span>
+            <span className="hidden md:block text-xs font-bold uppercase tracking-widest text-gray-500 mb-0.5">{t("timeLeft")}</span>
             <div className="flex items-center gap-1 md:gap-1.5">
               <Clock size={16} className={timeRemaining < 300 ? 'text-red-500' : 'text-gray-400'} />
               <span className="tabular-nums font-black text-base md:text-xl leading-none">{formatTime(timeRemaining)}</span>
@@ -499,11 +500,11 @@ export default function ExamTakePage() {
         <div className="flex-1 flex flex-col w-full md:w-[70%] lg:w-[75%] glass-card rounded-2xl md:rounded-3xl overflow-hidden shadow-sm animate-[fade-in_0.5s_ease-out]">
           {/* Question Header */}
           <div className="bg-gray-100 border-b border-gray-300 px-6 py-2 flex justify-between items-center flex-wrap gap-2">
-            <span className="font-extrabold text-gray-700 text-lg">Question No. {currentQuestionIndex + 1}</span>
+            <span className="font-extrabold text-gray-700 text-lg">{t("questionNo")} {currentQuestionIndex + 1}</span>
             <div className="flex items-center gap-4 text-sm font-bold text-gray-500">
-              {currentQ.section && <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded uppercase tracking-wider text-xs border border-purple-200">Section: {currentQ.section}</span>}
-              <span>Marks: <span className="text-green-600">+{currentQ.marks || 1}</span></span>
-              <span>Type: <span className="text-gray-700">{currentQ.type === 'MultipleChoice' ? 'Multiple Choice' : currentQ.type === 'Subjective' ? 'Subjective' : currentQ.type === 'LogicDecision' ? 'Logic/Decision' : 'Single Choice'}</span></span>
+              {currentQ.section && <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded uppercase tracking-wider text-xs border border-purple-200">{t("section")}: {currentQ.section}</span>}
+              <span>{t("marks")}: <span className="text-green-600">+{currentQ.marks || 1}</span></span>
+              <span>{t("type")}: <span className="text-gray-700">{currentQ.type === 'MultipleChoice' ? 'Multiple Choice' : currentQ.type === 'Subjective' ? 'Subjective' : currentQ.type === 'LogicDecision' ? 'Logic/Decision' : 'Single Choice'}</span></span>
             </div>
           </div>
 
@@ -534,7 +535,7 @@ export default function ExamTakePage() {
                     onChange={(e) => updateSubjectiveAnswer(e.target.value)}
                     disabled={isSubmitting}
                     className="w-full min-h-[150px] p-4 border-2 border-gray-300 rounded-lg focus:border-bsg-blue focus:ring-4 focus:ring-bsg-blue/10 outline-none resize-y text-lg text-gray-900 font-medium disabled:opacity-60 disabled:cursor-not-allowed"
-                    placeholder={language === 'hi' ? "अपना उत्तर यहाँ लिखें..." : "Type your answer here..."}
+                    placeholder={t("typeYourAnswer")}
                   />
                 </div>
               ) : (
@@ -576,21 +577,21 @@ export default function ExamTakePage() {
                 disabled={isSubmitting || currentQuestionIndex === 0}
                 className="flex-1 sm:flex-none px-4 py-2 border border-blue-600 rounded-lg text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 disabled:opacity-50 transition-colors shadow-sm whitespace-nowrap"
               >
-                Previous
+                {t('previous')}
               </button>
               <button 
                 onClick={clearResponse} 
                 disabled={isSubmitting}
                 className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold text-gray-700 bg-white hover:bg-gray-100 disabled:opacity-50 transition-colors shadow-sm"
               >
-                Clear Response
+                {t('clearResponse')}
               </button>
               <button 
                 onClick={markForReviewAndNext} 
                 disabled={isSubmitting}
                 className="flex-1 sm:flex-none px-4 py-2 border border-purple-600 rounded-lg text-sm font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 disabled:opacity-50 transition-colors shadow-sm"
               >
-                Mark for Review & Next
+                {t('markForReview')}
               </button>
             </div>
             <button 
@@ -598,7 +599,7 @@ export default function ExamTakePage() {
               disabled={isSubmitting}
               className="w-full sm:w-auto px-8 py-2 border border-green-700 rounded-lg text-sm font-extrabold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 transition-colors shadow-sm"
             >
-              {currentQuestionIndex === questions.length - 1 ? 'Save & Submit' : 'Save & Next'}
+              {currentQuestionIndex === questions.length - 1 ? t('saveAndSubmit') : t('saveAndNext')}
             </button>
           </div>
         </div>
@@ -606,7 +607,7 @@ export default function ExamTakePage() {
         {/* Right Side: Navigation Palette (30%) */}
         <div className={`fixed md:static inset-y-0 right-0 z-40 w-80 md:w-[30%] lg:w-[25%] glass-card rounded-2xl md:rounded-3xl border border-gray-200 shadow-sm overflow-hidden transform transition-transform duration-300 flex flex-col animate-[fade-in_0.5s_ease-out] ${isMobilePaletteOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full md:translate-x-0'}`} style={{ animationDelay: '0.1s' }}>
           <div className="p-4 bg-white border-b border-gray-300 flex justify-between items-center md:hidden">
-            <h3 className="font-extrabold text-gray-900 uppercase">Question Palette</h3>
+            <h3 className="font-extrabold text-gray-900 uppercase">{t("questionPalette")}</h3>
             <button onClick={() => setIsMobilePaletteOpen(false)} className="p-2 bg-gray-100 rounded text-gray-700 border border-gray-300">
               <X size={20} />
             </button>
@@ -659,25 +660,25 @@ export default function ExamTakePage() {
             <div className="bg-white p-4 border border-gray-300 shadow-sm text-xs font-bold text-gray-700 grid grid-cols-2 gap-y-4 gap-x-2">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-gray-200 border border-gray-300 flex-shrink-0"></div>
-                <span className="leading-tight">Not Visited</span>
+                <span className="leading-tight">{t("notVisited")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-red-500 border border-red-600 flex-shrink-0"></div>
-                <span className="leading-tight">Not Answered</span>
+                <span className="leading-tight">{t("notAnswered")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-green-600 border border-green-700 rounded-t-full rounded-b-sm flex-shrink-0"></div>
-                <span className="leading-tight">Answered</span>
+                <span className="leading-tight">{t("answered")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-purple-600 border border-purple-700 rounded-full flex-shrink-0"></div>
-                <span className="leading-tight">Marked for Review</span>
+                <span className="leading-tight">{t("markedForReview")}</span>
               </div>
               <div className="flex items-center gap-2 col-span-2">
                 <div className="w-6 h-6 bg-purple-600 border border-purple-700 rounded-full flex-shrink-0 relative">
                   <div className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white"></div>
                 </div>
-                <span className="leading-tight">Answered & Marked for Review (will be considered for evaluation)</span>
+                <span className="leading-tight">{t("answeredAndMarked")} (will be considered for evaluation)</span>
               </div>
             </div>
           </div>
@@ -688,7 +689,7 @@ export default function ExamTakePage() {
               disabled={isSubmitting}
               className="w-full bg-blue-600 hover:bg-blue-700 border border-blue-800 text-white font-extrabold py-3.5 rounded shadow-sm transition-colors disabled:opacity-50 text-base uppercase tracking-wider"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit'}
+              {isSubmitting ? t('submitting') : t('submit')}
             </button>
           </div>
         </div>

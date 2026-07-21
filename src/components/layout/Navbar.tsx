@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguage } from '@/contexts/LanguageContext';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import { usePathname } from 'next/navigation';
@@ -10,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { user, logout, isAuthenticated, _hasHydrated } = useAuthStore();
+  const { language, setLanguage } = useLanguage();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
@@ -85,7 +87,22 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
           </div>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden md:flex items-center space-x-4">
+            
+            <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200">
+              <button 
+                onClick={() => setLanguage('en')}
+                className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                EN
+              </button>
+              <button 
+                onClick={() => setLanguage('hi')}
+                className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                HI
+              </button>
+            </div>
             {!isAuthenticated && !isAuthPage && _hasHydrated && (
               <Link href="/login" className="bg-primary text-primary-foreground hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg">
                 Login
@@ -104,9 +121,15 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
               </button>
             ) : (
               !isAuthPage && _hasHydrated && (
-                <Link href="/login" className="text-primary font-bold text-sm">
-                  Login
-                </Link>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200 mr-2">
+                    <button onClick={() => setLanguage('en')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500'}`}>EN</button>
+                    <button onClick={() => setLanguage('hi')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500'}`}>HI</button>
+                  </div>
+                  <Link href="/login" className="text-primary font-bold text-sm">
+                    Login
+                  </Link>
+                </div>
               )
             )}
           </div>

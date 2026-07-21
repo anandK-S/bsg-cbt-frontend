@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   description: "Bharat Scout & Guide Examination Portal",
 };
 
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import LanguagePopup from "@/components/ui/LanguagePopup";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,9 +39,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen transition-colors duration-300`}>
-        <UnifiedLayout>
-          {children}
-        </UnifiedLayout>
+        <LanguageProvider>
+          <UnifiedLayout>
+            {children}
+            <LanguagePopup />
+          </UnifiedLayout>
+        </LanguageProvider>
       </body>
     </html>
   );
