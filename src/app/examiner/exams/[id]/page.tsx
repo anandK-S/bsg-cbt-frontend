@@ -695,7 +695,6 @@ export default function ExamDetails() {
               <div className="flex items-center gap-3 flex-wrap">
                 <Link
                   href={`/examiner/exams/${examId}/print`}
-                  target="_blank"
                   className="bg-gray-800 text-white font-black px-5 py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-sm flex items-center gap-2"
                 >
                   <FileText size={18} /> Print Master Paper

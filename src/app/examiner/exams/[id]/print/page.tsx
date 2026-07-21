@@ -56,7 +56,7 @@ export default function MasterQuestionPaper() {
   );
   if (!exam) return <div className="p-10 text-center text-red-500 font-bold">Exam not found.</div>;
 
-  const totalMarks = exam.questions.reduce((acc: number, q: any) => acc + (q.marks || 1), 0);
+  const totalMarks = (exam.questions || []).reduce((acc: number, q: any) => acc + (q.marks || 1), 0);
 
   return (
     <div className="bg-white min-h-screen p-8 text-black" style={{ fontFamily: 'Times New Roman, serif' }}>
@@ -64,7 +64,7 @@ export default function MasterQuestionPaper() {
       <div className="print:hidden mb-6 flex items-center gap-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
         <div className="flex-1">
           <p className="font-bold text-gray-900">Master Question Paper — {exam.title}</p>
-          <p className="text-sm text-gray-500">{exam.questions.length} Questions · {totalMarks} Marks · {exam.durationMinutes} Minutes</p>
+          <p className="text-sm text-gray-500">{(exam.questions || []).length} Questions · {totalMarks} Marks · {exam.durationMinutes} Minutes</p>
         </div>
         <button
           onClick={() => window.print()}
@@ -73,10 +73,10 @@ export default function MasterQuestionPaper() {
           🖨️ Print / Save PDF
         </button>
         <button
-          onClick={() => window.close()}
+          onClick={() => router.back()}
           className="bg-gray-100 text-gray-700 font-bold px-5 py-2.5 rounded-xl hover:bg-gray-200 transition-colors"
         >
-          Close
+          Back
         </button>
       </div>
 
@@ -97,53 +97,56 @@ export default function MasterQuestionPaper() {
       </div>
 
       <div className="space-y-8">
-        {exam.questions.map((q: any, idx: number) => (
-          <div key={q.questionId._id} className="break-inside-avoid">
-            <div className="flex items-start gap-2">
-              <span className="font-bold whitespace-nowrap">Q.{idx + 1}</span>
-              <div className="w-full">
-                <div className="flex justify-between items-start">
-                  <p className="font-medium">{q.questionId.text}</p>
-                  <span className="font-bold text-sm ml-4 whitespace-nowrap">[{q.marks || 1} Marks]</span>
+        {(exam.questions || []).map((q: any, idx: number) => {
+          if (!q.questionId) return null;
+          return (
+            <div key={q.questionId._id || idx} className="break-inside-avoid">
+              <div className="flex items-start gap-2">
+                <span className="font-bold whitespace-nowrap">Q.{idx + 1}</span>
+                <div className="w-full">
+                  <div className="flex justify-between items-start">
+                    <p className="font-medium">{q.questionId.text}</p>
+                    <span className="font-bold text-sm ml-4 whitespace-nowrap">[{q.marks || 1} Marks]</span>
+                  </div>
+                  
+                  {q.questionId.section && (
+                    <p className="text-xs text-gray-600 mt-1 mb-2 font-bold uppercase">Section: {q.questionId.section}</p>
+                  )}
+
+                  {/* Image between question and options */}
+                  {q.questionId.mediaUrl && (
+                    <div className="my-4">
+                      <img 
+                        src={q.questionId.mediaUrl.startsWith('http') ? q.questionId.mediaUrl : \`\${API_URL}\${q.questionId.mediaUrl}\`} 
+                        alt="Question image" 
+                        className="max-h-48 border border-gray-300" 
+                      />
+                    </div>
+                  )}
+
+                  {q.questionId.type === 'Subjective' ? (
+                    <div className="mt-4 w-full border-b border-black border-dashed h-24"></div>
+                  ) : (
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8">
+                      {(q.questionId.options || []).map((opt: string, optIdx: number) => (
+                        <div key={optIdx} className="flex items-center gap-2">
+                          <span className="font-bold">({['A', 'B', 'C', 'D'][optIdx]})</span>
+                          <span>{opt}</span>
+                          {q.questionId.correctOptionIndex === optIdx && (
+                            <span className="text-xs ml-2 border border-black px-1 print:hidden inline-block bg-black text-white">Correct</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                
-                {q.questionId.section && (
-                  <p className="text-xs text-gray-600 mt-1 mb-2 font-bold uppercase">Section: {q.questionId.section}</p>
-                )}
-
-                {/* Image between question and options */}
-                {q.questionId.mediaUrl && (
-                  <div className="my-4">
-                    <img 
-                      src={q.questionId.mediaUrl.startsWith('http') ? q.questionId.mediaUrl : `${API_URL}${q.questionId.mediaUrl}`} 
-                      alt="Question image" 
-                      className="max-h-48 border border-gray-300" 
-                    />
-                  </div>
-                )}
-
-                {q.questionId.type === 'Subjective' ? (
-                  <div className="mt-4 w-full border-b border-black border-dashed h-24"></div>
-                ) : (
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8">
-                    {q.questionId.options.map((opt: string, optIdx: number) => (
-                      <div key={optIdx} className="flex items-center gap-2">
-                        <span className="font-bold">({['A', 'B', 'C', 'D'][optIdx]})</span>
-                        <span>{opt}</span>
-                        {q.questionId.correctOptionIndex === optIdx && (
-                          <span className="text-xs ml-2 border border-black px-1 print:hidden inline-block bg-black text-white">Correct</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{__html: \`
         @media print {
           body { -webkit-print-color-adjust: exact; }
           .print\\:hidden { display: none !important; }
