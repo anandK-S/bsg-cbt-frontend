@@ -1,441 +1,387 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { User, Mail, Hash, Shield, MapPin, Building, Lock, Eye, EyeOff, Briefcase, Key, Award, CheckCircle2 } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
+import Link from 'next/link';
+import axios from 'axios';
+import { API_URL } from '@/utils/apiConfig';
+import { motion } from 'framer-motion';
+import { User, Mail, Lock, Eye, EyeOff, BadgeInfo, UserPlus, ShieldCheck } from 'lucide-react';
 
 export default function Register() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<'Candidate' | 'Examiner'>('Candidate');
+  const login = useAuthStore((state) => state.login);
+  const _hasHydrated = useAuthStore((state) => state._hasHydrated);
   
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    bsgId: '',
-    section: 'Scout',
-    district: 'Vadodara',
-    unitNumber: '',
-    unitName: '',
-    password: '',
-    examinerCode: '',
-    designation: ''
-  });
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [bsgId, setBsgId] = useState('');
+  const [section, setSection] = useState('Scout');
+  const [district, setDistrict] = useState('Vadodara');
+  const [unitNumber, setUnitNumber] = useState('');
+  const [unitName, setUnitName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<{ message: string, platformName?: string, supportEmail?: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [globalSettings, setGlobalSettings] = useState<any>(null);
 
   useEffect(() => {
     setMounted(true);
+    axios.get(`${API_URL}/api/settings`).then((res) => {
+      setGlobalSettings(res.data);
+    }).catch(console.error);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    if (e.target.name === 'bsgId' && e.target.value.length > 10) return;
-    if (e.target.name === 'unitNumber' && e.target.value.length > 3) return;
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ role, ...formData });
+    if (globalSettings?.termsUrl && !agreeTerms) {
+      setError({ message: 'You must agree to the Terms & Privacy Policy to register.' });
+      return;
+    }
+
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    if (!nameRegex.test(name)) {
+      setError({ message: 'Name can only contain letters and spaces (no special characters or numbers).' });
+      return;
+    }
+
+    const bsgIdRegex = /^\d{8}$/;
+    if (!bsgIdRegex.test(bsgId)) {
+      setError({ message: 'BSG ID must be exactly 8 digits.' });
+      return;
+    }
+    
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+    if (!passwordRegex.test(password)) {
+      setError({ message: 'Password must be at least 6 characters and contain a letter, a number, and a special character.' });
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await axios.post(
+        `${API_URL}/api/auth/register`,
+        { name, email, password, bsgId, section, district, unitNumber, unitName },
+        { withCredentials: true }
+      );
+      
+      login(data);
+
+      if (data.role === 'Admin') {
+        router.push('/admin');
+      } else if (data.role === 'Examiner') {
+        router.push('/examiner');
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (err: any) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError({
+          message: err.response.data.message || 'Registration failed. Please try again.',
+          platformName: err.response.data.platformName,
+          supportEmail: err.response.data.supportEmail
+        });
+      } else {
+        setError({ message: 'Registration failed. Please try again.' });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!mounted) {
-    return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-white">
-        <div className="relative flex items-center justify-center mb-6">
-          <div className="absolute inset-0 w-24 h-24 bg-[#002f6c]/20 rounded-full animate-ping"></div>
-          <div className="relative z-10 w-24 h-24 bg-gradient-to-br from-[#1e40af] to-[#3b82f6] rounded-3xl flex items-center justify-center shadow-2xl transform rotate-3 animate-bounce border border-white/10">
-            <span className="text-white font-extrabold text-3xl">BSG</span>
-          </div>
-        </div>
-        <div className="text-[#002f6c] font-black text-lg tracking-widest animate-pulse">
-          INITIALIZING PORTAL...
-        </div>
-      </div>
-    );
-  }
+  if (!mounted || !_hasHydrated) return null;
 
   return (
     <>
-      <style jsx global>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-
-      {/* Main Viewport Container Locked to Single Screen */}
-      <div className="h-screen w-screen flex bg-white overflow-hidden font-sans">
+      {loading && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm transition-all duration-300">
+          <div className="w-16 h-16 border-4 border-bsg-blue/30 border-t-bsg-blue rounded-full animate-spin shadow-lg"></div>
+          <p className="mt-4 text-lg font-bold text-bsg-blue animate-pulse">Creating your account...</p>
+        </div>
+      )}
+      
+      <div className="flex-1 bg-background flex min-h-[100dvh] relative lg:overflow-hidden">
         
-        {/* Left Professional Brand Showcase Panel */}
-        <div className="hidden lg:flex lg:w-5/12 xl:w-4/12 bg-[#002f6c] text-white flex-col justify-between p-10 xl:p-14 relative h-full select-none">
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(30deg, #ffffff 12%, transparent 12.5%, transparent 87%, #ffffff 87.5%, #ffffff), linear-gradient(150deg, #ffffff 12%, transparent 12.5%, transparent 87%, #ffffff 87.5%, #ffffff)', backgroundSize: '40px 70px' }}></div>
-          
-          {/* Top Brand Header */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="relative z-10 flex items-center gap-3"
-          >
-            <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
-              <span className="text-[#fbbf24] font-black text-xl">BSG</span>
+        {/* Left Decorative Panel (Hidden on Mobile) */}
+        {/* Added pt-20 to clear the global header on desktop */}
+        <div className="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden pt-20">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
+          <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
+            <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+              <span className="font-extrabold text-bsg-gold text-4xl">BSG</span>
             </div>
-            <div>
-              <span className="block font-black text-lg tracking-wide text-white">Vadodara Division</span>
-              <span className="block text-xs font-medium text-blue-200">Official Computer-Based Testing Portal</span>
-            </div>
-          </motion.div>
-
-          {/* Center Value Proposition */}
-          <div className="relative z-10 my-auto space-y-6">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }} 
-              animate={{ scale: 1, opacity: 1 }} 
-              transition={{ duration: 0.7 }}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-blue-100 text-xs font-bold uppercase tracking-wider"
-            >
-              <Award size={14} className="text-[#fbbf24]" /> Secure Assessment Ecosystem
-            </motion.div>
-            
-            <motion.h1 
-              initial={{ y: 20, opacity: 0 }} 
-              animate={{ y: 0, opacity: 1 }} 
-              transition={{ delay: 0.2, duration: 0.7 }}
-              className="text-4xl xl:text-5xl font-black tracking-tight leading-[1.1]"
-            >
-              Excellence in <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-[#fbbf24]">Scout & Guide Testing</span>
-            </motion.h1>
-            
-            <motion.p 
-              initial={{ y: 20, opacity: 0 }} 
-              animate={{ y: 0, opacity: 1 }} 
-              transition={{ delay: 0.3, duration: 0.7 }}
-              className="text-blue-100/90 text-sm xl:text-base font-medium leading-relaxed max-w-md"
-            >
-              Register your credentials to participate in official division examinations, track live evaluations, and earn verified certification.
-            </motion.p>
+            <h1 className="text-4xl font-black mb-4 tracking-tight leading-tight">Join the BSG Portal</h1>
+            <p className="text-lg text-blue-100 max-w-md font-medium">Create your account to unlock access to exclusive computer-based tests and resources.</p>
           </div>
-
-          {/* Bottom Trust Indicators */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.7 }}
-            className="relative z-10 flex items-center gap-6 text-xs text-blue-200 font-semibold"
-          >
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-[#fbbf24]" /> Encrypted Data
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-[#fbbf24]" /> Instant Verification
-            </div>
-          </motion.div>
         </div>
 
-        {/* Right Dynamic Form Workspace Panel */}
-        <div className="w-full lg:w-7/12 xl:w-8/12 flex flex-col justify-center items-center px-6 py-8 sm:px-12 lg:px-16 xl:px-24 relative bg-white h-full overflow-y-auto hide-scrollbar">
+        {/* Right Register Panel */}
+        {/* Added pt-28 lg:pt-32 pb-12 to perfectly position form below the global header on PC */}
+        <div className="flex-1 flex flex-col justify-center pt-28 lg:pt-32 pb-12 px-4 sm:px-6 lg:px-20 relative z-10 lg:h-screen lg:overflow-y-auto custom-scrollbar">
+          <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/10 blur-[100px] pointer-events-none lg:hidden" />
           
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="w-full max-w-[480px] my-auto"
-          >
-            {/* Form Title Heading */}
-            <div className="mb-5 text-left">
-              <h2 className="text-2xl xl:text-3xl font-black text-[#002f6c] tracking-tight mb-1">Create Account</h2>
-              <p className="text-gray-500 text-xs sm:text-sm font-medium">Select your portal role to initialize registration</p>
-            </div>
-
-            {/* Professional Role Selection Tab Control */}
-            <div className="flex p-1 bg-gray-100 rounded-xl mb-5 border border-gray-200 shadow-inner">
-              <button
-                type="button"
-                onClick={() => setRole('Candidate')}
-                className={`flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${role === 'Candidate' ? 'bg-white shadow-md text-[#002f6c] border border-gray-200/60 ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-800'}`}
-              >
-                <User size={16} /> Candidate Profile
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('Examiner')}
-                className={`flex-1 py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${role === 'Examiner' ? 'bg-white shadow-md text-[#002f6c] border border-gray-200/60 ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-800'}`}
-              >
-                <Briefcase size={16} /> Examiner Portal
-              </button>
-            </div>
-
-            {/* Form Inputs Container */}
-            <form onSubmit={handleSubmit} className="space-y-3.5">
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Surname and First Name</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50/50 outline-none transition-all font-medium text-gray-900 shadow-sm"
-                      placeholder="e.g. Sharma Anandkumar"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Email Address</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50/50 outline-none transition-all font-medium text-gray-900 shadow-sm"
-                      placeholder="you@example.com"
-                      required
-                    />
-                  </div>
+          <div className="mx-auto w-full max-w-lg my-auto">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center lg:text-left mb-6"
+            >
+              <div className="flex justify-center lg:hidden mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform rotate-3">
+                  <span className="font-extrabold text-white text-2xl">BSG</span>
                 </div>
               </div>
-
-              <AnimatePresence mode="wait">
-                {role === 'Candidate' ? (
-                  <motion.div
-                    key="candidate-fields"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="space-y-3.5 overflow-hidden"
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">BSG ID (10 Digits)</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Hash className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <input
-                            type="text"
-                            name="bsgId"
-                            value={formData.bsgId}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, '');
-                              if (val.length <= 10) setFormData({ ...formData, bsgId: val });
-                            }}
-                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50/50 outline-none transition-all font-medium text-gray-900 shadow-sm"
-                            placeholder="10-digit unique ID"
-                            maxLength={10}
-                            minLength={10}
-                            required={role === 'Candidate'}
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Section</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Shield className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <select
-                            name="section"
-                            value={formData.section}
-                            onChange={handleChange}
-                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50/50 outline-none transition-all font-medium text-gray-900 shadow-sm appearance-none"
-                          >
-                            <option value="Scout">Scout</option>
-                            <option value="Guide">Guide</option>
-                            <option value="Rover">Rover</option>
-                            <option value="Ranger">Ranger</option>
-                            <option value="Leader">Leader</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">District</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <select
-                            name="district"
-                            value={formData.district}
-                            onChange={handleChange}
-                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-100 outline-none appearance-none cursor-not-allowed text-gray-600 font-medium shadow-sm"
-                            tabIndex={-1}
-                          >
-                            <option value="Vadodara">Vadodara</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Unit Number (3 Digits)</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Hash className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <input
-                            type="text"
-                            name="unitNumber"
-                            value={formData.unitNumber}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, '');
-                              if (val.length <= 3) setFormData({ ...formData, unitNumber: val });
-                            }}
-                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50/50 outline-none transition-all font-medium text-gray-900 shadow-sm"
-                            placeholder="e.g. 033"
-                            maxLength={3}
-                            required={role === 'Candidate'}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Unit/Group Name</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Building className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                          type="text"
-                          name="unitName"
-                          value={formData.unitName}
-                          onChange={handleChange}
-                          className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50/50 outline-none transition-all font-medium text-gray-900 shadow-sm"
-                          placeholder="e.g. NAIR, B.P Group"
-                          required={role === 'Candidate'}
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="examiner-fields"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="space-y-3.5 overflow-hidden"
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Designation</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Briefcase className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <input
-                            type="text"
-                            name="designation"
-                            value={formData.designation}
-                            onChange={handleChange}
-                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50/50 outline-none transition-all font-medium text-gray-900 shadow-sm"
-                            placeholder="e.g. Scout Master"
-                            required={role === 'Examiner'}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">District</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <select
-                            name="district"
-                            value={formData.district}
-                            onChange={handleChange}
-                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-100 outline-none appearance-none cursor-not-allowed text-gray-600 font-medium shadow-sm"
-                            tabIndex={-1}
-                          >
-                            <option value="Vadodara">Vadodara</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Examiner Access Code</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Key className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                          type="password"
-                          name="examinerCode"
-                          value={formData.examinerCode}
-                          onChange={handleChange}
-                          className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50/50 outline-none transition-all font-medium text-gray-900 shadow-sm"
-                          placeholder="Provided securely by Admin"
-                          required={role === 'Examiner'}
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Password</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="block w-full pl-9 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50/50 outline-none transition-all font-medium text-gray-900 shadow-sm"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#002f6c] focus:outline-none"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="pt-1">
-                <button
-                  type="submit"
-                  className="w-full bg-[#002f6c] hover:bg-[#001f4d] active:scale-[0.98] text-white font-bold py-3 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center text-sm"
-                >
-                  Register as {role}
-                </button>
-              </div>
-
-              <p className="text-center text-xs text-gray-600 font-medium pt-1">
-                Already have an account?{' '}
-                <Link href="/login" className="text-[#002f6c] font-black hover:underline">
-                  Sign in here
-                </Link>
+              <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+                Create an Account
+              </h2>
+              <p className="mt-2 text-sm text-gray-500 font-medium">
+                Join the BSG CBT platform today
               </p>
-            </form>
-          </motion.div>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <div className="glass-card py-6 px-4 sm:p-8 rounded-3xl">
+                <form className="space-y-5" onSubmit={handleSubmit}>
+                  {error && (
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`${error.supportEmail ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-red-500/10 text-red-500 border-red-500/20'} p-4 rounded-xl border flex flex-col gap-2 font-medium text-sm`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${error.supportEmail ? 'bg-amber-500' : 'bg-red-500'}`} />
+                        <span className="font-bold">{error.platformName ? `${error.platformName} is Under Maintenance` : 'Error'}</span>
+                      </div>
+                      <p>{error.message}</p>
+                      {error.supportEmail && (
+                        <p className="mt-2 text-xs font-bold bg-amber-100 p-2 rounded-lg text-amber-900 inline-block text-center border border-amber-200">
+                          Contact Support: {error.supportEmail}
+                        </p>
+                      )}
+                    </motion.div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="md:col-span-2">
+                      <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-1.5">Surname and First Name</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <User size={18} />
+                        </div>
+                        <input
+                          id="name"
+                          type="text"
+                          required
+                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          placeholder="Surname First Name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">Email Address</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <Mail size={18} />
+                        </div>
+                        <input
+                          id="email"
+                          type="email"
+                          required
+                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          placeholder="you@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="bsgId" className="block text-sm font-semibold text-foreground mb-1.5">BSG ID</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <BadgeInfo size={18} />
+                        </div>
+                        <input
+                          id="bsgId"
+                          type="text"
+                          required
+                          maxLength={8}
+                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          placeholder="Exactly 8 digits"
+                          value={bsgId}
+                          onChange={(e) => setBsgId(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="section" className="block text-sm font-semibold text-foreground mb-1.5">Section</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <ShieldCheck size={18} />
+                        </div>
+                        <select
+                          id="section"
+                          required
+                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base appearance-none"
+                          value={section}
+                          onChange={(e) => setSection(e.target.value)}
+                        >
+                          <option value="Scout">Scout</option>
+                          <option value="Guide">Guide</option>
+                          <option value="Rover">Rover</option>
+                          <option value="Ranger">Ranger</option>
+                          <option value="Leader">Leader</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="district" className="block text-sm font-semibold text-foreground mb-1.5">District</label>
+                      <select
+                        id="district"
+                        required
+                        className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all text-sm sm:text-base"
+                        value={district}
+                        onChange={(e) => setDistrict(e.target.value)}
+                      >
+                        <option value="Vadodara">Vadodara</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="unitNumber" className="block text-sm font-semibold text-foreground mb-1.5">Unit/Group Number</label>
+                      <input
+                        id="unitNumber"
+                        type="number"
+                        required
+                        className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all text-sm sm:text-base"
+                        placeholder="e.g. 33"
+                        value={unitNumber}
+                        onChange={(e) => setUnitNumber(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="unitName" className="block text-sm font-semibold text-foreground mb-1.5">Unit/Group Name</label>
+                      <input
+                        id="unitName"
+                        type="text"
+                        required
+                        className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all text-sm sm:text-base"
+                        placeholder="e.g. NAIR, B.P Group"
+                        value={unitName}
+                        onChange={(e) => setUnitName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1.5">Password</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                          <Lock size={18} />
+                        </div>
+                        <input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          className="block w-full pl-10 pr-10 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-1">Include a letter, number, and special character</p>
+                    </div>
+
+                    {(globalSettings?.termsUrl || globalSettings?.privacyUrl) && (
+                      <div className="md:col-span-2 flex items-start mt-2">
+                        <div className="flex items-center h-5">
+                          <input
+                            id="terms"
+                            type="checkbox"
+                            checked={agreeTerms}
+                            onChange={(e) => setAgreeTerms(e.target.checked)}
+                            className="w-4 h-4 text-bsg-blue bg-gray-100 border-gray-300 rounded focus:ring-bsg-blue focus:ring-2"
+                          />
+                        </div>
+                        <div className="ml-2 text-sm">
+                          <label htmlFor="terms" className="font-medium text-gray-700">
+                            I agree to the{' '}
+                            {globalSettings?.termsUrl && (
+                              <a href={globalSettings.termsUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
+                                Terms & Conditions
+                              </a>
+                            )}
+                            {globalSettings?.termsUrl && globalSettings?.privacyUrl && ' and '}
+                            {globalSettings?.privacyUrl && (
+                              <a href={globalSettings.privacyUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
+                                Privacy Policy
+                              </a>
+                            )}
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-2 flex flex-col-reverse sm:flex-row gap-3">
+                    <button
+                      type="button"
+                      onClick={() => router.back()}
+                      className="w-full sm:w-1/3 flex justify-center items-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full sm:w-2/3 flex justify-center items-center gap-2 bg-gradient-to-r from-bsg-blue to-bsg-blue-light hover:opacity-90 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all text-sm disabled:opacity-70 transform active:scale-95"
+                    >
+                      {loading ? (
+                        <span className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Registering...
+                        </span>
+                      ) : (
+                        <>
+                          Create Account <UserPlus size={18} />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+                
+                <div className="mt-6 pt-6 border-t border-border text-center text-sm">
+                  <span className="text-gray-500">Already have an account? </span>
+                  <Link href="/login" className="text-bsg-blue dark:text-bsg-gold font-bold hover:underline transition-all">
+                    Sign In
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
     </>
