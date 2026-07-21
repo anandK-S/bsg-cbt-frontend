@@ -321,7 +321,7 @@ export default function LiveMonitor() {
                           {t('lastPing') || 'Last Ping'}
                         </span>
                         <span className={`text-xs font-extrabold ${isOffline ? 'text-orange-600' : 'text-gray-700'}`}>
-                          {new Date(c.lastUpdate).toLocaleTimeString()}
+                          {new Date(c.lastUpdate).toLocaleString()}
                         </span>
                       </div>
                     </div>
