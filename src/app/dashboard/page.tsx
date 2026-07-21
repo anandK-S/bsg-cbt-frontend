@@ -7,6 +7,7 @@ import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import { UserCircle, Settings } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface Exam {
@@ -27,6 +28,7 @@ interface Exam {
 
 export default function CandidateDashboard() {
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
+  const { t } = useLanguage();
   const router = useRouter();
   
   const [availableExams, setAvailableExams] = useState<Exam[]>([]);
@@ -108,10 +110,10 @@ export default function CandidateDashboard() {
             </div>
           </div>
           <div className="flex-1">
-            <h1 className="text-lg sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-1 sm:mb-2 line-clamp-1">Welcome, {user?.name}</h1>
+            <h1 className="text-lg sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-1 sm:mb-2 line-clamp-1">{t('welcome')}, {user?.name}</h1>
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-blue-100 font-medium">
-              <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm backdrop-blur-sm shadow-sm border border-white/10 whitespace-nowrap">ID: {user?.bsgId}</span>
-              {user?.district && <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm backdrop-blur-sm shadow-sm border border-white/10 whitespace-nowrap hidden sm:inline-block">Dist: {user.district}</span>}
+              <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm backdrop-blur-sm shadow-sm border border-white/10 whitespace-nowrap">{t('id')}: {user?.bsgId}</span>
+              {user?.district && <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm backdrop-blur-sm shadow-sm border border-white/10 whitespace-nowrap hidden sm:inline-block">{t('dist')}: {user.district}</span>}
               {user?.section && <span className="bg-white/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm backdrop-blur-sm shadow-sm border border-white/10 whitespace-nowrap">{user.section}</span>}
             </div>
           </div>
@@ -124,16 +126,16 @@ export default function CandidateDashboard() {
       <div className="mb-12">
         <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
           <div className="flex items-center">
-            <h2 className="text-2xl font-extrabold text-gray-900">Available Exams</h2>
+            <h2 className="text-2xl font-extrabold text-gray-900">{t('availableExams')}</h2>
             <span className="ml-3 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-bold">
-              {availableExams.length} New
+              {availableExams.length} {t('new')}
             </span>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <input 
               type="text" 
-              placeholder="Search exams..." 
+              placeholder={t('searchExams')} 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none w-full sm:min-w-[220px] shadow-sm transition-all"
@@ -144,9 +146,9 @@ export default function CandidateDashboard() {
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none flex-1 shadow-sm transition-all bg-white"
               >
-                <option value="All">All Categories</option>
+                <option value="All">{t('allCategories')}</option>
                 {Array.from(new Set(availableExams.map(e => e.category || 'General'))).map(c => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>{c === 'General' ? t('general') : c}</option>
                 ))}
               </select>
               <select 
@@ -154,7 +156,7 @@ export default function CandidateDashboard() {
                 onChange={(e) => setFilterExaminer(e.target.value)}
                 className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-bsg-blue focus:outline-none flex-1 shadow-sm transition-all bg-white"
               >
-                <option value="All">All Examiners</option>
+                <option value="All">{t('allExaminers')}</option>
                 {Array.from(new Set(availableExams.map(e => e.creatorName || 'Unknown Examiner'))).map(e => (
                   <option key={e} value={e}>{e}</option>
                 ))}
@@ -166,8 +168,8 @@ export default function CandidateDashboard() {
         {availableExams.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
             <div className="text-5xl mb-4">🎯</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">You&apos;re all caught up!</h3>
-            <p className="text-gray-500">There are no new exams assigned to you at the moment.</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('youreAllCaughtUp')}</h3>
+            <p className="text-gray-500">{t('noNewExams')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -180,36 +182,36 @@ export default function CandidateDashboard() {
                 <div className="p-5 md:p-6 flex-1 flex flex-col bg-white/40">
                   <div className="flex justify-between items-start mb-4">
                     <span className="px-3 py-1 bg-bsg-gold/20 text-yellow-800 text-xs font-extrabold uppercase tracking-wider rounded-full shadow-sm">
-                      {exam.category || 'General'}
+                      {(exam.category === 'General' || !exam.category) ? t('general') : exam.category}
                     </span>
                     <span className="flex items-center text-gray-500 text-xs font-bold bg-gray-100 border border-gray-200 px-3 py-1 rounded-full shadow-sm">
-                      ⏱️ {exam.durationMinutes} mins
+                      ⏱️ {exam.durationMinutes} {t('mins')}
                     </span>
                   </div>
                   <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 leading-tight group-hover:text-bsg-blue transition-colors">{exam.title}</h3>
-                  <p className="text-gray-500 text-xs md:text-sm mb-4 line-clamp-2 flex-grow">{exam.description || 'No description provided.'}</p>
+                  <p className="text-gray-500 text-xs md:text-sm mb-4 line-clamp-2 flex-grow">{exam.description || t('noDescription')}</p>
                   
                   <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4">
                     <div className="flex justify-between items-center mb-1">
-                      <p className="text-xs text-gray-500 font-medium">Created By:</p>
-                      <p className="text-xs font-bold text-gray-700">{exam.creatorName || 'Unknown Examiner'}</p>
+                      <p className="text-xs text-gray-500 font-medium">{t('createdBy')}</p>
+                      <p className="text-xs font-bold text-gray-700">{exam.creatorName || t('unknownExaminer')}</p>
                     </div>
                     {exam.scheduledStartDate ? (
                       <div className="flex justify-between items-center">
-                        <p className="text-xs text-bsg-blue-light font-medium">Scheduled For:</p>
+                        <p className="text-xs text-bsg-blue-light font-medium">{t('scheduledFor')}</p>
                         <p className="text-xs font-bold text-bsg-blue">{new Date(exam.scheduledStartDate).toLocaleString()}</p>
                       </div>
                     ) : (
                       <div className="flex justify-between items-center">
-                        <p className="text-xs text-gray-400 font-medium">Published:</p>
+                        <p className="text-xs text-gray-400 font-medium">{t('published')}</p>
                         <p className="text-xs font-bold text-gray-600">{new Date(exam.createdAt || Date.now()).toLocaleDateString()}</p>
                       </div>
                     )}
                   </div>
                   
                   <div className="flex items-center justify-between text-sm mt-auto pt-4 border-t border-gray-100">
-                    <span className="font-semibold text-gray-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-bsg-blue"></span> {exam.questionCount || 0} Qs</span>
-                    <span className="font-semibold text-gray-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-bsg-gold"></span> {exam.maxScore || 0} Marks</span>
+                    <span className="font-semibold text-gray-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-bsg-blue"></span> {exam.questionCount || 0} {t('qs')}</span>
+                    <span className="font-semibold text-gray-600 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-bsg-gold"></span> {exam.maxScore || 0} {t('marks')}</span>
                   </div>
                 </div>
                 <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-col justify-end">
@@ -221,7 +223,7 @@ export default function CandidateDashboard() {
                     if (hasEnded) {
                       return (
                         <div className="w-full text-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-red-700 bg-red-100/80 cursor-not-allowed">
-                          Test is Closed
+                          {t('testIsClosed')}
                         </div>
                       );
                     }
@@ -231,7 +233,7 @@ export default function CandidateDashboard() {
                           href={`/exams/${exam._id}/start`} 
                           className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-bsg-blue-dark bg-bsg-blue/10 hover:bg-bsg-blue/20 hover:shadow-lg transition-all"
                         >
-                          Starts Soon - View Timer &rarr;
+                          {t('startsSoon')} &rarr;
                         </Link>
                       );
                     }
@@ -240,7 +242,7 @@ export default function CandidateDashboard() {
                         href={`/exams/${exam._id}/start`} 
                         className="w-full flex justify-center items-center px-4 py-3.5 border border-transparent text-sm font-bold rounded-xl text-bsg-blue-dark bg-bsg-gold hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transition-all"
                       >
-                        Start Exam Now &rarr;
+                        {t('startExamNow')} &rarr;
                       </Link>
                     );
                   })()}

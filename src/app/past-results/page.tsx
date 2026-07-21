@@ -7,6 +7,7 @@ import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import { Filter } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface PastResult {
@@ -23,6 +24,7 @@ interface PastResult {
 
 export default function PastResultsPage() {
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
+  const { t } = useLanguage();
   const router = useRouter();
   
   const [pastExams, setPastExams] = useState<PastResult[]>([]);
@@ -115,45 +117,45 @@ export default function PastResultsPage() {
           <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-bsg-gold opacity-20 rounded-full blur-2xl pointer-events-none"></div>
           
           <div className="relative z-10">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">Past Results</h1>
-            <p className="text-blue-100 font-medium">Review your completed examinations and feedback.</p>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">{t('pastResults')}</h1>
+            <p className="text-blue-100 font-medium">{t('pastResultsDesc')}</p>
           </div>
         </div>
 
       {pastExams.length > 0 && (
         <div className="bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-100 mb-8 ring-1 ring-black/5">
           <div className="flex items-center gap-2 text-bsg-blue-dark font-bold mb-3">
-            <Filter size={18} /> Filters
+            <Filter size={18} /> {t('filters')}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Status</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">{t('status')}</label>
               <select 
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none bg-white"
               >
-                <option value="All">All Results</option>
-                <option value="Passed">Passed Only</option>
-                <option value="Failed">Failed Only</option>
-                <option value="Disqualified">Disqualified Only</option>
+                <option value="All">{t('allResults')}</option>
+                <option value="Passed">{t('passedOnly')}</option>
+                <option value="Failed">{t('failedOnly')}</option>
+                <option value="Disqualified">{t('disqualifiedOnly')}</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Examiner</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">{t('examiner')}</label>
               <select 
                 value={filterExaminer}
                 onChange={(e) => setFilterExaminer(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-bsg-blue outline-none bg-white"
               >
-                <option value="All">All Examiners</option>
+                <option value="All">{t('allExaminers')}</option>
                 {examiners.map((ex: any) => (
                   <option key={ex} value={ex}>{ex}</option>
                 ))}
               </select>
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Date</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">{t('date')}</label>
               <input 
                 type="date"
                 value={filterDate}
@@ -167,7 +169,7 @@ export default function PastResultsPage() {
                   onClick={() => { setFilterStatus('All'); setFilterExaminer('All'); setFilterDate(''); }}
                   className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 underline"
                 >
-                  Clear Filters
+                  {t('clearFilters')}
                 </button>
               </div>
             )}
@@ -178,10 +180,10 @@ export default function PastResultsPage() {
       {filteredExams.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-16 text-center text-gray-500 flex flex-col items-center justify-center min-h-[50vh]">
           <span className="text-6xl mb-4">📊</span>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No Results Yet</h3>
-          <p className="font-medium text-gray-500">You haven&apos;t completed any exams. Check your dashboard for available exams.</p>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">{t('noResultsYet')}</h3>
+          <p className="font-medium text-gray-500">{t('noResultsDesc')}</p>
           <Link href="/dashboard" className="mt-6 px-6 py-3 bg-bsg-gold text-bsg-blue-dark font-bold rounded-xl hover:bg-yellow-500 hover:shadow-lg hover:-translate-y-0.5 transition-all">
-            Go to Dashboard
+            {t('goToDashboard')}
           </Link>
         </div>
       ) : (
@@ -211,31 +213,31 @@ export default function PastResultsPage() {
                       {result.violationReason ? '!' : `${percentage}%`}
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-gray-900 leading-tight mb-1">{result.examId?.title || 'Unknown Exam'}</h4>
+                      <h4 className="text-lg font-bold text-gray-900 leading-tight mb-1">{result.examId?.title || t('unknownExam')}</h4>
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                        Date: {new Date(result.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                        {t('date')}: {new Date(result.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
                       </p>
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                        Examiner: {(result.examId as any)?.creatorId?.name || 'Unknown'} | Time Taken: {timeTakenStr}
+                        {t('examiner')}: {(result.examId as any)?.creatorId?.name || t('unknownExaminer')} | {t('timeTaken')}: {timeTakenStr}
                       </p>
                       {result.violationReason && (
                         <p className="text-sm font-bold text-red-600 mt-2 bg-red-100 px-3 py-1 rounded inline-block">
-                          Disqualified: {result.violationReason}
+                          {t('disqualified')}: {result.violationReason}
                         </p>
                       )}
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-3 mt-2 md:mt-0">
                     <span className={`flex-1 md:flex-none flex items-center justify-center px-4 py-2 rounded-lg font-bold text-sm ${result.violationReason ? 'bg-red-600 text-white border border-red-700' : isPassed ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                      {result.violationReason ? 'DISQUALIFIED' : isPassed ? 'PASSED' : 'FAILED'}
+                      {result.violationReason ? t('disqualified') : isPassed ? t('passed') : t('failed')}
                     </span>
                     {isPassed && !result.violationReason && (
                       <Link href={`/certificate/${result._id}`} className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-bsg-gold text-bsg-blue-dark font-bold text-sm rounded-xl transition-all hover:bg-yellow-500 hover:shadow-md hover:-translate-y-0.5 shadow-sm">
-                        Download Certificate
+                        {t('downloadCertificate')}
                       </Link>
                     )}
                     <Link href={`/exams/${result._id}/review`} className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-white text-gray-700 hover:bg-gray-50 hover:text-bsg-blue font-bold text-sm rounded-lg transition-colors border border-gray-200 shadow-sm">
-                      View Feedback
+                      {t('viewFeedback')}
                     </Link>
                   </div>
                 </div>
