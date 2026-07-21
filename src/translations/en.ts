@@ -143,4 +143,27 @@ export const en = {
   "cancel": "Cancel",
   "createExam": "Create Exam",
 
+
+  // Live Monitoring
+  "liveMonitoringTitle": "Live Monitoring",
+  "liveMonitoringDesc": "Real-time candidate activity tracking",
+  "cancelAllActive": "Cancel All Active",
+  "liveSessions": "Live Sessions",
+  "activeNow": "Active Now",
+  "warnings": "Warnings",
+  "autoRefreshing": "Auto-refreshing every 10s",
+  "lastCheck": "Last check:",
+  "forceRefresh": "Force Refresh",
+  "noActiveCandidates": "No Active Candidates",
+  "noActiveCandidatesDesc": "No candidates are currently taking your exams. Sessions appear here automatically once they start.",
+  "checkAgain": "Check Again",
+  "statusLive": "Status",
+  "lastPing": "Last Ping",
+  "cancelExam": "Cancel Exam",
+  "connectingLiveFeed": "Connecting to live feed...",
+  "offline": "Offline",
+  "active": "Active",
+  "blocked": "Blocked",
+  "completed": "Completed"
+
 };

@@ -19,8 +19,10 @@ import {
   RefreshCw 
 } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function LiveMonitor() {
+  const { language, t } = useLanguage();
   const { user, isAuthenticated, _hasHydrated } = useAuthStore();
   const router = useRouter();
   
@@ -159,7 +161,7 @@ export default function LiveMonitor() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <RefreshCw className="animate-spin text-bsg-blue mx-auto mb-4" size={36} />
-        <p className="text-gray-600 font-bold text-lg">Connecting to live feed...</p>
+        <p className="text-gray-600 font-bold text-lg">{t('connectingLiveFeed') || 'Connecting to live feed...'}</p>
       </div>
     );
   }
@@ -185,9 +187,9 @@ export default function LiveMonitor() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                   </span>
-                  <h1 className="text-2xl font-extrabold tracking-tight">Live Monitoring</h1>
+                  <h1 className="text-2xl font-extrabold tracking-tight">{t('liveMonitoringTitle') || 'Live Monitoring'}</h1>
                 </div>
-                <p className="text-blue-200 text-sm font-medium mt-0.5">Real-time candidate activity tracking</p>
+                <p className="text-blue-200 text-sm font-medium mt-0.5">{t('liveMonitoringDesc') || 'Real-time candidate activity tracking'}</p>
               </div>
             </div>
             
@@ -196,7 +198,7 @@ export default function LiveMonitor() {
                 onClick={cancelAllExams}
                 className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors shadow-sm text-sm"
               >
-                Cancel All Active
+                {t('cancelAllActive') || 'Cancel All Active'}
               </button>
             </div>
           </div>
@@ -204,15 +206,15 @@ export default function LiveMonitor() {
           <div className="grid grid-cols-3 gap-3 md:gap-6 max-w-2xl">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
               <p className="text-2xl md:text-3xl font-black">{candidateList.length}</p>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-1">Live Sessions</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-1">{t('liveSessions') || 'Live Sessions'}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
               <p className="text-2xl md:text-3xl font-black text-green-300">{activeCount}</p>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-1">Active Now</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-1">{t('activeNow') || 'Active Now'}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/20">
               <p className="text-2xl md:text-3xl font-black text-yellow-300">{candidateList.filter(c => c.warnings > 0).length}</p>
-              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-1">Warnings</p>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mt-1">{t('warnings') || 'Warnings'}</p>
             </div>
           </div>
         </div>
@@ -224,9 +226,9 @@ export default function LiveMonitor() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Wifi size={16} className="text-green-500" />
-            <span className="font-bold text-gray-700">Auto-refreshing every 10s</span>
+            <span className="font-bold text-gray-700">{t('autoRefreshing') || 'Auto-refreshing every 10s'}</span>
             {lastRefresh && (
-              <span className="text-gray-400">· Last check: {lastRefresh.toLocaleTimeString()}</span>
+              <span className="text-gray-400">· {t('lastCheck') || 'Last check:'} {lastRefresh.toLocaleTimeString()}</span>
             )}
           </div>
           <button
@@ -235,7 +237,7 @@ export default function LiveMonitor() {
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gray-50 border border-gray-200 text-gray-700 font-bold px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors shadow-sm disabled:opacity-50 text-sm"
           >
             <RefreshCcw size={15} className={isRefreshing ? 'animate-spin' : ''} />
-            Force Refresh
+            {t('forceRefresh') || 'Force Refresh'}
           </button>
         </div>
 
@@ -244,15 +246,15 @@ export default function LiveMonitor() {
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <WifiOff size={32} className="text-gray-300" />
             </div>
-            <h3 className="text-xl font-extrabold text-gray-900 mb-2">No Active Candidates</h3>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-2">{t('noActiveCandidates') || 'No Active Candidates'}</h3>
             <p className="text-gray-500 max-w-sm mx-auto mb-6">
-              No candidates are currently taking your exams. Sessions appear here automatically once they start.
+              {t('noActiveCandidatesDesc') || 'No candidates are currently taking your exams. Sessions appear here automatically once they start.'}
             </p>
             <button
               onClick={() => fetchLiveAttempts(true)}
               className="inline-flex items-center gap-2 bg-bsg-blue text-white font-bold px-6 py-2.5 rounded-xl hover:bg-bsg-blue-dark transition-colors"
             >
-              <RefreshCcw size={16} /> Check Again
+              <RefreshCcw size={16} /> {t('checkAgain') || 'Check Again'}
             </button>
           </div>
         ) : (
@@ -260,7 +262,9 @@ export default function LiveMonitor() {
             {candidateList.map((c: any) => {
               const timeSinceUpdate = now - new Date(c.lastUpdate).getTime();
               const isOffline = timeSinceUpdate > 20000 && (c.status === 'Active' || c.status === 'In-Progress');
-              const displayStatus = isOffline ? 'Offline' : (c.status === 'In-Progress' ? 'Active' : c.status);
+              
+              let displayStatusEn = isOffline ? 'Offline' : (c.status === 'In-Progress' ? 'Active' : c.status);
+              let displayStatusLocale = isOffline ? t('offline') || 'Offline' : (c.status === 'In-Progress' ? t('active') || 'Active' : (c.status === 'Blocked' ? t('blocked') || 'Blocked' : t('completed') || 'Completed'));
 
               let statusColor = 'bg-green-500';
               let statusTextColor = 'text-green-600';
@@ -283,9 +287,9 @@ export default function LiveMonitor() {
                         {c.district && <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5 truncate">{c.district}</p>}
                       </div>
                       <div className={`${statusBg} p-2.5 rounded-xl flex-shrink-0`}>
-                        {displayStatus === 'Blocked' ? <ShieldAlert size={22} className={statusTextColor} /> :
-                          displayStatus === 'Offline' ? <AlertTriangle size={22} className={statusTextColor} /> :
-                          displayStatus === 'Completed' ? <StopCircle size={22} className={statusTextColor} /> :
+                        {displayStatusEn === 'Blocked' ? <ShieldAlert size={22} className={statusTextColor} /> :
+                          displayStatusEn === 'Offline' ? <AlertTriangle size={22} className={statusTextColor} /> :
+                          displayStatusEn === 'Completed' ? <StopCircle size={22} className={statusTextColor} /> :
                           <PlayCircle size={22} className={statusTextColor} />}
                       </div>
                     </div>
@@ -298,14 +302,14 @@ export default function LiveMonitor() {
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5">
                           <div className={`w-2 h-2 rounded-full ${statusColor}`}></div>
-                          Status
+                          {t('statusLive') || 'Status'}
                         </span>
-                        <span className={`text-xs font-extrabold ${statusTextColor}`}>{displayStatus}</span>
+                        <span className={`text-xs font-extrabold ${statusTextColor}`}>{displayStatusLocale}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5">
                           <AlertTriangle size={12} className={c.warnings > 0 ? 'text-yellow-500' : 'text-gray-300'} />
-                          Warnings
+                          {t('warnings') || 'Warnings'}
                         </span>
                         <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${c.warnings >= 3 ? 'bg-red-100 text-red-700' : c.warnings > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-600'}`}>
                           {c.warnings} / 3
@@ -314,7 +318,7 @@ export default function LiveMonitor() {
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5">
                           <Clock size={12} />
-                          Last Ping
+                          {t('lastPing') || 'Last Ping'}
                         </span>
                         <span className={`text-xs font-extrabold ${isOffline ? 'text-orange-600' : 'text-gray-700'}`}>
                           {new Date(c.lastUpdate).toLocaleTimeString()}
@@ -328,7 +332,7 @@ export default function LiveMonitor() {
                         disabled={c.status === 'Blocked' || c.status === 'Completed'}
                         className="w-full bg-white text-red-600 font-bold py-2.5 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-40 disabled:hover:bg-white border-2 border-red-100 text-sm"
                       >
-                        Cancel Exam
+                        {t('cancelExam') || 'Cancel Exam'}
                       </button>
                     </div>
                   </div>

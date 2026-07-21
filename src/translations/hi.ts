@@ -143,4 +143,27 @@ export const hi = {
   "cancel": "रद्द करें",
   "createExam": "परीक्षा बनाएँ",
 
+
+  // Live Monitoring
+  "liveMonitoringTitle": "लाइव मॉनिटरिंग",
+  "liveMonitoringDesc": "वास्तविक समय के उम्मीदवार गतिविधि ट्रैकिंग",
+  "cancelAllActive": "सभी सक्रिय रद्द करें",
+  "liveSessions": "लाइव सत्र",
+  "activeNow": "अभी सक्रिय",
+  "warnings": "चेतावनी",
+  "autoRefreshing": "प्रत्येक 10 सेकंड में ऑटो-रिफ्रेश हो रहा है",
+  "lastCheck": "अंतिम जांच:",
+  "forceRefresh": "बलपूर्वक रीफ़्रेश करें",
+  "noActiveCandidates": "कोई सक्रिय उम्मीदवार नहीं",
+  "noActiveCandidatesDesc": "वर्तमान में कोई भी उम्मीदवार आपकी परीक्षा नहीं दे रहा है। शुरू होने के बाद सत्र यहाँ स्वचालित रूप से दिखाई देते हैं।",
+  "checkAgain": "फिर से जांचें",
+  "statusLive": "स्थिति",
+  "lastPing": "अंतिम पिंग",
+  "cancelExam": "परीक्षा रद्द करें",
+  "connectingLiveFeed": "लाइव फ़ीड से कनेक्ट हो रहा है...",
+  "offline": "ऑफ़लाइन",
+  "active": "सक्रिय",
+  "blocked": "अवरुद्ध",
+  "completed": "पूरा हुआ"
+
 };
