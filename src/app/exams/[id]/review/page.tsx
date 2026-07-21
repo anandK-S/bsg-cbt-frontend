@@ -153,10 +153,17 @@ export default function ExamReviewPage() {
 
                   {/* Question Body */}
                   <div className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6 whitespace-pre-wrap">{q.text}</h3>
+                                        <div className="mb-6">
+                      {q.viewedLanguage === 'hi' && (
+                        <span className="inline-block bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider mb-2 border border-green-200 print:bg-transparent print:border-black print:text-black">Answered in Hindi</span>
+                      )}
+                      <h3 className="text-lg font-semibold text-gray-900 whitespace-pre-wrap">
+                        {q.viewedLanguage === 'hi' && q.textHindi ? q.textHindi : q.text}
+                      </h3>
+                    </div>
                     
                     <div className="space-y-3">
-                      {q.options.map((opt: string, optIdx: number) => {
+                      {(q.viewedLanguage === 'hi' && q.optionsHindi && q.optionsHindi.length > 0 ? q.optionsHindi : q.options).map((opt: string, optIdx: number) => {
                         const isCandidateChoice = q.candidateAnswerIndex === optIdx;
                         const isCorrectChoice = q.correctOptionIndex === optIdx;
                         
@@ -230,7 +237,12 @@ export default function ExamReviewPage() {
                   <span className="font-bold whitespace-nowrap">Q.{idx + 1}</span>
                   <div className="w-full">
                     <div className="flex justify-between items-start">
-                      <p className="font-medium">{q.text}</p>
+                      <p className="font-medium">
+                        {q.viewedLanguage === 'hi' && (
+                          <span className="block text-[10px] uppercase font-bold mb-1">[Hindi Version]</span>
+                        )}
+                        {q.viewedLanguage === 'hi' && q.textHindi ? q.textHindi : q.text}
+                      </p>
                       <span className="font-bold text-sm ml-4 whitespace-nowrap">[{q.marks || 1} Marks]</span>
                     </div>
                     
@@ -252,7 +264,7 @@ export default function ExamReviewPage() {
                       <div className="mt-4 w-full border-b border-black border-dashed h-24"></div>
                     ) : (
                       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8">
-                        {(q.options || []).map((opt: string, optIdx: number) => {
+                        {((q.viewedLanguage === 'hi' && q.optionsHindi && q.optionsHindi.length > 0 ? q.optionsHindi : q.options) || []).map((opt: string, optIdx: number) => {
                           const isCandidateChoice = q.candidateAnswerIndex === optIdx;
                           const isCorrectChoice = q.correctOptionIndex === optIdx;
                           return (

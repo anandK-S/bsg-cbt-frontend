@@ -352,11 +352,11 @@ export default function ExamTakePage() {
   };
 
   const selectOption = (optionIndex: number) => {
-    updateAnswerStatus(currentQuestionIndex, { selectedOptionIndex: optionIndex, status: 'Answered' });
+    updateAnswerStatus(currentQuestionIndex, { selectedOptionIndex: optionIndex, status: 'Answered', viewedLanguage: language });
   };
 
   const updateSubjectiveAnswer = (text: string) => {
-    updateAnswerStatus(currentQuestionIndex, { subjectiveAnswer: text, status: text.trim() ? 'Answered' : 'Visited' });
+    updateAnswerStatus(currentQuestionIndex, { subjectiveAnswer: text, status: text.trim() ? 'Answered' : 'Visited', viewedLanguage: language });
   };
 
   const clearResponse = () => {
