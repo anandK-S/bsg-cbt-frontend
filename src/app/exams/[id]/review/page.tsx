@@ -59,7 +59,7 @@ export default function ExamReviewPage() {
       <div className="absolute top-20 right-0 w-96 h-96 bg-bsg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute top-40 left-0 w-72 h-72 bg-bsg-blue-light/20 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="max-w-5xl mx-auto space-y-6 relative z-10">
+      <div className="max-w-5xl mx-auto space-y-6 relative z-10 print:hidden">
         
         {/* Navigation */}
         <Link href={user?.role === 'Candidate' ? '/dashboard' : `/examiner/exams/${exam._id}`} className="inline-flex items-center text-gray-500 hover:text-gray-900 transition-colors font-medium">
@@ -108,13 +108,13 @@ export default function ExamReviewPage() {
               <button 
                 onClick={() => {
                   const originalTitle = document.title;
-                  document.title = `${exam.title} - Question Paper`;
+                  document.title = `${exam.title} - BSG Portal`;
                   window.print();
                   document.title = originalTitle;
                 }}
-                className="px-5 py-2.5 bg-bsg-gold text-bsg-blue-dark font-bold rounded-xl hover:bg-yellow-500 transition-all shadow-lg transform hover:-translate-y-0.5"
+                className="px-5 py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-colors shadow-lg flex items-center gap-2"
               >
-                Download Question Paper
+                🖨️ Print Master Paper
               </button>
             </div>
           </div>
@@ -201,6 +201,96 @@ export default function ExamReviewPage() {
             })}
           </div>
         </div>
+      </div>
+
+      {/* FORMAL PRINT SECTION (Master Paper Style) */}
+      <div className="hidden print:block bg-white text-black w-full" style={{ fontFamily: 'Times New Roman, serif' }}>
+        <div className="text-center mb-8 border-b-2 border-black pb-4">
+          <h1 className="text-3xl font-bold uppercase">{exam.title}</h1>
+          <h2 className="text-xl mt-2">{exam.category || 'General Assessment'}</h2>
+          <div className="flex justify-between mt-4 text-sm font-bold px-10">
+            <span>Total Marks: {result.totalMarks}</span>
+            <span>Score Obtained: {result.score}</span>
+            <span>Percentage: {percentage.toFixed(0)}%</span>
+          </div>
+          {exam.description && <p className="mt-4 italic text-sm">{exam.description}</p>}
+          <div className="mt-4 flex justify-between text-xs text-gray-500 px-10">
+            <span>Candidate Name: {user?.name || '_______________________'}</span>
+            <span>BSG ID: {user?.bsgId || '_______________'}</span>
+            <span>Date: {new Date(result.endTime).toLocaleDateString()}</span>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {questionDetails.map((q: any, idx: number) => {
+            const isUnanswered = q.candidateAnswerIndex === null || q.candidateAnswerIndex === undefined;
+            return (
+              <div key={q._id} className="break-inside-avoid">
+                <div className="flex items-start gap-2">
+                  <span className="font-bold whitespace-nowrap">Q.{idx + 1}</span>
+                  <div className="w-full">
+                    <div className="flex justify-between items-start">
+                      <p className="font-medium">{q.text}</p>
+                      <span className="font-bold text-sm ml-4 whitespace-nowrap">[{q.marks || 1} Marks]</span>
+                    </div>
+                    
+                    {q.section && (
+                      <p className="text-xs text-gray-600 mt-1 mb-2 font-bold uppercase">Section: {q.section}</p>
+                    )}
+
+                    {q.mediaUrl && (
+                      <div className="my-4">
+                        <img 
+                          src={q.mediaUrl.startsWith('http') ? q.mediaUrl : `${API_URL}${q.mediaUrl}`} 
+                          alt="Question image" 
+                          className="max-h-48 border border-gray-300" 
+                        />
+                      </div>
+                    )}
+
+                    {q.type === 'Subjective' ? (
+                      <div className="mt-4 w-full border-b border-black border-dashed h-24"></div>
+                    ) : (
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8">
+                        {(q.options || []).map((opt: string, optIdx: number) => {
+                          const isCandidateChoice = q.candidateAnswerIndex === optIdx;
+                          const isCorrectChoice = q.correctOptionIndex === optIdx;
+                          return (
+                            <div key={optIdx} className="flex items-center gap-2">
+                              <span className="font-bold">({['A', 'B', 'C', 'D'][optIdx]})</span>
+                              <span className={isCorrectChoice ? 'font-bold underline' : ''}>{opt}</span>
+                              
+                              {isCorrectChoice && (
+                                <span className="text-xs ml-2 border border-black px-1 inline-block bg-black text-white">Correct</span>
+                              )}
+                              {isCandidateChoice && !isCorrectChoice && (
+                                <span className="text-xs ml-2 border border-black px-1 inline-block text-black font-bold">Your Answer ❌</span>
+                              )}
+                              {isCandidateChoice && isCorrectChoice && (
+                                <span className="text-xs ml-2 border border-black px-1 inline-block text-black font-bold">Your Answer ✅</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    
+                    {isUnanswered && (
+                       <div className="mt-2 text-sm italic border border-black inline-block px-2 py-0.5">Not Answered</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        <style dangerouslySetInnerHTML={{__html: `
+          @media print {
+            body { -webkit-print-color-adjust: exact; background: white !important; }
+            @page { margin: 1.5cm; }
+          }
+        `}} />
       </div>
     </div>
   );
