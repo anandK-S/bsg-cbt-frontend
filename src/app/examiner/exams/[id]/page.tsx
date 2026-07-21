@@ -6,7 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
 import { API_URL } from '@/utils/apiConfig';
-import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2, Edit2, Mic, BookOpen, Calendar, Clock } from 'lucide-react';
+import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2, Edit2, Mic, BookOpen, Calendar, Clock, Languages } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExamDetailsData {
   _id: string;
@@ -39,6 +40,7 @@ interface ResultData {
 
 export default function ExamDetails() {
   const { user, isAuthenticated } = useAuthStore();
+  const { language, setLanguage, t } = useLanguage();
   const router = useRouter();
   const params = useParams();
   const examId = params.id as string;
@@ -249,6 +251,7 @@ export default function ExamDetails() {
     try {
       const formData = new FormData();
       formData.append('text', manualQuestion.text);
+      if (manualQuestion.textHindi) formData.append('textHindi', manualQuestion.textHindi);
       formData.append('marks', manualQuestion.marks.toString());
       formData.append('type', manualQuestion.type);
       if (manualQuestion.category) formData.append('category', manualQuestion.category);
@@ -259,6 +262,7 @@ export default function ExamDetails() {
         formData.append('acceptableAnswers', JSON.stringify(manualQuestion.acceptableAnswers.filter(a => a.trim() !== '')));
       } else {
         formData.append('options', JSON.stringify(manualQuestion.options));
+        if (manualQuestion.optionsHindi) formData.append('optionsHindi', JSON.stringify(manualQuestion.optionsHindi));
         formData.append('correctOptionIndex', manualQuestion.correctOptionIndex.toString());
       }
       
@@ -426,6 +430,21 @@ export default function ExamDetails() {
             </div>
 
             <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-1 bg-white/10 p-1 rounded-lg border border-white/20">
+                <button 
+                  onClick={() => setLanguage('en')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-blue-100 hover:text-white'}`}
+                >
+                  EN
+                </button>
+                <button 
+                  onClick={() => setLanguage('hi')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-blue-100 hover:text-white'}`}
+                >
+                  HI
+                </button>
+              </div>
+
               {exam.status === 'Draft' ? (
                 <button 
                   onClick={handlePublish}
@@ -717,7 +736,9 @@ export default function ExamDetails() {
                       section: '',
                       marks: 1,
                       type: 'SingleChoice',
-                      mediaUrl: ''
+                      mediaUrl: '',
+                      textHindi: '',
+                      optionsHindi: ['', '', '', '']
                     });
                     setMediaFile(null);
                     setShowManualModal(true);
@@ -765,11 +786,12 @@ export default function ExamDetails() {
                           {idx + 1}
                         </span>
                         <div>
-                          <p className="text-gray-900 font-bold text-lg">{q.questionId.text}</p>
+                          <p className="text-gray-900 font-bold text-lg">
+                            {language === 'hi' && q.questionId.textHindi ? q.questionId.textHindi : q.questionId.text}
+                          </p>
                           <div className="flex flex-wrap gap-3 mt-2">
                             {q.questionId.section && <span className="text-xs font-bold text-purple-600 uppercase tracking-wider bg-purple-50 px-2 py-0.5 rounded-md">Section: {q.questionId.section}</span>}
                             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-md">Category: {q.questionId.category || 'General'}</span>
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-md">Type: {q.questionId.type === 'LogicDecision' ? 'Logic/Decision' : (q.questionId.type || 'SingleChoice')}</span>
                             <span className="text-xs font-bold text-bsg-blue uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-md">Marks: {q.marks || 1}</span>
                           </div>
                         </div>
@@ -787,7 +809,9 @@ export default function ExamDetails() {
                               section: q.questionId.section || '',
                               marks: q.marks || 1,
                               type: q.questionId.type || 'SingleChoice',
-                              mediaUrl: q.questionId.mediaUrl || ''
+                              mediaUrl: q.questionId.mediaUrl || '',
+                              textHindi: q.questionId.textHindi || '',
+                              optionsHindi: q.questionId.optionsHindi?.length ? [...q.questionId.optionsHindi] : ['', '', '', '']
                             });
                             setMediaFile(null);
                             setShowManualModal(true);
@@ -822,16 +846,21 @@ export default function ExamDetails() {
                         </div>
                       )}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {q.questionId.options.map((opt: string, optIdx: number) => (
-                          <div key={optIdx} className={`px-4 py-3 rounded-xl border-2 flex items-center gap-3 ${q.questionId.correctOptionIndex === optIdx ? 'border-green-500 bg-green-50' : 'border-gray-100 bg-white'}`}>
-                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${q.questionId.correctOptionIndex === optIdx ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                              {['A', 'B', 'C', 'D'][optIdx]}
-                            </span>
-                            <span className={`font-medium ${q.questionId.correctOptionIndex === optIdx ? 'text-green-900 font-bold' : 'text-gray-700'}`}>
-                              {opt}
-                            </span>
-                          </div>
-                        ))}
+                        {q.questionId.options.map((opt: string, optIdx: number) => {
+                          const displayOpt = language === 'hi' && q.questionId.optionsHindi && q.questionId.optionsHindi[optIdx] 
+                                             ? q.questionId.optionsHindi[optIdx] 
+                                             : opt;
+                          return (
+                            <div key={optIdx} className={`px-4 py-3 rounded-xl border-2 flex items-center gap-3 ${q.questionId.correctOptionIndex === optIdx ? 'border-green-500 bg-green-50' : 'border-gray-100 bg-white'}`}>
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${q.questionId.correctOptionIndex === optIdx ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                {['A', 'B', 'C', 'D'][optIdx]}
+                              </span>
+                              <span className={`font-medium ${q.questionId.correctOptionIndex === optIdx ? 'text-green-900 font-bold' : 'text-gray-700'}`}>
+                                {displayOpt}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
 
                     </div>
@@ -1193,22 +1222,39 @@ export default function ExamDetails() {
                   <button 
                     type="button"
                     onClick={async () => {
-                      if (!manualQuestion.text) return;
+                      if (!manualQuestion.text && !manualQuestion.textHindi) return;
+                      
                       try {
-                        // Free client-side Google Translate API (No API key, No Server Load)
-                        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=hi&dt=t&q=${encodeURIComponent(manualQuestion.text)}`);
+                        // Detect if we should translate En -> Hi or Hi -> En
+                        const isHiToEn = manualQuestion.textHindi && !manualQuestion.text;
+                        const sourceLang = isHiToEn ? 'hi' : 'en';
+                        const targetLang = isHiToEn ? 'en' : 'hi';
+                        const sourceText = isHiToEn ? manualQuestion.textHindi : manualQuestion.text;
+
+                        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(sourceText!)}`);
                         const data = await res.json();
-                        const translatedText = data[0].map((item) => item[0]).join('');
-                        setManualQuestion(prev => ({...prev, textHindi: translatedText}));
+                        const translatedText = data[0].map((item: any) => item[0]).join('');
+                        
+                        if (isHiToEn) {
+                          setManualQuestion(prev => ({...prev, text: translatedText}));
+                        } else {
+                          setManualQuestion(prev => ({...prev, textHindi: translatedText}));
+                        }
                         
                         if (manualQuestion.type !== 'Subjective') {
-                          const translatedOptions = await Promise.all(manualQuestion.options.map(async (opt) => {
+                          const sourceOptions = isHiToEn ? (manualQuestion.optionsHindi || []) : manualQuestion.options;
+                          const translatedOptions = await Promise.all(sourceOptions.map(async (opt: string) => {
                              if (!opt) return '';
-                             const oRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=hi&dt=t&q=${encodeURIComponent(opt)}`);
+                             const oRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(opt)}`);
                              const oData = await oRes.json();
-                             return oData[0].map((item) => item[0]).join('');
+                             return oData[0].map((item: any) => item[0]).join('');
                           }));
-                          setManualQuestion(prev => ({...prev, optionsHindi: translatedOptions}));
+                          
+                          if (isHiToEn) {
+                            setManualQuestion(prev => ({...prev, options: translatedOptions}));
+                          } else {
+                            setManualQuestion(prev => ({...prev, optionsHindi: translatedOptions}));
+                          }
                         }
                       } catch (err) {
                         alert('Translation failed. Please try manually.');
@@ -1216,7 +1262,7 @@ export default function ExamDetails() {
                     }}
                     className="flex items-center gap-1.5 text-xs font-bold text-green-700 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-full transition-colors ml-2 shadow-sm border border-green-200"
                   >
-                    ⚡ Auto-Translate to Hindi
+                    ⚡ Auto-Translate
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
@@ -1243,40 +1289,7 @@ export default function ExamDetails() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-black text-gray-700 mb-2">Section (Optional)</label>
-                  <input
-                    type="text"
-                    value={manualQuestion.section || ''}
-                    onChange={(e) => setManualQuestion({...manualQuestion, section: e.target.value})}
-                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
-                    placeholder="e.g., General Knowledge"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-black text-gray-700 mb-2">Category (Optional)</label>
-                  <input
-                    type="text"
-                    list="bsg-categories"
-                    value={manualQuestion.category}
-                    onChange={(e) => setManualQuestion({...manualQuestion, category: e.target.value})}
-                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
-                    placeholder="e.g., Pravesh, Pratham Sopan"
-                  />
-                  <datalist id="bsg-categories">
-                    <option value="Pravesh" />
-                    <option value="Pratham Sopan" />
-                    <option value="Dwitiya Sopan" />
-                    <option value="Tritiya Sopan" />
-                    <option value="Rajya Puraskar" />
-                    <option value="Rashtrapati Scout/Guide" />
-                    <option value="First Aid" />
-                    <option value="Pioneering" />
-                    <option value="Mapping" />
-                    <option value="Campcraft" />
-                  </datalist>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-black text-gray-700 mb-2">Marks</label>
                   <input
@@ -1287,22 +1300,7 @@ export default function ExamDetails() {
                     className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-black text-gray-700 mb-2">Question Type</label>
-                  <select
-                    value={manualQuestion.type}
-                    onChange={(e) => setManualQuestion({...manualQuestion, type: e.target.value})}
-                    className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 font-medium focus:border-bsg-blue outline-none"
-                  >
-                    <option value="SingleChoice">Single Choice</option>
-                    <option value="MultipleChoice">Multiple Choice</option>
-                    <option value="Subjective">Short Answer (Subjective)</option>
-                    <option value="LogicDecision">Logic/Decision</option>
-                  </select>
-                </div>
                 <div>
                   <label className="block text-sm font-black text-gray-700 mb-2">Media Upload (Optional Image)</label>
                   <div className="relative group cursor-pointer">
