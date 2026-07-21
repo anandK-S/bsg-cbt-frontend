@@ -57,20 +57,29 @@ export default function Register() {
     );
   }
 
+  // Animation variants for staggered form entry
+  const formContainer = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05 }
+    }
+  };
+
+  const formItem = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
     <>
-      {/* Global style to hide scrollbar but keep scrolling functionality on mobile */}
       <style jsx global>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      <div className="min-h-[100dvh] lg:h-screen w-full flex bg-white overflow-hidden">
+      {/* Outer container locked to screen height */}
+      <div className="h-[100dvh] w-full flex bg-white overflow-hidden">
         
         {/* Left Side - Branding (Hidden on mobile) */}
         <div className="hidden lg:flex lg:w-5/12 bg-[#002f6c] text-white flex-col justify-center items-center p-12 relative h-full">
@@ -78,9 +87,9 @@ export default function Register() {
           
           <div className="relative z-10 text-center max-w-[420px]">
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }} 
+              initial={{ scale: 0.8, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
               className="w-24 h-24 bg-gradient-to-br from-[#1e40af] to-[#3b82f6] rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl border border-white/10"
             >
               <span className="text-3xl font-black text-[#fbbf24]">BSG</span>
@@ -89,7 +98,7 @@ export default function Register() {
             <motion.h1 
               initial={{ y: 20, opacity: 0 }} 
               animate={{ y: 0, opacity: 1 }} 
-              transition={{ delay: 0.2, duration: 0.5 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
               className="text-4xl font-black mb-4 tracking-tight"
             >
               Join the BSG Portal
@@ -98,7 +107,7 @@ export default function Register() {
             <motion.p 
               initial={{ y: 20, opacity: 0 }} 
               animate={{ y: 0, opacity: 1 }} 
-              transition={{ delay: 0.3, duration: 0.5 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
               className="text-blue-100 text-lg font-medium leading-relaxed"
             >
               Create your account to unlock access to exclusive computer-based tests, comprehensive resources, and advanced performance analytics tailored for the Vadodara Division.
@@ -106,89 +115,102 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Right Side - Clean, Compact Form */}
-        <div className="w-full lg:w-7/12 flex flex-col justify-center items-center px-6 pt-24 pb-8 lg:p-12 relative bg-white h-[100dvh] overflow-y-auto hide-scrollbar">
+        {/* Right Side - Clean, Compact Form perfectly centered */}
+        <div className="w-full lg:w-7/12 flex flex-col justify-center items-center px-6 relative bg-white h-full overflow-y-auto lg:overflow-hidden hide-scrollbar">
           
+          {/* Mobile Header Spacer */}
+          <div className="absolute top-0 w-full h-12 bg-white lg:hidden"></div>
+
           <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-[400px] relative z-10 m-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-[480px] relative z-10 my-auto py-8 lg:py-0"
           >
             <div className="mb-6 text-center sm:text-left">
               <h2 className="text-3xl font-black text-[#002f6c] mb-1">Create an Account</h2>
               <p className="text-gray-500 text-sm font-medium">Join the BSG CBT platform today</p>
             </div>
 
-            {/* iOS Style Segmented Control */}
-            <div className="flex p-1 bg-gray-100 rounded-lg mb-6">
+            {/* Role Switcher */}
+            <div className="flex p-1 bg-gray-100/80 rounded-lg mb-6 border border-gray-100">
               <button
                 type="button"
                 onClick={() => setRole('Candidate')}
-                className={`flex-1 py-1.5 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 ${role === 'Candidate' ? 'bg-white shadow-sm text-[#002f6c]' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 py-1.5 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 ${role === 'Candidate' ? 'bg-white shadow-sm text-[#002f6c] ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 <User size={16} /> Candidate
               </button>
               <button
                 type="button"
                 onClick={() => setRole('Examiner')}
-                className={`flex-1 py-1.5 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 ${role === 'Examiner' ? 'bg-white shadow-sm text-[#002f6c]' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 py-1.5 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 ${role === 'Examiner' ? 'bg-white shadow-sm text-[#002f6c] ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 <Briefcase size={16} /> Examiner
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <motion.form 
+              onSubmit={handleSubmit} 
+              variants={formContainer}
+              initial="hidden"
+              animate="show"
+              className="space-y-4"
+            >
               
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Surname and First Name</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-4 w-4 text-gray-400" />
+              {/* Grouped Side-by-Side to save vertical space on desktop */}
+              <motion.div variants={formItem} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Surname First Name</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 hover:bg-white focus:bg-white outline-none transition-colors"
+                      placeholder="e.g. Sharma Anandkumar"
+                      required
+                    />
                   </div>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 outline-none transition-colors"
-                    placeholder="e.g. Sharma Anandkumar"
-                    required
-                  />
                 </div>
-              </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Email Address</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-4 w-4 text-gray-400" />
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Email Address</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 hover:bg-white focus:bg-white outline-none transition-colors"
+                      placeholder="you@example.com"
+                      required
+                    />
                   </div>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 outline-none transition-colors"
-                    placeholder="you@example.com"
-                    required
-                  />
                 </div>
-              </div>
+              </motion.div>
 
+              {/* Dynamic Animated Fields */}
               <AnimatePresence mode="wait">
                 {role === 'Candidate' ? (
                   <motion.div
                     key="candidate-fields"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0.98 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="space-y-4 overflow-hidden"
                   >
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">BSG ID</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <motion.div variants={formItem} className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">BSG ID</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Hash className="h-4 w-4 text-gray-400" />
@@ -201,7 +223,7 @@ export default function Register() {
                               const val = e.target.value.replace(/\D/g, '');
                               if (val.length <= 10) setFormData({ ...formData, bsgId: val });
                             }}
-                            className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 outline-none transition-colors"
+                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 hover:bg-white focus:bg-white outline-none transition-colors"
                             placeholder="10 digits"
                             maxLength={10}
                             minLength={10}
@@ -209,10 +231,10 @@ export default function Register() {
                             required={role === 'Candidate'}
                           />
                         </div>
-                      </div>
+                      </motion.div>
                       
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">Section</label>
+                      <motion.div variants={formItem} className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Section</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Shield className="h-4 w-4 text-gray-400" />
@@ -221,7 +243,7 @@ export default function Register() {
                             name="section"
                             value={formData.section}
                             onChange={handleChange}
-                            className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 outline-none transition-colors appearance-none"
+                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 hover:bg-white focus:bg-white outline-none transition-colors appearance-none cursor-pointer"
                           >
                             <option value="Scout">Scout</option>
                             <option value="Guide">Guide</option>
@@ -230,12 +252,12 @@ export default function Register() {
                             <option value="Leader">Leader</option>
                           </select>
                         </div>
-                      </div>
+                      </motion.div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">District</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <motion.div variants={formItem} className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">District</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <MapPin className="h-4 w-4 text-gray-400" />
@@ -244,16 +266,16 @@ export default function Register() {
                             name="district"
                             value={formData.district}
                             onChange={handleChange}
-                            className="block w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-100 outline-none appearance-none cursor-not-allowed text-gray-600"
+                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-100 outline-none appearance-none cursor-not-allowed text-gray-500"
                             tabIndex={-1}
                           >
                             <option value="Vadodara">Vadodara</option>
                           </select>
                         </div>
-                      </div>
+                      </motion.div>
 
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">Unit Number</label>
+                      <motion.div variants={formItem} className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Unit Number</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Hash className="h-4 w-4 text-gray-400" />
@@ -266,17 +288,17 @@ export default function Register() {
                               const val = e.target.value.replace(/\D/g, '');
                               if (val.length <= 3) setFormData({ ...formData, unitNumber: val });
                             }}
-                            className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 outline-none transition-colors"
+                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 hover:bg-white focus:bg-white outline-none transition-colors"
                             placeholder="e.g. 033"
                             maxLength={3}
                             required={role === 'Candidate'}
                           />
                         </div>
-                      </div>
+                      </motion.div>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-gray-700">Unit/Group Name</label>
+                    <motion.div variants={formItem} className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Unit/Group Name</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <Building className="h-4 w-4 text-gray-400" />
@@ -286,25 +308,25 @@ export default function Register() {
                           name="unitName"
                           value={formData.unitName}
                           onChange={handleChange}
-                          className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 outline-none transition-colors"
+                          className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 hover:bg-white focus:bg-white outline-none transition-colors"
                           placeholder="e.g. NAIR, B.P Group"
                           required={role === 'Candidate'}
                         />
                       </div>
-                    </div>
+                    </motion.div>
                   </motion.div>
                 ) : (
                   <motion.div
                     key="examiner-fields"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
+                    initial={{ opacity: 0, height: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                    exit={{ opacity: 0, height: 0, scale: 0.98 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="space-y-4 overflow-hidden"
                   >
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">Designation</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <motion.div variants={formItem} className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Designation</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Briefcase className="h-4 w-4 text-gray-400" />
@@ -314,14 +336,14 @@ export default function Register() {
                             name="designation"
                             value={formData.designation}
                             onChange={handleChange}
-                            className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 outline-none transition-colors"
+                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 hover:bg-white focus:bg-white outline-none transition-colors"
                             placeholder="e.g. Scout Master"
                             required={role === 'Examiner'}
                           />
                         </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">District</label>
+                      </motion.div>
+                      <motion.div variants={formItem} className="space-y-1">
+                        <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">District</label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <MapPin className="h-4 w-4 text-gray-400" />
@@ -330,16 +352,16 @@ export default function Register() {
                             name="district"
                             value={formData.district}
                             onChange={handleChange}
-                            className="block w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-100 outline-none appearance-none cursor-not-allowed text-gray-600"
+                            className="block w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-100 outline-none appearance-none cursor-not-allowed text-gray-500"
                             tabIndex={-1}
                           >
                             <option value="Vadodara">Vadodara</option>
                           </select>
                         </div>
-                      </div>
+                      </motion.div>
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-gray-700">Access Code</label>
+                    <motion.div variants={formItem} className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Access Code</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <Key className="h-4 w-4 text-gray-400" />
@@ -349,18 +371,18 @@ export default function Register() {
                           name="examinerCode"
                           value={formData.examinerCode}
                           onChange={handleChange}
-                          className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 outline-none transition-colors"
+                          className="block w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 hover:bg-white focus:bg-white outline-none transition-colors"
                           placeholder="Provided by Admin"
                           required={role === 'Examiner'}
                         />
                       </div>
-                    </div>
+                    </motion.div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Password</label>
+              <motion.div variants={formItem} className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Password</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock className="h-4 w-4 text-gray-400" />
@@ -370,7 +392,7 @@ export default function Register() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="block w-full pl-9 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 outline-none transition-colors"
+                    className="block w-full pl-9 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002f6c]/20 focus:border-[#002f6c] text-sm bg-gray-50 hover:bg-white focus:bg-white outline-none transition-colors"
                     placeholder="••••••••"
                     required
                   />
@@ -382,24 +404,24 @@ export default function Register() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="pt-2">
+              <motion.div variants={formItem} className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-[#002f6c] hover:bg-[#001f4d] active:scale-[0.98] text-white font-bold py-2.5 rounded-lg transition-all shadow-md flex items-center justify-center text-sm"
+                  className="w-full bg-[#002f6c] hover:bg-[#001f4d] active:scale-[0.98] text-white font-bold py-3 rounded-lg transition-all shadow-md flex items-center justify-center text-sm"
                 >
                   Register as {role}
                 </button>
-              </div>
+              </motion.div>
 
-              <p className="text-center text-sm text-gray-600 font-medium pt-2">
+              <motion.p variants={formItem} className="text-center text-sm text-gray-600 font-medium pt-2">
                 Already have an account?{' '}
                 <Link href="/login" className="text-[#002f6c] font-bold hover:underline">
                   Sign in here
                 </Link>
-              </p>
-            </form>
+              </motion.p>
+            </motion.form>
           </motion.div>
         </div>
       </div>
