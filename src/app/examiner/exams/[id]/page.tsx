@@ -53,7 +53,8 @@ export default function ExamDetails() {
     category?: string;
     durationHours?: number | '';
     durationMinutes?: number | '';
-    durationSeconds?: number | '';
+    passingMarks?: number | '';
+    passingCriteriaType?: 'percentage' | 'marks';
     allowMultipleAttempts?: boolean;
     releaseResultsInstantly?: boolean;
     issueCertificate?: boolean;
@@ -134,7 +135,8 @@ export default function ExamDetails() {
         category: data.category,
         durationHours: h || '',
         durationMinutes: m || '',
-        durationSeconds: s || '',
+        passingMarks: data.passingMarks || 50,
+        passingCriteriaType: data.passingCriteriaType || 'percentage',
         allowMultipleAttempts: data.allowMultipleAttempts,
         releaseResultsInstantly: data.releaseResultsInstantly !== false,
         issueCertificate: data.issueCertificate !== false,
@@ -155,8 +157,7 @@ export default function ExamDetails() {
     try {
       const h = Number(editForm.durationHours) || 0;
       const m = Number(editForm.durationMinutes) || 0;
-      const s = Number(editForm.durationSeconds) || 0;
-      const totalSeconds = (h * 3600) + (m * 60) + s;
+      const totalSeconds = (h * 3600) + (m * 60);
       
       if (totalSeconds <= 0) {
         alert("Please enter a valid exam duration greater than 0.");
@@ -178,6 +179,8 @@ export default function ExamDetails() {
         scheduledEndDate: editForm.scheduledEndDate || null,
         issueCertificate: editForm.issueCertificate,
         testKey: editForm.testKey || undefined,
+        passingMarks: editForm.passingMarks,
+        passingCriteriaType: editForm.passingCriteriaType,
       };
 
       await axios.put(`${API_URL}/api/exams/${examId}`, payload, { withCredentials: true });
@@ -589,7 +592,7 @@ export default function ExamDetails() {
                 <h2 className="text-xl font-black text-gray-900">Timing & Scoring</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Duration <span className="text-red-500">*</span></label>
                   <div className="flex items-center gap-3">
@@ -597,29 +600,21 @@ export default function ExamDetails() {
                       <input
                         type="number"
                         min="0"
-                        value={Math.floor((editForm.durationMinutes || 0) / 60)}
-                        onChange={(e) => {
-                          const hrs = parseInt(e.target.value) || 0;
-                          const mins = (editForm.durationMinutes || 0) % 60;
-                          setEditForm({ ...editForm, durationMinutes: (hrs * 60) + mins });
-                        }}
+                        value={editForm.durationHours}
+                        onChange={(e) => setEditForm({ ...editForm, durationHours: e.target.value ? parseInt(e.target.value) : '' })}
                         className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
                         placeholder="0"
                       />
                       <span className="text-xs font-bold text-gray-500 ml-1">hr</span>
                     </div>
-                    <span className="text-gray-300 font-bold">:</span>
+                    <span className="text-gray-300 font-bold text-xl">:</span>
                     <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all">
                       <input
                         type="number"
                         min="0"
                         max="59"
-                        value={(editForm.durationMinutes || 0) % 60}
-                        onChange={(e) => {
-                          const hrs = Math.floor((editForm.durationMinutes || 0) / 60);
-                          const mins = parseInt(e.target.value) || 0;
-                          setEditForm({ ...editForm, durationMinutes: (hrs * 60) + mins });
-                        }}
+                        value={editForm.durationMinutes}
+                        onChange={(e) => setEditForm({ ...editForm, durationMinutes: e.target.value ? parseInt(e.target.value) : '' })}
                         className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
                         placeholder="0"
                       />
@@ -630,17 +625,31 @@ export default function ExamDetails() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Passing Criteria (%) <span className="text-red-500">*</span></label>
-                  <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all w-32">
+                  <label htmlFor="passingMarks" className="block text-sm font-bold text-gray-700 mb-2">
+                    Passing Criteria <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex relative bg-gray-50 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all overflow-hidden">
                     <input
                       type="number"
+                      id="passingMarks"
+                      required
                       min="1"
-                      max="100"
-                      value={editForm.passPercentage || 50}
-                      onChange={(e) => setEditForm({ ...editForm, passPercentage: parseInt(e.target.value) || 0 })}
-                      className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
+                      value={editForm.passingMarks || 50}
+                      onChange={(e) => setEditForm({ ...editForm, passingMarks: e.target.value === '' ? '' : parseInt(e.target.value) })}
+                      placeholder="50"
+                      className="w-full py-3 px-4 text-base font-bold text-gray-900 text-center bg-transparent focus:outline-none"
                     />
-                    <span className="text-sm font-bold text-gray-500 ml-1">%</span>
+                    <div className="border-l border-gray-200 flex items-center">
+                      <select
+                        value={editForm.passingCriteriaType || 'percentage'}
+                        onChange={(e) => setEditForm({ ...editForm, passingCriteriaType: e.target.value as 'percentage' | 'marks' })}
+                        className="h-full bg-gray-50 py-3 pl-3 pr-8 text-sm font-bold text-gray-600 focus:outline-none appearance-none cursor-pointer"
+                        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236B7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")', backgroundPosition: 'right 0.2rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                      >
+                        <option value="percentage">%</option>
+                        <option value="marks">Marks</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -14,9 +14,9 @@ export default function CreateExam() {
   const [category, setCategory] = useState('General');
   const [presetCategory, setPresetCategory] = useState('General');
   const [durationHours, setDurationHours] = useState<number | ''>('');
-  const [durationMinutes, setDurationMinutes] = useState<number | ''>(60);
-  const [durationSeconds, setDurationSeconds] = useState<number | ''>('');
+  const [durationMinutes, setDurationMinutes] = useState<number | ''>('');
   const [passingMarks, setPassingMarks] = useState<number | ''>(50);
+  const [passingCriteriaType, setPassingCriteriaType] = useState<'percentage' | 'marks'>('percentage');
   const [allowMultipleAttempts, setAllowMultipleAttempts] = useState(false);
   const [releaseResultsInstantly, setReleaseResultsInstantly] = useState(false);
   const [issueCertificate, setIssueCertificate] = useState(false);
@@ -30,8 +30,7 @@ export default function CreateExam() {
     
     const h = Number(durationHours) || 0;
     const m = Number(durationMinutes) || 0;
-    const s = Number(durationSeconds) || 0;
-    const totalSeconds = (h * 3600) + (m * 60) + s;
+    const totalSeconds = (h * 3600) + (m * 60);
     
     if (totalSeconds <= 0) {
       alert("Please enter a valid exam duration greater than 0.");
@@ -54,6 +53,7 @@ export default function CreateExam() {
           durationMinutes: Math.ceil(totalSeconds / 60),
           durationSeconds: totalSeconds,
           passingMarks,
+          passingCriteriaType,
           allowMultipleAttempts,
           releaseResultsInstantly,
           issueCertificate,
@@ -194,50 +194,66 @@ export default function CreateExam() {
           <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 p-6 ring-1 ring-black/5">
             <SectionHeader icon={Clock} title="Timing & Scoring" color="text-purple-600" bg="bg-purple-50" />
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 items-start">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
                   Duration <span className="text-red-500">*</span>
                 </label>
-                <div className="flex gap-2">
-                  {[
-                    { val: durationHours, set: setDurationHours, label: 'hr' },
-                    { val: durationMinutes, set: setDurationMinutes, label: 'min' },
-                    { val: durationSeconds, set: setDurationSeconds, label: 'sec' },
-                  ].map(({ val, set, label }) => (
-                    <div key={label} className="flex-1 relative">
-                      <input
-                        type="number"
-                        min="0"
-                        value={val}
-                        onChange={(e) => set(e.target.value ? parseInt(e.target.value) : '')}
-                        placeholder="0"
-                        className="w-full border border-gray-200 rounded-xl py-3 pl-3 pr-7 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
-                      />
-                      <span className="absolute right-2 top-3.5 text-xs text-gray-400 font-bold">{label}</span>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={durationHours}
+                      onChange={(e) => setDurationHours(e.target.value ? parseInt(e.target.value) : '')}
+                      placeholder="0"
+                      className="w-full border border-gray-200 rounded-xl py-3 pl-4 pr-10 text-base font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
+                    />
+                    <span className="absolute right-4 top-3.5 text-sm text-gray-400 font-bold">hr</span>
+                  </div>
+                  <span className="text-gray-300 font-bold text-xl">:</span>
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={durationMinutes}
+                      onChange={(e) => setDurationMinutes(e.target.value ? parseInt(e.target.value) : '')}
+                      placeholder="0"
+                      className="w-full border border-gray-200 rounded-xl py-3 pl-4 pr-10 text-base font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
+                    />
+                    <span className="absolute right-3 top-3.5 text-sm text-gray-400 font-bold">min</span>
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-400 font-medium">Leave fields empty to default to 0.</p>
+                <p className="mt-2 text-xs text-gray-400 font-medium">Leave fields empty to default to 0.</p>
               </div>
 
               <div>
-                <label htmlFor="passingMarks" className="block text-sm font-bold text-gray-700 mb-1.5">
-                  Passing Criteria (%) <span className="text-red-500">*</span>
+                <label htmlFor="passingMarks" className="block text-sm font-bold text-gray-700 mb-2">
+                  Passing Criteria <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
+                <div className="flex relative bg-gray-50 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-bsg-blue/50 focus-within:border-bsg-blue transition-all overflow-hidden">
                   <input
                     type="number"
                     id="passingMarks"
                     required
                     min="1"
-                    max="100"
                     value={passingMarks}
                     onChange={(e) => setPassingMarks(e.target.value === '' ? '' : parseInt(e.target.value))}
                     placeholder="50"
-                    className="w-full border border-gray-200 rounded-xl py-3 px-4 pr-10 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
+                    className="w-full py-3 px-4 text-base font-bold text-gray-900 text-center bg-transparent focus:outline-none"
                   />
-                  <span className="absolute right-3 top-3.5 text-gray-400 font-bold text-sm">%</span>
+                  <div className="border-l border-gray-200 flex items-center">
+                    <select
+                      value={passingCriteriaType}
+                      onChange={(e) => setPassingCriteriaType(e.target.value as 'percentage' | 'marks')}
+                      className="h-full bg-gray-50 py-3 pl-3 pr-8 text-sm font-bold text-gray-600 focus:outline-none appearance-none cursor-pointer"
+                      style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%236B7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3E%3C/svg%3E")', backgroundPosition: 'right 0.2rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                    >
+                      <option value="percentage">%</option>
+                      <option value="marks">Marks</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
