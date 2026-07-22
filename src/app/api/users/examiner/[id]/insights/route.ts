@@ -1,0 +1,15 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  // Stub for examiner insights
+  return NextResponse.json({
+    totalExamsCreated: 0,
+    totalQuestionsAdded: 0,
+    averageExamScore: 0,
+    totalCandidatesTested: 0,
+    exams: []
+  });
+}
