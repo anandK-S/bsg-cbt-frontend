@@ -95,22 +95,29 @@ export default function Login() {
         <p className="mt-4 text-lg font-bold text-bsg-blue animate-pulse">Logging in...</p>
       </div>
     )}
-    <div className="flex-1 flex min-h-[100dvh] bg-white">
+    <div className="flex-1 flex flex-col lg:flex-row min-h-full bg-white">
       {/* Left Panel: Hero Graphic */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <motion.div animate={{ scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
-        <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, -2, 2, 0] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold-light/10 blur-[120px] pointer-events-none" />
+      <div className="hidden lg:flex lg:w-1/2 relative bg-[#0B1B3D] items-center justify-center overflow-hidden">
+        {/* Deep immersive background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0B1B3D] via-[#112A5E] to-[#1A3F8C] opacity-90"></div>
+        
+        {/* Animated Glowing Orbs */}
+        <motion.div animate={{ x: [0, 50, 0], y: [0, -50, 0], scale: [1, 1.2, 1] }} transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[10%] left-[10%] w-[400px] h-[400px] rounded-full bg-[#FFC107]/20 blur-[120px] pointer-events-none" />
+        <motion.div animate={{ x: [0, -50, 0], y: [0, 50, 0], scale: [1, 1.5, 1] }} transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-[10%] right-[10%] w-[500px] h-[500px] rounded-full bg-[#4A90E2]/20 blur-[150px] pointer-events-none" />
+        <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[40%] left-[40%] w-[300px] h-[300px] rounded-full bg-[#FFFFFF]/10 blur-[100px] pointer-events-none" />
+        
+        {/* Animated Grid / Tech Pattern */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
         
         <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, type: "spring" }}
-            className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3"
+            className="w-32 h-32 bg-white/10 backdrop-blur-xl rounded-[2rem] flex items-center justify-center mb-10 shadow-[0_0_40px_rgba(255,193,7,0.3)] border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500"
           >
-            <span className="font-extrabold text-bsg-gold text-5xl tracking-tighter">BSG</span>
+            <span className="font-extrabold text-[#FFC107] text-6xl tracking-tighter drop-shadow-lg">BSG</span>
           </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl font-black mb-6 tracking-tight leading-tight">Welcome to the<br/><span className="text-bsg-gold">Future of Assessment</span></motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg text-blue-100 max-w-md font-medium leading-relaxed">Experience a seamless, secure, and intuitive computer-based testing environment designed for excellence.</motion.p>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl lg:text-6xl font-black mb-6 tracking-tight leading-tight drop-shadow-md">Welcome to the<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFC107] to-[#FFF0B3]">Future of Assessment</span></motion.h1>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg lg:text-xl text-blue-100/90 max-w-md font-medium leading-relaxed">Experience a seamless, secure, and intuitive computer-based testing environment designed for excellence.</motion.p>
         </div>
       </div>
 
