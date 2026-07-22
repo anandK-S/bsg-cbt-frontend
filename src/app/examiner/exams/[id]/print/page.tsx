@@ -15,6 +15,7 @@ export default function MasterQuestionPaper() {
   const [exam, setExam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [printed, setPrinted] = useState(false);
+  const [printLang, setPrintLang] = useState<'English' | 'Hindi' | 'Bilingual'>('English');
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -66,18 +67,29 @@ export default function MasterQuestionPaper() {
           <p className="font-bold text-gray-900">Master Question Paper — {exam.title}</p>
           <p className="text-sm text-gray-500">{(exam.questions || []).length} Questions · {totalMarks} Marks · {exam.durationMinutes} Minutes</p>
         </div>
-        <button
-          onClick={() => window.print()}
-          className="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-black transition-colors"
-        >
-          🖨️ Print / Save PDF
-        </button>
-        <button
-          onClick={() => router.back()}
-          className="bg-gray-100 text-gray-700 font-bold px-5 py-2.5 rounded-xl hover:bg-gray-200 transition-colors"
-        >
-          Back
-        </button>
+        <div className="flex gap-2">
+          <select 
+            value={printLang} 
+            onChange={(e) => setPrintLang(e.target.value as any)}
+            className="bg-white border border-gray-300 text-gray-900 font-bold px-4 py-2.5 rounded-xl outline-none focus:border-gray-900 transition-colors"
+          >
+            <option value="English">English Only</option>
+            <option value="Hindi">Hindi Only</option>
+            <option value="Bilingual">Bilingual (Both)</option>
+          </select>
+          <button
+            onClick={() => window.print()}
+            className="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-black transition-colors"
+          >
+            🖨️ Print / Save PDF
+          </button>
+          <button
+            onClick={() => router.back()}
+            className="bg-gray-100 text-gray-700 font-bold px-5 py-2.5 rounded-xl hover:bg-gray-200 transition-colors"
+          >
+            Back
+          </button>
+        </div>
       </div>
 
       {/* Document Header */}
@@ -105,7 +117,7 @@ export default function MasterQuestionPaper() {
                 <span className="font-bold whitespace-nowrap">Q.{idx + 1}</span>
                 <div className="w-full">
                   <div className="flex justify-between items-start">
-                    <p className="font-medium">{q.questionId.text}</p>
+                    <p className="font-medium">{printLang === 'Hindi' && q.questionId.textHindi ? q.questionId.textHindi : q.questionId.text}</p>
                     <span className="font-bold text-sm ml-4 whitespace-nowrap">[{q.marks || 1} Marks]</span>
                   </div>
                   
@@ -124,21 +136,40 @@ export default function MasterQuestionPaper() {
                     </div>
                   )}
 
-                  {q.questionId.type === 'Subjective' ? (
-                    <div className="mt-4 w-full border-b border-black border-dashed h-24"></div>
-                  ) : (
-                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8">
-                      {(q.questionId.options || []).map((opt: string, optIdx: number) => (
-                        <div key={optIdx} className="flex items-center gap-2">
-                          <span className="font-bold">({['A', 'B', 'C', 'D'][optIdx]})</span>
-                          <span>{opt}</span>
-                          {q.questionId.correctOptionIndex === optIdx && (
-                            <span className="text-xs ml-2 border border-black px-1 print:hidden inline-block bg-black text-white">Correct</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    {q.questionId.type === 'Subjective' ? (
+                      <div className="mt-4 w-full border-b border-black border-dashed h-24"></div>
+                    ) : (
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8">
+                        {(printLang === 'Hindi' && q.questionId.optionsHindi && q.questionId.optionsHindi.length === 4 ? q.questionId.optionsHindi : (q.questionId.options || [])).map((opt: string, optIdx: number) => (
+                          <div key={optIdx} className="flex items-center gap-2">
+                            <span className="font-bold">({['A', 'B', 'C', 'D'][optIdx]})</span>
+                            <span>{opt}</span>
+                            {q.questionId.correctOptionIndex === optIdx && (
+                              <span className="text-xs ml-2 border border-black px-1 print:hidden inline-block bg-black text-white">Correct</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {printLang === 'Bilingual' && q.questionId.textHindi && (
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <p className="font-medium">{q.questionId.textHindi}</p>
+                        {q.questionId.type !== 'Subjective' && q.questionId.optionsHindi && (
+                          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8">
+                            {(q.questionId.optionsHindi).map((opt: string, optIdx: number) => (
+                              <div key={optIdx} className="flex items-center gap-2">
+                                <span className="font-bold">({['क', 'ख', 'ग', 'घ'][optIdx]})</span>
+                                <span>{opt}</span>
+                                {q.questionId.correctOptionIndex === optIdx && (
+                                  <span className="text-xs ml-2 border border-black px-1 print:hidden inline-block bg-black text-white">सही</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
