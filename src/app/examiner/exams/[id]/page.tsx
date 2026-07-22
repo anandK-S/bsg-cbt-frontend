@@ -77,6 +77,8 @@ export default function ExamDetails() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [aiError, setAiError] = useState('');
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   // Manual Question State
   const [showManualModal, setShowManualModal] = useState(false);
@@ -344,6 +346,20 @@ export default function ExamDetails() {
       alert("Failed to unpublish exam");
     } finally {
       setIsPublishing(false);
+    }
+  };
+
+  const handleDeleteAllQuestions = async () => {
+    setIsDeletingAll(true);
+    try {
+      await axios.delete(`${API_URL}/api/exams/${examId}/questions/all`, { withCredentials: true });
+      setShowDeleteAllModal(false);
+      fetchExam();
+    } catch (err) {
+      console.error("Delete All Error:", err);
+      alert("Failed to delete all questions");
+    } finally {
+      setIsDeletingAll(false);
     }
   };
 
@@ -718,6 +734,14 @@ export default function ExamDetails() {
                 >
                   <FileText size={18} /> Print Master Paper
                 </Link>
+                {exam.questions.length > 0 && (
+                  <button 
+                    onClick={() => setShowDeleteAllModal(true)}
+                    className="bg-red-500 text-white font-black px-5 py-2.5 rounded-xl hover:bg-red-600 transition-colors shadow-sm flex items-center gap-2"
+                  >
+                    <Trash2 size={18} /> Delete All
+                  </button>
+                )}
                 <button 
                   onClick={() => setShowAiModal(true)}
                   className="bg-bsg-gold text-bsg-blue-dark font-black px-5 py-2.5 rounded-xl hover:bg-yellow-500 transition-colors shadow-sm flex items-center gap-2"
@@ -1493,6 +1517,37 @@ export default function ExamDetails() {
         </div>
       )}
 
+      {/* Delete All Confirmation Modal */}
+      {showDeleteAllModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden">
+            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 mb-2">Delete All Questions?</h3>
+            <p className="text-gray-500 font-medium mb-6">
+              Are you absolutely sure you want to delete all {exam.questions.length} questions from this exam? 
+              <strong className="block mt-2 text-red-500">This action cannot be undone!</strong>
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setShowDeleteAllModal(false)} 
+                className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors"
+                disabled={isDeletingAll}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteAllQuestions} 
+                disabled={isDeletingAll}
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-xl font-black shadow-md transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                {isDeletingAll ? 'Deleting...' : 'Yes, Delete All'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
