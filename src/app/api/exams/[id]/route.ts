@@ -9,7 +9,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const { data: exam, error } = await supabaseAdmin
       .from('exams')
-      .select('*, creator:profiles!exams_creator_id_fkey(id, name, email)')
+      .select('*, creator:profiles!exams_creator_id_fkey(id, name)')
       .eq('id', params.id)
       .single();
 
