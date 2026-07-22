@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
-import axios from 'axios';
-import { API_URL } from '@/utils/apiConfig';
+import { supabase } from '@/utils/supabaseClient';
 import { motion } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff, BadgeInfo, UserPlus, ShieldCheck } from 'lucide-react';
 
@@ -99,42 +98,71 @@ export default function Register() {
     setLoading(true);
     setError(null);
     try {
-      const payload: any = { name, email, password };
-      if (registerType === 'Candidate') {
-        payload.bsgId = bsgId;
-        payload.section = section;
-        payload.district = district;
-        payload.unitNumber = unitNumber;
-        payload.unitName = unitName;
-      } else {
-        payload.examinerCode = examinerCode;
+      // 1. Determine User Role
+      let role = 'Candidate';
+      if (registerType === 'Examiner') {
+        if (examinerCode !== 'EXAM2024') { // Mock validation, adjust as needed
+          throw new Error('Invalid Examiner Code');
+        }
+        role = 'Examiner';
       }
 
-      const { data } = await axios.post(
-        `${API_URL}/api/auth/register`,
-        payload,
-        { withCredentials: true }
-      );
-      
-      login(data);
+      // 2. Register User via Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            role: role,
+          }
+        }
+      });
 
-      if (data.role === 'Admin') {
+      if (error) throw error;
+      if (!data.user) throw new Error('Registration failed. Please try again.');
+
+      // 3. The SQL trigger automatically creates the base profile.
+      // Now we update the profile with the rest of the metadata.
+      if (registerType === 'Candidate') {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            bsg_id: bsgId,
+            section: section,
+            district: district,
+            unit_number: unitNumber,
+            unit_name: unitName
+          })
+          .eq('id', data.user.id);
+          
+        if (profileError) throw profileError;
+      }
+
+      // 4. Update local Zustand Store
+      const userData = {
+        _id: data.user.id,
+        name,
+        email,
+        role: role as 'Candidate' | 'Examiner' | 'Admin',
+        bsgId: registerType === 'Candidate' ? bsgId : undefined,
+        district: registerType === 'Candidate' ? district : undefined,
+        unitNumber: registerType === 'Candidate' ? unitNumber : undefined,
+        unitName: registerType === 'Candidate' ? unitName : undefined,
+        token: data.session?.access_token,
+      };
+
+      login(userData);
+
+      if (role === 'Admin') {
         router.push('/admin');
-      } else if (data.role === 'Examiner') {
+      } else if (role === 'Examiner') {
         router.push('/examiner');
       } else {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError({
-          message: err.response.data.message || 'Registration failed. Please try again.',
-          platformName: err.response.data.platformName,
-          supportEmail: err.response.data.supportEmail
-        });
-      } else {
-        setError({ message: 'Registration failed. Please try again.' });
-      }
+      setError({ message: err.message || 'Registration failed. Please try again.' });
     } finally {
       setLoading(false);
     }

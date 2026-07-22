@@ -5,9 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
-import axios from 'axios';
-import { API_URL } from '@/utils/apiConfig';
-import '@/utils/apiConfig';
+import { supabase } from '@/utils/supabaseClient';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, LogIn, ShieldCheck } from 'lucide-react';
 
@@ -30,9 +28,8 @@ export default function Login() {
 
   useEffect(() => {
     setMounted(true);
-    axios.get(`${API_URL}/api/settings`).then((res) => {
-      setGlobalSettings(res.data);
-    }).catch(console.error);
+    // TODO: Move settings fetch to Supabase later
+    setGlobalSettings(null); 
 
     const savedEmail = localStorage.getItem('rememberMeEmail');
     if (savedEmail) {
@@ -50,12 +47,45 @@ export default function Login() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.post(
-        `${API_URL}/api/auth/login`,
-        { email, password },
-        { withCredentials: true }
-      );
-      login(data);
+      // 1. Authenticate with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Login failed.');
+
+      // 2. Fetch full profile from the 'profiles' table
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        throw new Error('Failed to load user profile.');
+      }
+
+      if (profile.status === 'Blocked') {
+        throw new Error('User is blocked');
+      }
+
+      // 3. Update Zustand Store
+      const userData = {
+        _id: authData.user.id,
+        name: profile.name,
+        email: authData.user.email as string,
+        role: profile.role,
+        bsgId: profile.bsg_id,
+        district: profile.district,
+        unitNumber: profile.unit_number,
+        unitName: profile.unit_name,
+        token: authData.session?.access_token,
+      };
+
+      login(userData);
 
       if (rememberMe) {
         localStorage.setItem('rememberMeEmail', email);
@@ -63,23 +93,15 @@ export default function Login() {
         localStorage.removeItem('rememberMeEmail');
       }
 
-      if (data.role === 'Admin') {
+      if (profile.role === 'Admin') {
         router.push('/admin');
-      } else if (data.role === 'Examiner') {
+      } else if (profile.role === 'Examiner') {
         router.push('/examiner');
       } else {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError({
-          message: err.response.data.message || 'Login failed.',
-          platformName: err.response.data.platformName,
-          supportEmail: err.response.data.supportEmail
-        });
-      } else {
-        setError({ message: 'Login failed. Please try again.' });
-      }
+      setError({ message: err.message || 'Login failed. Please try again.' });
     } finally {
       setLoading(false);
     }
