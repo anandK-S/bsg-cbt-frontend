@@ -22,6 +22,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line
     setIsClient(true);
     const storedLang = localStorage.getItem('bsg_language') as Language;
     if (storedLang === 'en' || storedLang === 'hi') {

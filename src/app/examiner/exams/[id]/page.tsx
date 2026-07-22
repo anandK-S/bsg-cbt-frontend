@@ -64,7 +64,7 @@ export default function ExamDetails() {
   const [isSavingBasic, setIsSavingBasic] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  const [activeTab, setActiveTab] = useState<'basic' | 'questions' | 'results' | 'stats'>('questions');
+  const [activeTab, setActiveTab] = useState<'basic' | 'questions' | 'results' | 'stats' | 'anandai'>('questions');
   const [configExpanded, setConfigExpanded] = useState(true);
   const [progressExpanded, setProgressExpanded] = useState(true);
 
@@ -80,6 +80,14 @@ export default function ExamDetails() {
   const [aiError, setAiError] = useState('');
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+
+  // Anand AI State
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditProgress, setAuditProgress] = useState(0);
+  const [auditStatus, setAuditStatus] = useState('Initializing Anand AI...');
+  const [auditResults, setAuditResults] = useState<any>(null);
+  const [isApplyingFixes, setIsApplyingFixes] = useState(false);
+  const [anandError, setAnandError] = useState('');
 
   // Manual Question State
   const [showManualModal, setShowManualModal] = useState(false);
@@ -332,6 +340,63 @@ export default function ExamDetails() {
     }
   };
 
+  const handleAnandAiAudit = async () => {
+    setIsAuditing(true);
+    setAuditProgress(0);
+    setAnandError('');
+    setAuditResults(null);
+    setAuditStatus('Analyzing Exam Settings & Schedule...');
+
+    const interval = setInterval(() => {
+      setAuditProgress(p => {
+        const next = p + (90 - p) * 0.05;
+        if (next > 30 && next < 60) setAuditStatus('Evaluating Question Translations & Clarity...');
+        if (next > 60) setAuditStatus('Finalizing Anand AI Suggestions...');
+        return next > 90 ? 90 : next;
+      });
+    }, 800);
+
+    try {
+      const { data } = await axios.post(`${API_URL}/api/exams/${examId}/anand-ai/audit`, {}, { withCredentials: true });
+      clearInterval(interval);
+      setAuditProgress(100);
+      setAuditStatus('Audit Complete!');
+      
+      setTimeout(() => {
+        setAuditResults(data);
+        setIsAuditing(false);
+      }, 600);
+    } catch (err: unknown) {
+      clearInterval(interval);
+      setIsAuditing(false);
+      if (axios.isAxiosError(err)) {
+        setAnandError(err.response?.data?.message || 'Failed to complete Anand AI Audit.');
+      } else {
+        setAnandError('Failed to complete Anand AI Audit.');
+      }
+    }
+  };
+
+  const handleApplyAnandFixes = async () => {
+    if (!auditResults) return;
+    setIsApplyingFixes(true);
+    try {
+      await axios.post(`${API_URL}/api/exams/${examId}/anand-ai/apply`, {
+        examUpdates: auditResults.examUpdates,
+        questionUpdates: auditResults.questionUpdates
+      }, { withCredentials: true });
+      
+      setAuditResults(null);
+      alert('All Anand AI fixes applied successfully!');
+      fetchExam();
+    } catch (err) {
+      console.error('Apply AI Fixes Error:', err);
+      alert('Failed to apply AI fixes.');
+    } finally {
+      setIsApplyingFixes(false);
+    }
+  };
+
   const handlePublish = async () => {
     if (exam && exam.questions.length === 0) {
       alert("You cannot publish an exam with 0 questions. Please add some questions first.");
@@ -498,22 +563,23 @@ export default function ExamDetails() {
 
           {/* Horizontal Tabs */}
           <div className="flex space-x-1 overflow-x-auto pb-px">
-            {[
-              { id: 'basic', icon: Settings, label: 'Basic Settings' },
-              { id: 'questions', icon: ListChecks, label: 'Questions' },
-              { id: 'results', icon: Users, label: 'Results' },
-              { id: 'stats', icon: BarChart2, label: 'Statistics' },
-            ].map(tab => (
+            {['basic', 'questions', 'anandai', 'results', 'stats'].map(tab => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`whitespace-nowrap py-3 px-4 border-b-2 font-bold text-sm flex items-center gap-2 transition-all ${
-                  activeTab === tab.id 
-                    ? 'border-white text-white' 
-                    : 'border-transparent text-blue-200 hover:text-white hover:border-white/50'
-                }`}
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`py-4 px-6 font-black text-sm uppercase tracking-wide border-b-4 transition-colors ${activeTab === tab ? 'border-white text-white' : 'border-transparent text-blue-200 hover:text-white hover:border-white/30'}`}
               >
-                <tab.icon size={16} /> {tab.label}
+                {tab === 'basic' ? (
+                  <span className="flex items-center gap-2"><Settings size={16} /> Basic Settings</span>
+                ) : tab === 'questions' ? (
+                  <span className="flex items-center gap-2"><ListChecks size={16} /> Questions</span>
+                ) : tab === 'anandai' ? (
+                  <span className="flex items-center gap-2 text-bsg-gold"><span className="text-lg">✨</span> Anand AI</span>
+                ) : tab === 'results' ? (
+                  <span className="flex items-center gap-2"><Users size={16} /> Results</span>
+                ) : (
+                  <span className="flex items-center gap-2"><BarChart2 size={16} /> Statistics</span>
+                )}
               </button>
             ))}
           </div>
@@ -910,7 +976,136 @@ export default function ExamDetails() {
           </div>
         )}
 
-        {/* RESULTS TABLE */}
+        {/* ANAND AI TAB */}
+        {activeTab === 'anandai' && (
+          <div className="max-w-5xl">
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden relative">
+              
+              {/* Dynamic Motto Header */}
+              <div className="bg-gradient-to-r from-bsg-blue-dark via-bsg-blue to-purple-800 p-8 text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-12 opacity-10 blur-xl bg-white rounded-full translate-x-1/2 -translate-y-1/2 w-64 h-64"></div>
+                <h2 className="text-4xl md:text-5xl font-black text-white tracking-widest mb-2 relative z-10 drop-shadow-md">
+                  {language === 'hi' ? 'सेवा' : 'SERVICE'}
+                </h2>
+                <div className="flex items-center justify-center gap-2 mt-4 relative z-10">
+                  <span className="text-xl">✨</span>
+                  <h3 className="text-xl font-bold text-blue-100">Anand AI Auditor</h3>
+                </div>
+                <p className="text-blue-200 mt-2 max-w-xl mx-auto font-medium relative z-10">
+                  Your smart assistant. Anand AI will scan your exam settings, schedule, and every single question to fix missing translations, correct broken text, and optimize configurations.
+                </p>
+              </div>
+
+              <div className="p-8 md:p-12">
+                {!isAuditing && !auditResults && (
+                  <div className="text-center">
+                    <div className="w-24 h-24 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                      <span className="text-4xl">🤖</span>
+                    </div>
+                    <h4 className="text-2xl font-black text-gray-900 mb-3">Ready to Audit?</h4>
+                    <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                      Click below to let Anand AI deeply analyze your exam. This usually takes 10-20 seconds.
+                    </p>
+                    {anandError && <div className="mb-6 p-4 bg-red-50 text-red-600 font-bold rounded-xl border border-red-100 max-w-md mx-auto">{anandError}</div>}
+                    <button 
+                      onClick={handleAnandAiAudit}
+                      className="bg-purple-600 hover:bg-purple-700 text-white font-black px-10 py-4 rounded-full shadow-lg shadow-purple-600/30 transition-all hover:scale-105"
+                    >
+                      Run Anand AI Audit
+                    </button>
+                  </div>
+                )}
+
+                {isAuditing && (
+                  <div className="text-center py-8">
+                    <div className="w-24 h-24 mx-auto mb-6 relative">
+                      <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+                      <div className="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
+                      <span className="absolute inset-0 flex items-center justify-center text-3xl animate-pulse">🤖</span>
+                    </div>
+                    
+                    <h4 className="text-xl font-black text-purple-700 mb-2 transition-all duration-300">
+                      {auditStatus}
+                    </h4>
+                    
+                    <div className="w-full max-w-md mx-auto bg-gray-100 rounded-full h-4 mt-6 overflow-hidden border border-gray-200">
+                      <div 
+                        className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden" 
+                        style={{ width: `${auditProgress}%` }}
+                      >
+                        <div className="absolute inset-0 bg-white/20 animate-[pulse_1s_ease-in-out_infinite]"></div>
+                      </div>
+                    </div>
+                    <p className="text-sm font-bold text-gray-400 mt-3">{Math.round(auditProgress)}% Complete</p>
+                  </div>
+                )}
+
+                {auditResults && !isAuditing && (
+                  <div className="animate-fade-in-up">
+                    <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8 flex gap-4 items-start">
+                      <div className="text-green-500 bg-white p-2 rounded-full shadow-sm">
+                        <CheckCircle size={24} />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-black text-green-800 mb-1">Audit Complete</h4>
+                        <p className="text-green-700 font-medium">{auditResults.generalFeedback}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                      {auditResults.examUpdates && Object.keys(auditResults.examUpdates).length > 0 && (
+                        <div>
+                          <h5 className="font-black text-gray-900 mb-4 border-b pb-2">Exam Settings Fixes</h5>
+                          <ul className="space-y-3">
+                            {Object.entries(auditResults.examUpdates).map(([key, val]) => (
+                              <li key={key} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <span className="text-xs font-bold text-purple-600 uppercase block mb-1">{key}</span>
+                                <span className="text-gray-800 font-medium">{val as string}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {auditResults.questionUpdates && auditResults.questionUpdates.length > 0 && (
+                        <div>
+                          <h5 className="font-black text-gray-900 mb-4 border-b pb-2">Question Fixes ({auditResults.questionUpdates.length})</h5>
+                          <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                            {auditResults.questionUpdates.map((q: any, idx: number) => (
+                              <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <p className="text-sm text-gray-800 font-bold mb-2 break-words line-clamp-2">EN: {q.text}</p>
+                                <p className="text-sm text-gray-600 font-medium break-words line-clamp-2 border-t border-dashed border-gray-200 pt-2">HI: {q.textHindi}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-center gap-4 border-t border-gray-100 pt-8">
+                      <button 
+                        onClick={() => setAuditResults(null)}
+                        className="px-8 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-colors"
+                        disabled={isApplyingFixes}
+                      >
+                        Discard
+                      </button>
+                      <button 
+                        onClick={handleApplyAnandFixes}
+                        disabled={isApplyingFixes}
+                        className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-black px-10 py-3 rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {isApplyingFixes ? 'Applying...' : <><CheckCircle size={20} /> Accept & Apply All Fixes</>}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* RESULTS TAB */}
         {activeTab === 'results' && (
           <div className="max-w-6xl">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
