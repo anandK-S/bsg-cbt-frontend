@@ -7,4 +7,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase URL or Anon Key is missing. Ensure you have set them in .env.local');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Use a dummy URL if missing to prevent SSR crashes, but warn heavily
+const safeUrl = supabaseUrl || 'https://missing-supabase-url.supabase.co';
+const safeKey = supabaseAnonKey || 'missing-key';
+
+export const supabase = createClient(safeUrl, safeKey);
