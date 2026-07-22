@@ -72,9 +72,9 @@ export default function Home() {
       <div className="fixed top-0 right-0 w-[800px] h-[800px] bg-gradient-to-br from-bsg-blue/5 to-transparent rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none z-0" />
       <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-bsg-gold/10 to-transparent rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4 pointer-events-none z-0" />
       
-      {/* Animated Glowing Orbs (Subtle for light mode) */}
-      <motion.div animate={{ x: [0, 30, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }} transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }} className="fixed top-[20%] left-[10%] w-[300px] h-[300px] rounded-full bg-bsg-gold/5 blur-[80px] pointer-events-none z-0" />
-      <motion.div animate={{ x: [0, -30, 0], y: [0, 30, 0], scale: [1, 1.2, 1] }} transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }} className="fixed bottom-[20%] right-[10%] w-[400px] h-[400px] rounded-full bg-bsg-blue/5 blur-[100px] pointer-events-none z-0" />
+      {/* Static Glowing Orbs (Removed animation to fix performance lag) */}
+      <div className="fixed top-[20%] left-[10%] w-[300px] h-[300px] rounded-full bg-bsg-gold/5 blur-[80px] pointer-events-none z-0" />
+      <div className="fixed bottom-[20%] right-[10%] w-[400px] h-[400px] rounded-full bg-bsg-blue/5 blur-[100px] pointer-events-none z-0" />
 
       {/* Floating Quotes - Light Glassmorphism */}
       {quotes.map((q, i) => (
@@ -82,7 +82,7 @@ export default function Home() {
           key={i}
           animate={{ y: [0, -20, 0], opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 10, delay: q.delay, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute z-0 hidden lg:block bg-white/70 backdrop-blur-md border border-white px-6 py-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] whitespace-nowrap"
+          className="absolute z-0 hidden lg:block bg-white border border-white/50 px-6 py-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] whitespace-nowrap"
           style={{ top: q.top, left: q.left }}
         >
           <span className="text-bsg-blue/80 italic font-bold">"{q.text}"</span>
