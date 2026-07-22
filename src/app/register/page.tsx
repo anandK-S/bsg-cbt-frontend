@@ -65,9 +65,7 @@ export default function Register() {
 
   useEffect(() => {
     setMounted(true);
-    axios.get(`${API_URL}/api/settings`).then((res) => {
-      setGlobalSettings(res.data);
-    }).catch(console.error);
+    setGlobalSettings(null);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
