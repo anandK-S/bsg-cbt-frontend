@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
       creatorId: exam.creator_id,
       questionCount: countsMap[exam.id] || 0,
       attemptCount: 0, // Default for now
+      createdAt: exam.created_at,
     }));
 
     return NextResponse.json(formattedExams);
