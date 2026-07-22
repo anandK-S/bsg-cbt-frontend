@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ message: 'Invalid test key' }, { status: 403 });
     }
 
-    const { data: attempt, error: attemptError } = await supabase.from('exam_attempts').insert([{
+    const { data: attempt, error: attemptError } = await supabaseAdmin.from('exam_attempts').insert([{
       exam_id: params.id,
       candidate_id: auth.id,
       status: 'In-Progress',

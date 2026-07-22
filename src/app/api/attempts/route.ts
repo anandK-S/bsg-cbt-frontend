@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 export async function POST(req: NextRequest) {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const timeRemaining = (exam.duration_minutes * 60) + (exam.duration_seconds || 0);
 
-    const { data: attempt, error: attemptError } = await supabase
+    const { data: attempt, error: attemptError } = await supabaseAdmin
       .from('exam_attempts')
       .insert({
         candidate_id: auth.id,

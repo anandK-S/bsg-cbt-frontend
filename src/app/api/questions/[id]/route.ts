@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -41,7 +41,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       updateData.media_url = formData.get('mediaUrl');
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('questions')
       .update(updateData)
       .eq('id', params.id)
@@ -63,7 +63,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { error } = await supabase.from('questions').delete().eq('id', params.id);
+    const { error } = await supabaseAdmin.from('questions').delete().eq('id', params.id);
     if (error) throw error;
 
     return NextResponse.json({ message: 'Question deleted successfully' });

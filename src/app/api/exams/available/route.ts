@@ -16,9 +16,18 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
+    // Fetch question counts
+    const { data: qCounts } = await supabase.from('questions').select('exam_id');
+    const countsMap: Record<string, number> = {};
+    if (qCounts) {
+      qCounts.forEach((q: any) => {
+        countsMap[q.exam_id] = (countsMap[q.exam_id] || 0) + 1;
+      });
+    }
+
     const formattedExams = exams.map(exam => {
       // Mock score logic since questions might not be fetched here easily without a join
-      const maxScore = 50; 
+      const maxScore = countsMap[exam.id] ? countsMap[exam.id] * 2 : 50; // simple mock
       return {
         _id: exam.id,
         title: exam.title,
@@ -26,12 +35,13 @@ export async function GET(req: NextRequest) {
         durationMinutes: exam.duration_minutes,
         durationSeconds: exam.duration_seconds,
         status: exam.status,
-        questionCount: 0,
+        questionCount: countsMap[exam.id] || 0,
         maxScore,
         creatorName: exam.creator_id ? (exam.creator_id as any).name : 'Unknown',
         scheduledStartDate: exam.scheduled_start_date,
         scheduledEndDate: exam.scheduled_end_date,
         createdAt: exam.created_at,
+        category: exam.category,
       };
     });
 

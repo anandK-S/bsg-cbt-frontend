@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 // GET /api/exams
@@ -18,12 +18,21 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
+    // Fetch question counts
+    const { data: qCounts } = await supabaseAdmin.from('questions').select('exam_id');
+    const countsMap: Record<string, number> = {};
+    if (qCounts) {
+      qCounts.forEach((q: any) => {
+        countsMap[q.exam_id] = (countsMap[q.exam_id] || 0) + 1;
+      });
+    }
+
     // Map Supabase 'id' to MongoDB '_id' and 'creator_id' to 'creatorId' for frontend compatibility
     const formattedExams = exams.map((exam) => ({
       ...exam,
       _id: exam.id,
       creatorId: exam.creator_id,
-      questionCount: 0, // Default for now
+      questionCount: countsMap[exam.id] || 0,
       attemptCount: 0, // Default for now
     }));
 
@@ -48,7 +57,7 @@ export async function POST(req: NextRequest) {
       allowMultipleAttempts, releaseResultsInstantly, issueCertificate, testKey 
     } = body;
 
-    const { data, error } = await supabase.from('exams').insert([
+    const { data, error } = await supabaseAdmin.from('exams').insert([
       {
         title,
         description,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 export async function POST(
@@ -63,14 +63,14 @@ export async function POST(
       if (answerInserts.length > 0) {
         // We can ignore errors if answers are already saved, but upsert is better.
         // For simplicity, just insert.
-        await supabase.from('attempt_answers').upsert(answerInserts, { onConflict: 'attempt_id,question_id' });
+        await supabaseAdmin.from('attempt_answers').upsert(answerInserts, { onConflict: 'attempt_id,question_id' });
       }
     }
 
     const timeTaken = (attempt.exam_id.duration_minutes * 60 + (attempt.exam_id.duration_seconds || 0)) - (timeRemaining || 0);
 
     // Save Result
-    const { data: result } = await supabase
+    const { data: result } = await supabaseAdmin
       .from('results')
       .insert({
         attempt_id: attemptId,
@@ -87,7 +87,7 @@ export async function POST(
       .single();
 
     // Update attempt
-    await supabase
+    await supabaseAdmin
       .from('exam_attempts')
       .update({
         status: 'Completed',

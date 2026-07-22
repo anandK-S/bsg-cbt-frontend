@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       mediaUrl = publicUrl;
     }
 
-    const { data: question, error } = await supabase.from('questions').insert([
+    const { data: question, error } = await supabaseAdmin.from('questions').insert([
       {
         exam_id: params.id,
         text,
