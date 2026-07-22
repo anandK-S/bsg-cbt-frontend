@@ -59,12 +59,13 @@ export default function ExamDetails() {
     issueCertificate?: boolean;
     scheduledStartDate?: string;
     scheduledEndDate?: string;
+    testKey?: string;
   }>({});
   
   const [isSavingBasic, setIsSavingBasic] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  const [activeTab, setActiveTab] = useState<'basic' | 'questions' | 'results' | 'stats' | 'anandai'>('questions');
+  const [activeTab, setActiveTab] = useState<'basic' | 'questions' | 'results' | 'stats'>('questions');
   const [configExpanded, setConfigExpanded] = useState(true);
   const [progressExpanded, setProgressExpanded] = useState(true);
 
@@ -81,13 +82,7 @@ export default function ExamDetails() {
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
 
-  // Anand AI State
-  const [isAuditing, setIsAuditing] = useState(false);
-  const [auditProgress, setAuditProgress] = useState(0);
-  const [auditStatus, setAuditStatus] = useState('Initializing Anand AI...');
-  const [auditResults, setAuditResults] = useState<any>(null);
-  const [isApplyingFixes, setIsApplyingFixes] = useState(false);
-  const [anandError, setAnandError] = useState('');
+
 
   // Manual Question State
   const [showManualModal, setShowManualModal] = useState(false);
@@ -145,6 +140,7 @@ export default function ExamDetails() {
         issueCertificate: data.issueCertificate !== false,
         scheduledStartDate: data.scheduledStartDate ? new Date(data.scheduledStartDate).toISOString().slice(0,16) : '',
         scheduledEndDate: data.scheduledEndDate ? new Date(data.scheduledEndDate).toISOString().slice(0,16) : '',
+        testKey: data.testKey || '',
       });
     } catch (error) {
       console.error('Error fetching exam:', error);
@@ -181,6 +177,7 @@ export default function ExamDetails() {
         scheduledStartDate: editForm.scheduledStartDate || null,
         scheduledEndDate: editForm.scheduledEndDate || null,
         issueCertificate: editForm.issueCertificate,
+        testKey: editForm.testKey || undefined,
       };
 
       await axios.put(`${API_URL}/api/exams/${examId}`, payload, { withCredentials: true });
@@ -340,62 +337,6 @@ export default function ExamDetails() {
     }
   };
 
-  const handleAnandAiAudit = async () => {
-    setIsAuditing(true);
-    setAuditProgress(0);
-    setAnandError('');
-    setAuditResults(null);
-    setAuditStatus('Analyzing Exam Settings & Schedule...');
-
-    const interval = setInterval(() => {
-      setAuditProgress(p => {
-        const next = p + (90 - p) * 0.05;
-        if (next > 30 && next < 60) setAuditStatus('Evaluating Question Translations & Clarity...');
-        if (next > 60) setAuditStatus('Finalizing Anand AI Suggestions...');
-        return next > 90 ? 90 : next;
-      });
-    }, 800);
-
-    try {
-      const { data } = await axios.post(`${API_URL}/api/exams/${examId}/anand-ai/audit`, {}, { withCredentials: true });
-      clearInterval(interval);
-      setAuditProgress(100);
-      setAuditStatus('Audit Complete!');
-      
-      setTimeout(() => {
-        setAuditResults(data);
-        setIsAuditing(false);
-      }, 600);
-    } catch (err: unknown) {
-      clearInterval(interval);
-      setIsAuditing(false);
-      if (axios.isAxiosError(err)) {
-        setAnandError(err.response?.data?.message || 'Failed to complete Anand AI Audit.');
-      } else {
-        setAnandError('Failed to complete Anand AI Audit.');
-      }
-    }
-  };
-
-  const handleApplyAnandFixes = async () => {
-    if (!auditResults) return;
-    setIsApplyingFixes(true);
-    try {
-      await axios.post(`${API_URL}/api/exams/${examId}/anand-ai/apply`, {
-        examUpdates: auditResults.examUpdates,
-        questionUpdates: auditResults.questionUpdates
-      }, { withCredentials: true });
-      
-      setAuditResults(null);
-      alert('All Anand AI fixes applied successfully!');
-      fetchExam();
-    } catch (err) {
-      console.error('Apply AI Fixes Error:', err);
-      alert('Failed to apply AI fixes.');
-    } finally {
-      setIsApplyingFixes(false);
-    }
-  };
 
   const handlePublish = async () => {
     if (exam && exam.questions.length === 0) {
@@ -563,7 +504,7 @@ export default function ExamDetails() {
 
           {/* Horizontal Tabs */}
           <div className="flex space-x-1 overflow-x-auto pb-px">
-            {['basic', 'questions', 'anandai', 'results', 'stats'].map(tab => (
+            {['basic', 'questions', 'results', 'stats'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
@@ -573,8 +514,6 @@ export default function ExamDetails() {
                   <span className="flex items-center gap-2"><Settings size={16} /> Basic Settings</span>
                 ) : tab === 'questions' ? (
                   <span className="flex items-center gap-2"><ListChecks size={16} /> Questions</span>
-                ) : tab === 'anandai' ? (
-                  <span className="flex items-center gap-2 text-bsg-gold"><span className="text-lg">✨</span> Anand AI</span>
                 ) : tab === 'results' ? (
                   <span className="flex items-center gap-2"><Users size={16} /> Results</span>
                 ) : (
@@ -744,6 +683,18 @@ export default function ExamDetails() {
                 </div>
               </div>
 
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-1.5">Test Key / Password (Optional)</label>
+                <input
+                  type="text"
+                  value={editForm.testKey || ''}
+                  onChange={(e) => setEditForm({ ...editForm, testKey: e.target.value })}
+                  placeholder="Enter a password if you want to restrict access"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium text-sm"
+                />
+                <p className="text-xs font-medium text-gray-400 mt-1.5">If set, candidates must enter this exact password to start the exam.</p>
+              </div>
+
               <div className="space-y-4">
                 <label className="flex items-start gap-3 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
                   <div className="flex items-center h-5 mt-0.5">
@@ -764,7 +715,7 @@ export default function ExamDetails() {
                   <div className="flex items-center h-5 mt-0.5">
                     <input
                       type="checkbox"
-                      checked={editForm.releaseResultsInstantly ?? true}
+                      checked={editForm.releaseResultsInstantly || false}
                       onChange={(e) => setEditForm({ ...editForm, releaseResultsInstantly: e.target.checked })}
                       className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-600 transition-all"
                     />
@@ -976,201 +927,7 @@ export default function ExamDetails() {
           </div>
         )}
 
-        {/* ANAND AI TAB */}
-        {activeTab === 'anandai' && (
-          <div className="max-w-5xl">
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden relative">
-              
-              {/* Dynamic Motto Header */}
-              <div className="bg-gradient-to-r from-bsg-blue-dark via-bsg-blue to-bsg-blue-light p-8 text-center relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-12 opacity-10 blur-xl bg-white rounded-full translate-x-1/2 -translate-y-1/2 w-64 h-64"></div>
-                <h2 className="text-4xl md:text-5xl font-black text-white tracking-widest mb-2 relative z-10 drop-shadow-md">
-                  {language === 'hi' ? 'सेवा' : 'SERVICE'}
-                </h2>
-                <div className="flex items-center justify-center gap-2 mt-4 relative z-10">
-                  <span className="text-xl">✨</span>
-                  <h3 className="text-xl font-bold text-bsg-gold">Anand AI</h3>
-                </div>
-                <p className="text-blue-100 mt-2 max-w-xl mx-auto font-medium relative z-10">
-                  {language === 'hi' 
-                    ? 'आपका स्मार्ट असिस्टेंट। आनंद एआई आपके परीक्षा सेटिंग्स, शेड्यूल और हर एक प्रश्न को स्कैन करेगा ताकि अनुवाद और टूटे हुए पाठ को ठीक किया जा सके।'
-                    : 'Your smart assistant. Anand AI will scan your exam settings, schedule, and every single question to fix missing translations, correct broken text, and optimize configurations.'}
-                </p>
-              </div>
 
-              <div className="p-8 md:p-12">
-                {!isAuditing && !auditResults && (
-                  <div className="text-center">
-                    <div className="w-24 h-24 bg-blue-50 text-bsg-blue rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                      <span className="text-4xl">🤖</span>
-                    </div>
-                    <h4 className="text-2xl font-black text-gray-900 mb-3">
-                      {language === 'hi' ? 'ऑडिट के लिए तैयार हैं?' : 'Ready to Audit?'}
-                    </h4>
-                    <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                      {language === 'hi'
-                        ? 'अपनी परीक्षा का गहन विश्लेषण करने के लिए नीचे क्लिक करें। इसमें आमतौर पर 10-20 सेकंड लगते हैं।'
-                        : 'Click below to let Anand AI deeply analyze your exam. This usually takes 10-20 seconds.'}
-                    </p>
-                    {anandError && <div className="mb-6 p-4 bg-red-50 text-red-600 font-bold rounded-xl border border-red-100 max-w-md mx-auto">{anandError}</div>}
-                    <button 
-                      onClick={handleAnandAiAudit}
-                      className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-black px-10 py-4 rounded-full shadow-lg shadow-bsg-blue/30 transition-all hover:scale-105"
-                    >
-                      {language === 'hi' ? 'आनंद एआई ऑडिट चलाएं' : 'Run Anand AI Audit'}
-                    </button>
-                  </div>
-                )}
-
-                {isAuditing && (
-                  <div className="text-center py-8">
-                    <div className="w-24 h-24 mx-auto mb-6 relative">
-                      <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
-                      <div className="absolute inset-0 border-4 border-bsg-blue rounded-full border-t-transparent animate-spin"></div>
-                      <span className="absolute inset-0 flex items-center justify-center text-3xl animate-pulse">🤖</span>
-                    </div>
-                    
-                    <h4 className="text-xl font-black text-bsg-blue mb-2 transition-all duration-300">
-                      {auditStatus}
-                    </h4>
-                    
-                    <div className="w-full max-w-md mx-auto bg-gray-100 rounded-full h-4 mt-6 overflow-hidden border border-gray-200">
-                      <div 
-                        className="bg-gradient-to-r from-bsg-blue to-bsg-blue-light h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden" 
-                        style={{ width: `${auditProgress}%` }}
-                      >
-                        <div className="absolute inset-0 bg-white/20 animate-[pulse_1s_ease-in-out_infinite]"></div>
-                      </div>
-                    </div>
-                    <p className="text-sm font-bold text-gray-400 mt-3">{Math.round(auditProgress)}% Complete</p>
-                  </div>
-                )}
-
-                {auditResults && !isAuditing && (
-                  <div className="animate-fade-in-up">
-                    <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8 flex gap-4 items-start">
-                      <div className="text-green-500 bg-white p-2 rounded-full shadow-sm">
-                        <CheckCircle size={24} />
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-black text-green-800 mb-1">
-                          {language === 'hi' ? 'ऑडिट पूरा हुआ' : 'Audit Complete'}
-                        </h4>
-                        <p className="text-green-700 font-medium">{auditResults.generalFeedback}</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                      {/* Exam Updates Column */}
-                      <div>
-                        <h5 className="font-black text-gray-900 mb-4 border-b pb-2">
-                          {language === 'hi' ? 'परीक्षा सेटिंग्स अपडेट' : 'Exam Settings Fixes'}
-                        </h5>
-                        
-                        {auditResults.examUpdates && Object.keys(auditResults.examUpdates).length > 0 ? (
-                          <ul className="space-y-4">
-                            {Object.entries(auditResults.examUpdates).map(([key, val]) => (
-                              <li key={key} className="bg-gray-50 p-4 rounded-xl border border-gray-200 focus-within:border-bsg-blue transition-colors">
-                                <label className="text-xs font-bold text-bsg-blue uppercase block mb-2">{key}</label>
-                                <textarea 
-                                  value={val as string}
-                                  onChange={(e) => {
-                                    setAuditResults({
-                                      ...auditResults,
-                                      examUpdates: {
-                                        ...auditResults.examUpdates,
-                                        [key]: e.target.value
-                                      }
-                                    });
-                                  }}
-                                  className="w-full bg-white border border-gray-200 rounded-lg p-3 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-bsg-blue/20 min-h-[40px] resize-y"
-                                />
-                                <div className="text-[10px] text-gray-400 mt-1 font-bold">
-                                  {language === 'hi' ? 'आप इसे स्वीकार करने से पहले संपादित कर सकते हैं' : 'You can edit this before applying'}
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-center">
-                            <span className="text-3xl mb-2 block">✨</span>
-                            <p className="font-bold text-gray-500">
-                              {language === 'hi' ? 'सेटिंग्स बिल्कुल सही हैं!' : 'Settings are perfectly fine!'}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Question Updates Column */}
-                      <div>
-                        <h5 className="font-black text-gray-900 mb-4 border-b pb-2">
-                          {language === 'hi' ? 'प्रश्न सुधार' : 'Question Fixes'} {auditResults.questionUpdates && auditResults.questionUpdates.length > 0 ? `(${auditResults.questionUpdates.length})` : ''}
-                        </h5>
-                        
-                        {auditResults.questionUpdates && auditResults.questionUpdates.length > 0 ? (
-                          <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                            {auditResults.questionUpdates.map((q: any, idx: number) => (
-                              <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200 focus-within:border-bsg-blue transition-colors">
-                                <label className="text-xs font-bold text-bsg-blue block mb-2">ENGLISH TEXT</label>
-                                <textarea 
-                                  value={q.text}
-                                  onChange={(e) => {
-                                    const newQuestions = [...auditResults.questionUpdates];
-                                    newQuestions[idx] = { ...q, text: e.target.value };
-                                    setAuditResults({ ...auditResults, questionUpdates: newQuestions });
-                                  }}
-                                  className="w-full bg-white border border-gray-200 rounded-lg p-2 text-sm text-gray-800 font-bold mb-3 focus:outline-none focus:ring-2 focus:ring-bsg-blue/20"
-                                />
-                                
-                                <label className="text-xs font-bold text-bsg-blue block mb-2">HINDI TEXT</label>
-                                <textarea 
-                                  value={q.textHindi}
-                                  onChange={(e) => {
-                                    const newQuestions = [...auditResults.questionUpdates];
-                                    newQuestions[idx] = { ...q, textHindi: e.target.value };
-                                    setAuditResults({ ...auditResults, questionUpdates: newQuestions });
-                                  }}
-                                  className="w-full bg-white border border-gray-200 rounded-lg p-2 text-sm text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-bsg-blue/20"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-center">
-                            <span className="text-3xl mb-2 block">🎯</span>
-                            <p className="font-bold text-gray-500">
-                              {language === 'hi' ? 'सभी प्रश्न सही और पूर्ण हैं!' : 'All your test questions are correct and complete!'}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex justify-center gap-4 border-t border-gray-100 pt-8">
-                      <button 
-                        onClick={() => setAuditResults(null)}
-                        className="px-8 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-colors"
-                        disabled={isApplyingFixes}
-                      >
-                        {language === 'hi' ? 'रद्द करें' : 'Discard'}
-                      </button>
-                      <button 
-                        onClick={handleApplyAnandFixes}
-                        disabled={isApplyingFixes}
-                        className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-black px-10 py-3 rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
-                      >
-                        {isApplyingFixes 
-                          ? (language === 'hi' ? 'लागू कर रहा है...' : 'Applying...') 
-                          : <><CheckCircle size={20} /> {language === 'hi' ? 'सभी सुधार स्वीकार करें और लागू करें' : 'Accept & Apply All Fixes'}</>}
-                      </button>
-                    </div>
-
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* RESULTS TAB */}
         {activeTab === 'results' && (

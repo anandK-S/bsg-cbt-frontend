@@ -22,6 +22,7 @@ interface ExamDetailsData {
   releaseResultsInstantly?: boolean;
   scheduledStartDate?: string | null;
   scheduledEndDate?: string | null;
+  testKey?: string;
   status: string;
   category?: string;
   questions: any[];
@@ -214,6 +215,10 @@ export default function AdminExamDetails() {
                 <div>
                   <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Release Results Instantly</p>
                   <p className="text-gray-900 font-bold">{exam.releaseResultsInstantly ? 'Yes' : 'No'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">Test Key / Password</p>
+                  <p className="text-gray-900 font-bold">{exam.testKey ? exam.testKey : <span className="text-gray-400 italic">None</span>}</p>
                 </div>
               </div>
             </div>

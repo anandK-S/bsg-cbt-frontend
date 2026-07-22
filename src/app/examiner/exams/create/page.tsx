@@ -18,8 +18,9 @@ export default function CreateExam() {
   const [durationSeconds, setDurationSeconds] = useState<number | ''>('');
   const [passingMarks, setPassingMarks] = useState<number | ''>(50);
   const [allowMultipleAttempts, setAllowMultipleAttempts] = useState(false);
-  const [releaseResultsInstantly, setReleaseResultsInstantly] = useState(true);
-  const [issueCertificate, setIssueCertificate] = useState(true);
+  const [releaseResultsInstantly, setReleaseResultsInstantly] = useState(false);
+  const [issueCertificate, setIssueCertificate] = useState(false);
+  const [testKey, setTestKey] = useState('');
   const [scheduledStartDate, setScheduledStartDate] = useState('');
   const [scheduledEndDate, setScheduledEndDate] = useState('');
   const [loading, setLoading] = useState(false);
@@ -56,6 +57,7 @@ export default function CreateExam() {
           allowMultipleAttempts,
           releaseResultsInstantly,
           issueCertificate,
+          testKey: testKey || undefined,
           scheduledStartDate: scheduledStartDate || undefined,
           scheduledEndDate: scheduledEndDate || undefined
         },
@@ -276,6 +278,21 @@ export default function CreateExam() {
                 />
                 <p className="text-xs text-gray-400 mt-1">Candidates cannot start after this time.</p>
               </div>
+            </div>
+
+            <div className="mb-5">
+              <label htmlFor="testKey" className="block text-sm font-bold text-gray-700 mb-1.5">
+                Test Key / Password <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                id="testKey"
+                value={testKey}
+                onChange={(e) => setTestKey(e.target.value)}
+                placeholder="Enter a password if you want to restrict access"
+                className="w-full border border-gray-200 rounded-xl py-3 px-4 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
+              />
+              <p className="text-xs text-gray-400 mt-1">If set, candidates must enter this exact password to start the exam.</p>
             </div>
 
             {/* Toggle options */}

@@ -19,6 +19,7 @@ export default function ExamStartPage() {
   const [starting, setStarting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
+  const [enteredKey, setEnteredKey] = useState('');
 
   const [timeUntilStart, setTimeUntilStart] = useState<number | null>(null);
 
@@ -76,7 +77,7 @@ export default function ExamStartPage() {
         await document.documentElement.requestFullscreen().catch(err => console.log(err));
       }
 
-      const { data } = await axios.post(`${API_URL}/api/exams/${examId}/start`, {}, {
+      const { data } = await axios.post(`${API_URL}/api/exams/${examId}/start`, { testKey: enteredKey }, {
         withCredentials: true,
       });
       router.push(`/exams/${examId}/take`);
@@ -260,6 +261,22 @@ export default function ExamStartPage() {
             </div>
           </div>
 
+          {exam?.hasTestKey && (
+            <div className="bg-orange-50 p-6 rounded-xl border border-orange-200 mb-6 flex flex-col gap-3">
+              <label htmlFor="testKey" className="text-sm font-bold text-orange-900">
+                Test Key / Password Required
+              </label>
+              <input
+                id="testKey"
+                type="text"
+                value={enteredKey}
+                onChange={(e) => setEnteredKey(e.target.value)}
+                placeholder="Enter test password"
+                className="w-full px-4 py-2.5 bg-white border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all font-medium text-sm text-gray-900 outline-none"
+              />
+            </div>
+          )}
+
           <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 flex items-start gap-3">
             <div className="flex items-center h-5 mt-0.5">
               <input
@@ -278,7 +295,7 @@ export default function ExamStartPage() {
           <div className="border-t border-gray-100 pt-8 flex justify-end">
             <button
               onClick={handleStartExam}
-              disabled={starting || !!errorMsg || !agreed}
+              disabled={starting || !!errorMsg || !agreed || (exam?.hasTestKey && !enteredKey.trim())}
               className="inline-flex items-center gap-2 px-8 py-3 bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               {starting ? 'Initializing...' : 'I understand, start exam'}
