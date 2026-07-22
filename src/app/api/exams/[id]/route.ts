@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       .single();
 
     if (error || !exam) {
-      return NextResponse.json({ message: 'Exam not found' }, { status: 404 });
+      return NextResponse.json({ message: 'Exam not found', error: error?.message || 'No exam returned' }, { status: 404 });
     }
 
     if (auth.profile?.role === 'Examiner' && exam.creator_id !== auth.id) {
