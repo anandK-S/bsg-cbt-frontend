@@ -7,9 +7,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const auth = await getUserFromRequest(req);
     if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-    const { data: exam, error } = await supabase
+    const { data: exam, error } = await supabaseAdmin
       .from('exams')
-      .select('*, creator_id(name, email)')
+      .select('*, creator:profiles!exams_creator_id_fkey(id, name, email)')
       .eq('id', params.id)
       .single();
 
@@ -17,17 +17,28 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ message: 'Exam not found' }, { status: 404 });
     }
 
-    if (auth.profile?.role === 'Examiner' && exam.creator_id?.id !== auth.id) {
+    if (auth.profile?.role === 'Examiner' && exam.creator_id !== auth.id) {
       return NextResponse.json({ message: 'Not authorized' }, { status: 403 });
     }
 
     // Fetch questions manually if needed
-    const { data: questions } = await supabase
+    const { data: questions } = await supabaseAdmin
       .from('questions')
       .select('*')
       .eq('exam_id', params.id);
 
-    return NextResponse.json({ ...exam, questions: questions || [] });
+    const formattedQuestions = (questions || []).map(q => ({
+      ...q,
+      _id: q.id
+    }));
+
+    return NextResponse.json({ 
+      ...exam, 
+      _id: exam.id, 
+      creatorId: exam.creator_id,
+      creatorName: exam.creator ? exam.creator.name : 'Unknown',
+      questions: formattedQuestions 
+    });
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }

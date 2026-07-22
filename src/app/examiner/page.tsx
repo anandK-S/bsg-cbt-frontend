@@ -112,15 +112,15 @@ export default function ExaminerDashboard() {
   if (loading || !_hasHydrated) return <LoadingScreen text="Loading Examiner Portal..." />;
   if (!isAuthenticated || (user?.role !== 'Examiner' && user?.role !== 'Admin')) return null;
 
-  const categories = ['All', ...Array.from(new Set(exams.map(e => e.category).filter(Boolean)))];
+  const categories = ['All', ...Array.from(new Set(exams.map(e => e.category || 'General').filter(Boolean)))];
   
   // Apply all filters then sort
   const filteredExams = exams
     .filter(exam => {
       const matchesSearch = exam.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            (exam.description && exam.description.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesStatus = statusFilter === 'All' || exam.status === statusFilter;
-      const matchesCategory = categoryFilter === 'All' || exam.category === categoryFilter;
+      const matchesStatus = statusFilter === 'All' || (exam.status || 'Draft').toString().trim().toLowerCase() === statusFilter.toLowerCase();
+      const matchesCategory = categoryFilter === 'All' || (exam.category || 'General').toString().trim().toLowerCase() === categoryFilter.toLowerCase();
       return matchesSearch && matchesStatus && matchesCategory;
     })
     .sort((a: any, b: any) => {
