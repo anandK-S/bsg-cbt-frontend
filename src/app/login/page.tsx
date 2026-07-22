@@ -18,11 +18,12 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<{ message: string, platformName?: string, supportEmail?: string } | null>(null);
+  const [error, setError] = useState<{ message: string; details?: any } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [globalSettings, setGlobalSettings] = useState<any>(null);
+  const [envWarning, setEnvWarning] = useState(false);
 
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -30,6 +31,12 @@ export default function Login() {
     setMounted(true);
     // TODO: Move settings fetch to Supabase later
     setGlobalSettings(null); 
+
+    // Diagnostics check to see if Supabase env variables are actually present in the browser
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!url || url.length < 5 || url.includes('missing')) {
+      setEnvWarning(true);
+    }
 
     const savedEmail = localStorage.getItem('rememberMeEmail');
     if (savedEmail) {
@@ -317,6 +324,13 @@ export default function Login() {
                 </motion.div>
               )}
             </div>
+
+          {envWarning && (
+            <div className="mb-6 p-4 bg-yellow-50 text-yellow-800 border-l-4 border-yellow-500 rounded-md">
+              <h3 className="font-bold mb-1">Missing Environment Variables!</h3>
+              <p className="text-sm">Vercel is missing your Supabase URL. Please go to Vercel Settings &gt; Environment Variables, add <code>NEXT_PUBLIC_SUPABASE_URL</code> and <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>, ensure they are checked for <b>Production</b>, and click Redeploy.</p>
+            </div>
+          )}
 
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
