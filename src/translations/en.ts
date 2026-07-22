@@ -58,6 +58,11 @@ export const en = {
   "termsConditions": "Terms & Conditions",
   "privacyPolicy": "Privacy Policy",
   "signIn": "Sign In",
+  "welcomeToFutureOfAssessment": "Welcome to the Future of Assessment",
+  "seamlessExperienceDesc": "Experience a seamless, secure, and intuitive computer-based testing environment designed for excellence.",
+  "joinBsgPortalLeft": "Join the BSG Portal",
+  "createAccountDesc": "Create your account to unlock access to exclusive computer-based tests and resources.",
+  
   
   // Login Page
   "welcomeBack": "Welcome Back!",
@@ -89,8 +94,8 @@ export const en = {
   // Register Page
   "createAccount": "Create an Account",
   "joinBsgPortal": "Join the BSG Portal to start your examination journey",
-  "fullName": "Full Name",
-  "enterFullName": "Enter your full name",
+  "fullName": "Surname & First Name",
+  "enterFullName": "e.g. Sharma Anand",
   "bsgId": "BSG ID",
   "enterBsgId": "Enter your BSG ID",
   "confirmPassword": "Confirm Password",

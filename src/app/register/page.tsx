@@ -165,15 +165,30 @@ export default function Register() {
           {/* Animated Grid / Tech Pattern */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
           
-          <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
+          <div className="relative z-10 flex flex-col items-center justify-center text-white px-8 lg:px-16 text-center h-full pt-16">
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, type: "spring" }}
-              className="w-32 h-32 bg-white/10 backdrop-blur-xl rounded-[2rem] flex items-center justify-center mb-10 shadow-[0_0_40px_rgba(255,193,7,0.3)] border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500"
+              whileHover={{ scale: 1.05, rotate: 0 }}
+              className="w-32 h-32 bg-white/10 backdrop-blur-xl rounded-[2rem] flex items-center justify-center mb-10 shadow-[0_0_40px_rgba(255,193,7,0.3)] border border-white/20 transform rotate-3 transition-all duration-300 cursor-default"
             >
               <span className="font-extrabold text-[#FFC107] text-6xl tracking-tighter drop-shadow-lg">BSG</span>
             </motion.div>
-            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl lg:text-6xl font-black mb-6 tracking-tight leading-tight drop-shadow-md">Join the<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFC107] to-[#FFF0B3]">BSG Portal</span></motion.h1>
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg lg:text-xl text-blue-100/90 max-w-md font-medium leading-relaxed">Create your account to unlock access to exclusive computer-based tests and resources.</motion.p>
+            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl lg:text-6xl font-black mb-6 tracking-tight leading-tight drop-shadow-md">
+              {t("joinBsgPortalLeft") || "Join the BSG Portal"}
+            </motion.h1>
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg lg:text-xl text-blue-100/90 max-w-md font-medium leading-relaxed mb-16">
+              {t("createAccountDesc") || "Create your account to unlock access to exclusive computer-based tests and resources."}
+            </motion.p>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}
+              whileHover={{ y: -5, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.3)" }}
+              className="group relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl max-w-sm mt-auto mb-12 transition-all duration-300 cursor-default"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              <p className="text-blue-100/80 italic font-medium">"Creating a better world through education, empowerment, and character."</p>
+              <p className="text-bsg-gold text-sm font-bold mt-2 tracking-widest uppercase">— Bharat Scouts and Guides</p>
+            </motion.div>
           </div>
         </div>
 
@@ -239,7 +254,7 @@ export default function Register() {
                   </motion.div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-1">
                       <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-1.5">{t("fullName")}</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
@@ -257,7 +272,7 @@ export default function Register() {
                       </div>
                     </div>
 
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-1">
                       <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">{t("emailAddress")}</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">

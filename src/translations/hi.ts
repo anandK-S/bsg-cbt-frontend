@@ -58,6 +58,10 @@ export const hi = {
   "termsConditions": "नियम और शर्तें",
   "privacyPolicy": "गोपनीयता नीति",
   "signIn": "लॉग इन करें",
+  "welcomeToFutureOfAssessment": "मूल्यांकन के भविष्य में आपका स्वागत है",
+  "seamlessExperienceDesc": "उत्कृष्टता के लिए डिज़ाइन किए गए एक सहज, सुरक्षित और सहज कंप्यूटर-आधारित परीक्षण वातावरण का अनुभव करें।",
+  "joinBsgPortalLeft": "BSG पोर्टल से जुड़ें",
+  "createAccountDesc": "विशेष कंप्यूटर-आधारित परीक्षणों और संसाधनों तक पहुंच अनलॉक करने के लिए अपना खाता बनाएं।",
   
   // Login Page
   "welcomeBack": "वापसी पर स्वागत है!",
@@ -89,10 +93,10 @@ export const hi = {
   // Register Page
   "createAccount": "खाता बनाएं",
   "joinBsgPortal": "अपनी परीक्षा यात्रा शुरू करने के लिए BSG पोर्टल से जुड़ें",
-  "fullName": "पूरा नाम",
-  "enterFullName": "अपना पूरा नाम दर्ज करें",
-  "bsgId": "बीएसजी आईडी",
-  "enterBsgId": "अपनी बीएसजी आईडी दर्ज करें",
+  "fullName": "उपनाम और प्रथम नाम",
+  "enterFullName": "उदा. शर्मा आनंद",
+  "bsgId": "BSG ID",
+  "enterBsgId": "अपना BSG ID दर्ज करें",
   "confirmPassword": "पासवर्ड की पुष्टि करें",
   "reEnterPassword": "अपना पासवर्ड फिर से दर्ज करें",
   "alreadyHaveAccount": "क्या आपके पास पहले से खाता है?",
