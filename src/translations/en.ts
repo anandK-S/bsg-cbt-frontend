@@ -48,7 +48,7 @@ export const en = {
   "secureExamination": "Secure Examination",
   "secureExamDesc": "Strict monitoring during BSG exam to maintain highest integrity.",
   "reliableOffline": "Reliable & Offline-Safe",
-  "reliableOfflineDesc": "Data is auto-saved locally ensuring uninterrupted Bharat Scout and Guide tests.",
+  "reliableOfflineDesc": "Answers are auto-saved to your device's local storage. If you lose internet, you can continue testing without losing a single keystroke. It syncs automatically when you reconnect.",
   "instantInsights": "Instant Insights",
   "instantInsightsDesc": "Get immediate scoring and detailed feedback on BSG exam performance.",
   "developerArchitect": "Developer & Architect",
