@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 import { GoogleGenAI } from '@google/genai';
 
+export const maxDuration = 60; // Max timeout for Vercel Hobby plan
+
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);

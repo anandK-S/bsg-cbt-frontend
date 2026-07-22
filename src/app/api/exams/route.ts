@@ -32,6 +32,8 @@ export async function GET(req: NextRequest) {
       ...exam,
       _id: exam.id,
       creatorId: exam.creator_id,
+      durationMinutes: exam.duration_minutes,
+      durationSeconds: exam.duration_seconds,
       questionCount: countsMap[exam.id] || 0,
       attemptCount: 0, // Default for now
       createdAt: exam.created_at,

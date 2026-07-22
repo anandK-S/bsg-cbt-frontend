@@ -30,8 +30,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq('exam_id', id);
 
     const formattedQuestions = (questions || []).map(q => ({
-      ...q,
-      _id: q.id
+      questionId: {
+        ...q,
+        _id: q.id,
+        correctOptionIndex: q.correct_option_index,
+        acceptableAnswers: q.acceptable_answers,
+        mediaUrl: q.media_url,
+        textHindi: q.text_hindi,
+        optionsHindi: q.options_hindi
+      },
+      marks: q.marks || 1
     }));
 
     return NextResponse.json({ 
@@ -39,6 +47,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       _id: exam.id, 
       creatorId: exam.creator_id,
       creatorName: exam.creator ? exam.creator.name : 'Unknown',
+      durationMinutes: exam.duration_minutes,
+      durationSeconds: exam.duration_seconds,
       questions: formattedQuestions 
     });
   } catch (error: any) {
