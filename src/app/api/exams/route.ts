@@ -9,9 +9,7 @@ export async function GET(req: NextRequest) {
     if (!auth) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
-
-    let query = supabase.from('exams').select('*, creator_id(name, email)');
-
+    let query = supabase.from('exams').select('*, creator_id(name)');
     if (auth.profile?.role === 'Examiner') {
       query = query.eq('creator_id', auth.id);
     }
