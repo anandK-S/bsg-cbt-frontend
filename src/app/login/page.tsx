@@ -26,6 +26,20 @@ export default function Login() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [globalSettings, setGlobalSettings] = useState<any>(null);
 
+  const getPasswordStrength = (pass: string) => {
+    if (!pass) return null;
+    let strength = 0;
+    if (pass.length > 5) strength += 1;
+    if (pass.match(/[a-z]+/)) strength += 1;
+    if (pass.match(/[A-Z]+/)) strength += 1;
+    if (pass.match(/[0-9]+/)) strength += 1;
+    if (pass.match(/[$@#&!]+/)) strength += 1;
+
+    if (strength <= 2) return { label: t("weak") || "Weak", color: "text-red-500", bg: "bg-red-500", w: "w-1/3" };
+    if (strength <= 4) return { label: t("medium") || "Medium", color: "text-amber-500", bg: "bg-amber-500", w: "w-2/3" };
+    return { label: t("strong") || "Strong", color: "text-green-500", bg: "bg-green-500", w: "w-full" };
+  };
+
   useEffect(() => {
     setMounted(true);
     axios.get(`${API_URL}/api/settings`).then((res) => {
@@ -149,7 +163,7 @@ export default function Login() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">
-                  Email Address or BSG ID
+                  {t("emailOrBsgId") || "Email Address or BSG ID"}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
@@ -200,6 +214,17 @@ export default function Login() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {password && (
+                  <div className="mt-2">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs font-semibold text-gray-500">{t("passwordStrength")}</span>
+                      <span className={`text-xs font-bold ${getPasswordStrength(password)?.color}`}>{getPasswordStrength(password)?.label}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden flex">
+                      <div className={`h-full ${getPasswordStrength(password)?.bg} ${getPasswordStrength(password)?.w} transition-all duration-300`}></div>
+                    </div>
+                  </div>
+                )}
                 <div className="flex justify-end mt-2">
                   <button
                     type="button"
@@ -248,7 +273,7 @@ export default function Login() {
                 onClick={() => router.push('/')}
                 className="w-full sm:w-1/3 flex justify-center items-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors"
               >
-                Cancel
+                {t("cancel") || "Cancel"}
               </button>
               <button
                 type="submit"

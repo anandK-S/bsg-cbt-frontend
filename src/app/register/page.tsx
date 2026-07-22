@@ -25,7 +25,23 @@ export default function Register() {
   const [district, setDistrict] = useState('Vadodara');
   const [unitNumber, setUnitNumber] = useState('');
   const [unitName, setUnitName] = useState('');
+  const [registerType, setRegisterType] = useState<'Candidate' | 'Examiner'>('Candidate');
+  const [examinerCode, setExaminerCode] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const getPasswordStrength = (pass: string) => {
+    if (!pass) return null;
+    let strength = 0;
+    if (pass.length > 5) strength += 1;
+    if (pass.match(/[a-z]+/)) strength += 1;
+    if (pass.match(/[A-Z]+/)) strength += 1;
+    if (pass.match(/[0-9]+/)) strength += 1;
+    if (pass.match(/[$@#&!]+/)) strength += 1;
+
+    if (strength <= 2) return { label: t("weak") || "Weak", color: "text-red-500", bg: "bg-red-500", w: "w-1/3" };
+    if (strength <= 4) return { label: t("medium") || "Medium", color: "text-amber-500", bg: "bg-amber-500", w: "w-2/3" };
+    return { label: t("strong") || "Strong", color: "text-green-500", bg: "bg-green-500", w: "w-full" };
+  };
   const [error, setError] = useState<{ message: string, platformName?: string, supportEmail?: string } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -51,10 +67,12 @@ export default function Register() {
       return;
     }
 
-    const bsgIdRegex = /^\d{8}$/;
-    if (!bsgIdRegex.test(bsgId)) {
-      setError({ message: 'BSG ID must be exactly 8 digits.' });
-      return;
+    if (registerType === 'Candidate') {
+      const bsgIdRegex = /^\d{8,10}$/;
+      if (!bsgIdRegex.test(bsgId)) {
+        setError({ message: 'BSG ID must be between 8 and 10 digits.' });
+        return;
+      }
     }
     
     const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
@@ -66,9 +84,20 @@ export default function Register() {
     setLoading(true);
     setError(null);
     try {
+      const payload: any = { name, email, password };
+      if (registerType === 'Candidate') {
+        payload.bsgId = bsgId;
+        payload.section = section;
+        payload.district = district;
+        payload.unitNumber = unitNumber;
+        payload.unitName = unitName;
+      } else {
+        payload.examinerCode = examinerCode;
+      }
+
       const { data } = await axios.post(
         `${API_URL}/api/auth/register`,
-        { name, email, password, bsgId, section, district, unitNumber, unitName },
+        payload,
         { withCredentials: true }
       );
       
@@ -173,6 +202,23 @@ export default function Register() {
                       )}
                     </motion.div>
                   )}
+
+                  <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+                    <button
+                      type="button"
+                      onClick={() => setRegisterType('Candidate')}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Candidate' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                      {t("candidate") || "Candidate"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRegisterType('Examiner')}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Examiner' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                      {t("examiner") || "Examiner"}
+                    </button>
+                  </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                     <div className="md:col-span-2">
@@ -211,7 +257,9 @@ export default function Register() {
                       </div>
                     </div>
 
-                    <div>
+                    {registerType === 'Candidate' ? (
+                      <>
+                        <div>
                       <label htmlFor="bsgId" className="block text-sm font-semibold text-foreground mb-1.5">{t("bsgId")}</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
@@ -221,11 +269,11 @@ export default function Register() {
                           id="bsgId"
                           type="text"
                           required
-                          maxLength={8}
+                          maxLength={10}
                           className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
                           placeholder={t("enterBsgId")}
                           value={bsgId}
-                          onChange={(e) => setBsgId(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                          onChange={(e) => setBsgId(e.target.value.replace(/\D/g, '').slice(0, 10))}
                         />
                       </div>
                     </div>
@@ -290,6 +338,26 @@ export default function Register() {
                         onChange={(e) => setUnitName(e.target.value)}
                       />
                     </div>
+                  </>
+                ) : (
+                  <div className="md:col-span-2">
+                    <label htmlFor="examinerCode" className="block text-sm font-semibold text-foreground mb-1.5">{t("secretCode") || "Secret Code"}</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                        <Lock size={18} />
+                      </div>
+                      <input
+                        id="examinerCode"
+                        type="password"
+                        required
+                        className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                        placeholder={t("enterSecretCode") || "Enter Examiner Secret Code"}
+                        value={examinerCode}
+                        onChange={(e) => setExaminerCode(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
 
                     <div className="md:col-span-2">
                       <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1.5">{t("password")}</label>
@@ -314,6 +382,17 @@ export default function Register() {
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                       </div>
+                      {password && (
+                        <div className="mt-2 mb-1">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs font-semibold text-gray-500">{t("passwordStrength")}</span>
+                            <span className={`text-xs font-bold ${getPasswordStrength(password)?.color}`}>{getPasswordStrength(password)?.label}</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden flex">
+                            <div className={`h-full ${getPasswordStrength(password)?.bg} ${getPasswordStrength(password)?.w} transition-all duration-300`}></div>
+                          </div>
+                        </div>
+                      )}
                       <p className="text-[10px] text-gray-500 mt-1">Include a letter, number, and special character</p>
                     </div>
 
@@ -351,10 +430,10 @@ export default function Register() {
                   <div className="pt-2 flex flex-col-reverse sm:flex-row gap-3">
                     <button
                       type="button"
-                      onClick={() => router.back()}
+                      onClick={() => router.push('/')}
                       className="w-full sm:w-1/3 flex justify-center items-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors"
                     >
-                      Cancel
+                      {t("cancel") || "Cancel"}
                     </button>
                     <button
                       type="submit"

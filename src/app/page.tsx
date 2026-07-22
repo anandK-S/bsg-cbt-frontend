@@ -101,7 +101,7 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bsg-blue opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-bsg-blue"></span>
             </span>
-            Bharat Scout & Guide Vadodara District
+            Vadodara Division
           </motion.div>
 
           <motion.h1 variants={itemVariants} className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-black text-gray-900 tracking-tight leading-[1.05] mb-6">
@@ -121,7 +121,7 @@ export default function Home() {
             </Link>
             
             <Link href="/register" className="inline-flex items-center justify-center px-8 py-4 font-bold text-gray-700 bg-white border-2 border-gray-100 rounded-2xl shadow-sm hover:border-gray-200 hover:bg-gray-50 transition-all text-lg hover:-translate-y-1">
-              {t("candidateRegistration")}
+              {t("registration")}
             </Link>
           </motion.div>
         </motion.div>
@@ -146,25 +146,23 @@ export default function Home() {
         </motion.div>
         
         {/* Developed By Section */}
-        <motion.div initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }} className="mt-32 max-w-5xl mx-auto w-full px-4 sm:px-6">
-          <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-[2.5rem] p-8 sm:p-12 shadow-2xl flex flex-col md:flex-row items-center gap-10 sm:gap-14 relative overflow-hidden text-white border border-gray-700/50">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-bsg-blue/40 rounded-full blur-[100px] -mr-20 -mt-20 pointer-events-none"></div>
-            
-            <div className="relative z-10 w-full md:w-1/3 flex justify-center">
-              <motion.div animate={{ y: [0, -10, 0], rotate: [-2, 2, -2] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="w-48 h-48 sm:w-56 sm:h-56 rounded-[2rem] overflow-hidden border-4 border-white/10 shadow-2xl relative">
-                <img src="/anandkumar-scout.jpg" alt="Anandkumar Sharma Scout" className="w-full h-full object-cover" />
-              </motion.div>
+        <motion.div initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }} className="mt-32 max-w-4xl mx-auto w-full px-4 sm:px-6 mb-20">
+          <div className="bg-[#192330] rounded-[2.5rem] p-6 sm:p-10 shadow-2xl flex flex-col md:flex-row items-center gap-8 sm:gap-12 relative overflow-hidden text-white border border-gray-800">
+            <div className="relative z-10 w-full md:w-auto flex justify-center shrink-0">
+              <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-3xl overflow-hidden border-[6px] border-white/5 shadow-2xl bg-white/10">
+                <img src="/anandkumar-scout.jpg" alt="Anandkumar Sharma" className="w-full h-full object-cover" />
+              </div>
             </div>
             
-            <div className="relative z-10 w-full md:w-2/3 text-center md:text-left space-y-5">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-blue-200 text-xs sm:text-sm font-bold uppercase tracking-widest backdrop-blur-sm border border-white/5">
+            <div className="relative z-10 flex-1 text-center md:text-left space-y-4">
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 text-blue-100 text-xs font-bold uppercase tracking-widest border border-white/5 shadow-sm">
                 {t("developerArchitect")}
               </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight">Anandkumar Sharma</h2>
-              <p className="text-base sm:text-lg text-gray-300 font-medium leading-relaxed">
-                Rover of 33rd NAIR, B.P Group, Vadodara Division, Western Railway.<br className="hidden sm:block"/>
-                Engineered the BSG Portal to provide a seamless examination experience.
-              </p>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">{t("developerName")}</h2>
+              <div className="space-y-2 mt-4 text-gray-300 font-medium text-sm sm:text-base leading-relaxed">
+                <p>{t("developerDesc1")}</p>
+                <p>{t("developerDesc2")}</p>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -191,7 +189,7 @@ export default function Home() {
               <div className="overflow-y-auto custom-scrollbar flex-1 pr-2 text-gray-600 text-sm space-y-4 font-medium">
                 <p>Welcome to the Bharat Scouts and Guides (BSG) Portal.</p>
                 <p>By using this platform, you agree to adhere strictly to the examination rules. Any attempt to switch tabs, minimize the browser, or engage in unfair means will be automatically recorded and may lead to immediate disqualification.</p>
-                <p>Your data, including examination progress, is securely handled. The portal is the intellectual property of BSG, developed by Anandkumar Sharma.</p>
+                <p>{t("landingDesc")}</p>
               </div>
               <button onClick={() => setShowTerms(false)} className="mt-6 w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black">I Understand</button>
             </motion.div>
