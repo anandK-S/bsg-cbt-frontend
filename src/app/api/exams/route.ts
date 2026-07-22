@@ -69,8 +69,13 @@ export async function POST(req: NextRequest) {
     ]).select().single();
 
     if (error) throw error;
+    const formattedExam = {
+      ...data,
+      _id: data.id,
+      creatorId: data.creator_id,
+    };
 
-    return NextResponse.json(data, { status: 201 });
+    return NextResponse.json(formattedExam, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
   }
