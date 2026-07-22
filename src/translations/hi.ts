@@ -79,6 +79,10 @@ export const hi = {
   "enterPassword": "अपना पासवर्ड दर्ज करें",
   "loggingIn": "लॉग इन हो रहा है...",
   "dontHaveAccount": "क्या आपके पास खाता नहीं है?",
+  "forgotPasswordTitle": "पासवर्ड भूल गए?",
+  "forgotPasswordDesc": "अपना पासवर्ड रीसेट करने के लिए कृपया आनंद से संपर्क करें। वे एडमिन डैशबोर्ड से आपके लिए एक नया पासवर्ड बना सकते हैं।",
+  "gotIt": "ठीक है, धन्यवाद!",
+  "rememberMe": "मुझे याद रखें",
   
   // Register Page
   "createAccount": "खाता बनाएं",

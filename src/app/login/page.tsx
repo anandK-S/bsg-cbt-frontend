@@ -26,25 +26,19 @@ export default function Login() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [globalSettings, setGlobalSettings] = useState<any>(null);
 
-  const getPasswordStrength = (pass: string) => {
-    if (!pass) return null;
-    let strength = 0;
-    if (pass.length > 5) strength += 1;
-    if (pass.match(/[a-z]+/)) strength += 1;
-    if (pass.match(/[A-Z]+/)) strength += 1;
-    if (pass.match(/[0-9]+/)) strength += 1;
-    if (pass.match(/[$@#&!]+/)) strength += 1;
-
-    if (strength <= 2) return { label: t("weak") || "Weak", color: "text-red-500", bg: "bg-red-500", w: "w-1/3" };
-    if (strength <= 4) return { label: t("medium") || "Medium", color: "text-amber-500", bg: "bg-amber-500", w: "w-2/3" };
-    return { label: t("strong") || "Strong", color: "text-green-500", bg: "bg-green-500", w: "w-full" };
-  };
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     axios.get(`${API_URL}/api/settings`).then((res) => {
       setGlobalSettings(res.data);
     }).catch(console.error);
+
+    const savedEmail = localStorage.getItem('rememberMeEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
   }, []);
 
   const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) => {
@@ -61,8 +55,13 @@ export default function Login() {
         { email, password },
         { withCredentials: true }
       );
-      
       login(data);
+
+      if (rememberMe) {
+        localStorage.setItem('rememberMeEmail', email);
+      } else {
+        localStorage.removeItem('rememberMeEmail');
+      }
 
       if (data.role === 'Admin') {
         router.push('/admin');
@@ -101,13 +100,13 @@ export default function Login() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
-        <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
-          <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-10 flex flex-col items-center text-white px-12 text-center">
+          <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
             <span className="font-extrabold text-bsg-gold text-4xl">BSG</span>
-          </div>
-          <h1 className="text-4xl font-black mb-4 tracking-tight leading-tight">Welcome to the Future of Assessment</h1>
-          <p className="text-lg text-blue-100 max-w-md font-medium">Experience a seamless, secure, and intuitive computer-based testing environment designed for excellence.</p>
-        </div>
+          </motion.div>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-4xl font-black mb-4 tracking-tight leading-tight">Welcome to the Future of Assessment</motion.h1>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg text-blue-100 max-w-md font-medium">Experience a seamless, secure, and intuitive computer-based testing environment designed for excellence.</motion.p>
+        </motion.div>
       </div>
 
       {/* Right Login Panel */}
@@ -175,12 +174,12 @@ export default function Login() {
                     required
                     autoComplete="email"
                     className="block w-full pl-10 pr-3 py-3 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all sm:text-sm"
-                    placeholder={t("enterEmail")}
+                    placeholder="e.g. name@example.com or 12345678"
                     value={email}
                     onChange={(e) => {
                       let val = e.target.value;
                       if (/^\d+$/.test(val)) {
-                        val = val.slice(0, 8);
+                        val = val.slice(0, 10);
                       }
                       setEmail(val);
                     }}
@@ -214,18 +213,19 @@ export default function Login() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                {password && (
-                  <div className="mt-2">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-semibold text-gray-500">{t("passwordStrength")}</span>
-                      <span className={`text-xs font-bold ${getPasswordStrength(password)?.color}`}>{getPasswordStrength(password)?.label}</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden flex">
-                      <div className={`h-full ${getPasswordStrength(password)?.bg} ${getPasswordStrength(password)?.w} transition-all duration-300`}></div>
-                    </div>
-                  </div>
-                )}
-                <div className="flex justify-end mt-2">
+                
+                <div className="flex justify-between items-center mt-3">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-4 h-4 text-bsg-blue bg-gray-100 border-gray-300 rounded focus:ring-bsg-blue focus:ring-2 cursor-pointer"
+                    />
+                    <span className="ml-2 text-sm text-gray-600 font-medium cursor-pointer select-none">
+                      {t("rememberMe") || "Remember Me"}
+                    </span>
+                  </label>
                   <button
                     type="button"
                     onClick={() => setShowForgotModal(true)}
@@ -311,15 +311,15 @@ export default function Login() {
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-6">
               <Mail className="h-8 w-8 text-bsg-blue" />
             </div>
-            <h3 className="text-2xl font-black text-center text-gray-900 mb-2">Forgot Password?</h3>
+            <h3 className="text-2xl font-black text-center text-gray-900 mb-2">{t("forgotPasswordTitle") || "Forgot Password?"}</h3>
             <p className="text-center text-gray-600 mb-8 leading-relaxed">
-              Please contact your <strong className="text-gray-900">Administrator</strong> to have your password reset. They can generate a new password for you from the Admin Dashboard.
+              {t("forgotPasswordDesc") || "Please contact Anand to have your password reset. They can generate a new password for you from the Admin Dashboard."}
             </p>
             <button
               onClick={() => setShowForgotModal(false)}
               className="w-full bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all active:scale-95"
             >
-              Got it, thanks!
+              {t("gotIt") || "Got it, thanks!"}
             </button>
           </div>
         </div>
