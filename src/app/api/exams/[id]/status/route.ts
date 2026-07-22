@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
@@ -10,7 +10,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 
     const body = await req.json();
-    const { data, error } = await supabaseAdmin.from('exams').update({ status: body.status }).eq('id', params.id).select().single();
+    const { data, error } = await supabaseAdmin.from('exams').update({ status: body.status }).eq('id', (await params).id).select().single();
     if (error) throw error;
     return NextResponse.json(data);
   } catch (error: any) {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
@@ -44,7 +44,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const { data, error } = await supabaseAdmin
       .from('questions')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select()
       .single();
 
@@ -56,14 +56,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { error } = await supabaseAdmin.from('questions').delete().eq('id', params.id);
+    const { error } = await supabaseAdmin.from('questions').delete().eq('id', (await params).id);
     if (error) throw error;
 
     return NextResponse.json({ message: 'Question deleted successfully' });

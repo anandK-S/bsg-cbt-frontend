@@ -2,15 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
+    const { id } = await params;
+
     const { data: exam, error } = await supabaseAdmin
       .from('exams')
       .select('*, creator:profiles!exams_creator_id_fkey(id, name)')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (error || !exam) {
@@ -25,7 +27,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const { data: questions } = await supabaseAdmin
       .from('questions')
       .select('*')
-      .eq('exam_id', params.id);
+      .eq('exam_id', id);
 
     const formattedQuestions = (questions || []).map(q => ({
       ...q,
@@ -44,7 +46,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
@@ -71,7 +73,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const { data, error } = await supabase
       .from('exams')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select()
       .single();
 
@@ -82,14 +84,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { error } = await supabase.from('exams').delete().eq('id', params.id);
+    const { error } = await supabase.from('exams').delete().eq('id', (await params).id);
     if (error) throw error;
 
     return NextResponse.json({ message: 'Exam deleted successfully' });

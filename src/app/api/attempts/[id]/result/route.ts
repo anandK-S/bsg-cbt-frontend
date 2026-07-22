@@ -4,13 +4,13 @@ import { getUserFromRequest } from '@/utils/authServer';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-    const examId = params.id;
+    const examId = (await params).id;
 
     // The frontend expects the result for the specific exam for the logged-in user
     const { data: result, error } = await supabase

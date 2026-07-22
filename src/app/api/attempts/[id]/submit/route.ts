@@ -4,13 +4,13 @@ import { getUserFromRequest } from '@/utils/authServer';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-    const attemptId = params.id;
+    const attemptId = (await params).id;
     const body = await req.json();
     const { answers, timeRemaining, violationReason } = body;
 

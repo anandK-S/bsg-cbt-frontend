@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const { data: questions, error } = await supabase
       .from('questions')
       .select('*')
-      .eq('exam_id', params.id);
+      .eq('exam_id', (await params).id);
 
     if (error) throw error;
     return NextResponse.json(questions);
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const { data: question, error } = await supabaseAdmin.from('questions').insert([
       {
-        exam_id: params.id,
+        exam_id: (await params).id,
         text,
         options,
         correct_option_index: correctOptionIndex !== null ? Number(correctOptionIndex) : null,
