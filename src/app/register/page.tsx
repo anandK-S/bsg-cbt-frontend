@@ -151,53 +151,37 @@ export default function Register() {
         </div>
       )}
       
-      <div className="flex-1 bg-background flex min-h-[100dvh] relative lg:overflow-hidden">
-        
-        {/* Left Decorative Panel (Hidden on Mobile) */}
-        {/* Added pt-20 to clear the global header on desktop */}
-        <div className="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden pt-12">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-10 flex flex-col items-center text-white px-12 text-center">
-            <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-              <span className="font-extrabold text-bsg-gold text-4xl">BSG</span>
-            </motion.div>
-            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-4xl font-black mb-4 tracking-tight leading-tight">Join the BSG Portal</motion.h1>
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg text-blue-100 max-w-md font-medium">Create your account to unlock access to exclusive computer-based tests and resources.</motion.p>
-          </motion.div>
-        </div>
+      <div className="flex-1 flex min-h-[100dvh] relative items-start justify-center p-4 sm:p-8 pt-24 pb-12 bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light overflow-y-auto custom-scrollbar">
+        {/* Dynamic Background Elements */}
+        <div className="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
+        <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
+        <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-gold-light/10 blur-[120px] pointer-events-none" />
 
-        {/* Right Register Panel */}
-        <div className="flex-1 flex flex-col justify-center pt-20 lg:pt-16 pb-8 px-4 sm:px-6 lg:px-20 relative z-10 lg:h-[100dvh] lg:overflow-y-auto custom-scrollbar">
-          <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/10 blur-[100px] pointer-events-none lg:hidden" />
-          
-          <div className="mx-auto w-full max-w-lg mt-0 lg:my-auto">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center lg:text-left mb-6"
-            >
-              <div className="flex justify-center lg:hidden mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform rotate-3">
-                  <span className="font-extrabold text-white text-2xl">BSG</span>
-                </div>
-              </div>
+        {/* Main Glass Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-[640px] relative z-10"
+        >
+          <div className="glass-card p-6 sm:p-10 rounded-3xl shadow-2xl border border-white/20 relative overflow-hidden">
+            {/* Subtle shine effect on card top */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+            
+            {/* Header/Logo section */}
+            <div className="flex flex-col items-center mb-8 text-center">
+              <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="w-20 h-20 bg-gradient-to-br from-bsg-blue to-bsg-blue-light rounded-2xl flex items-center justify-center mb-5 shadow-xl transform rotate-3">
+                <span className="font-extrabold text-white text-3xl">BSG</span>
+              </motion.div>
               <h2 className="text-3xl font-black text-gray-900 tracking-tight">
                 {t("createAccount")}
               </h2>
               <p className="mt-2 text-sm text-gray-500 font-medium">
                 {t("joinBsgPortal")}
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <div className="glass-card py-5 px-4 sm:p-7 rounded-3xl">
-                <form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-4" onSubmit={handleSubmit}>
                   {error && (
                     <motion.div 
                       initial={{ opacity: 0, x: -10 }}
@@ -217,18 +201,18 @@ export default function Register() {
                     </motion.div>
                   )}
 
-                  <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+                  <div className="flex bg-white/40 backdrop-blur-md p-1.5 rounded-xl mb-6 shadow-inner">
                     <button
                       type="button"
                       onClick={() => setRegisterType('Candidate')}
-                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Candidate' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Candidate' ? 'bg-white text-bsg-blue shadow-md' : 'text-gray-700 hover:text-gray-900 hover:bg-white/30'}`}
                     >
                       {t("candidate") || "Candidate"}
                     </button>
                     <button
                       type="button"
                       onClick={() => setRegisterType('Examiner')}
-                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Examiner' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Examiner' ? 'bg-white text-bsg-blue shadow-md' : 'text-gray-700 hover:text-gray-900 hover:bg-white/30'}`}
                     >
                       {t("examiner") || "Examiner"}
                     </button>
@@ -245,7 +229,7 @@ export default function Register() {
                           id="name"
                           type="text"
                           required
-                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          className="block w-full pl-10 pr-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
                           placeholder={t("enterFullName")}
                           value={name}
                           onChange={(e) => setName(capitalizeWords(e.target.value))}
@@ -263,7 +247,7 @@ export default function Register() {
                           id="email"
                           type="email"
                           required
-                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          className="block w-full pl-10 pr-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
                           placeholder={t("enterEmail")}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
@@ -282,7 +266,7 @@ export default function Register() {
                           type="text"
                           required
                           maxLength={10}
-                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          className="block w-full pl-10 pr-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
                           placeholder={t("enterBsgId")}
                           value={bsgId}
                           onChange={(e) => setBsgId(e.target.value.replace(/\D/g, '').slice(0, 10))}
@@ -299,7 +283,7 @@ export default function Register() {
                         <select
                           id="section"
                           required
-                          className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base appearance-none"
+                          className="block w-full pl-10 pr-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium appearance-none shadow-inner backdrop-blur-sm"
                           value={section}
                           onChange={(e) => setSection(e.target.value)}
                         >
@@ -318,7 +302,7 @@ export default function Register() {
                       <select
                         id="district"
                         required
-                        className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all text-sm sm:text-base"
+                        className="block w-full px-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
                         value={district}
                         onChange={(e) => setDistrict(e.target.value)}
                       >
@@ -332,7 +316,7 @@ export default function Register() {
                         id="unitNumber"
                         type="number"
                         required
-                        className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all text-sm sm:text-base"
+                        className="block w-full px-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
                         placeholder="e.g. 33"
                         value={unitNumber}
                         onChange={(e) => setUnitNumber(e.target.value)}
@@ -345,7 +329,7 @@ export default function Register() {
                         id="unitName"
                         type="text"
                         required
-                        className="block w-full px-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue transition-all text-sm sm:text-base"
+                        className="block w-full px-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
                         placeholder="e.g. NAIR, B.P Group"
                         value={unitName}
                         onChange={(e) => setUnitName(e.target.value)}
@@ -362,7 +346,7 @@ export default function Register() {
                             id="examinerCode"
                             type={showSecretCode ? 'text' : 'password'}
                             required
-                            className="block w-full pl-10 pr-10 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                            className="block w-full pl-10 pr-10 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
                             placeholder={t("enterSecretCode") || "Enter Examiner Secret Code"}
                             value={examinerCode}
                             onChange={(e) => setExaminerCode(e.target.value)}
@@ -391,7 +375,7 @@ export default function Register() {
                           id="password"
                           type={showPassword ? 'text' : 'password'}
                           required
-                          className="block w-full pl-10 pr-10 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                          className="block w-full pl-10 pr-10 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
                           placeholder="••••••••"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
@@ -449,18 +433,18 @@ export default function Register() {
                   </div>
 
                   <div className="pt-2 flex flex-col-reverse sm:flex-row gap-3">
-                    <button
-                      type="button"
-                      onClick={() => router.push('/')}
-                      className="w-full sm:w-1/3 flex justify-center items-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors"
-                    >
+                      <button
+                        type="button"
+                        onClick={() => router.push('/')}
+                        className="w-full sm:w-1/3 flex justify-center items-center py-3.5 px-4 border-2 border-white/50 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors backdrop-blur-sm"
+                      >
                       {t("cancel") || "Cancel"}
                     </button>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full sm:w-2/3 flex justify-center items-center gap-2 bg-gradient-to-r from-bsg-blue to-bsg-blue-light hover:opacity-90 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all text-sm disabled:opacity-70 transform active:scale-95"
-                    >
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full sm:w-2/3 flex justify-center items-center gap-2 bg-gradient-to-r from-bsg-blue to-bsg-blue-light hover:opacity-90 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all text-sm disabled:opacity-70 transform active:scale-95"
+                      >
                       {loading ? (
                         <span className="flex items-center gap-2">
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -475,15 +459,15 @@ export default function Register() {
                   </div>
                 </form>
                 
-                <div className="mt-6 pt-6 border-t border-border text-center text-sm">
-                  <span className="text-gray-500">{t("alreadyHaveAccount")} </span>
-                  <Link href="/login" className="text-bsg-blue dark:text-bsg-gold font-bold hover:underline transition-all">
-                    {t("signIn")}
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
+                <div className="mt-6 pt-6 border-t border-gray-300/30 text-center text-sm">
+              <span className="text-gray-600 font-medium">{t("alreadyHaveAccount")} </span>
+              <Link href="/login" className="text-bsg-blue font-black hover:text-bsg-blue-dark hover:underline transition-all">
+                {t("signIn")}
+              </Link>
+            </div>
           </div>
+        </motion.div>
+      </div>
         </div>
       </div>
     </>
