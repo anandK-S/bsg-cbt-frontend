@@ -76,6 +76,7 @@ export default function ExamDetails() {
   const [showAiModal, setShowAiModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
   const [aiError, setAiError] = useState('');
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
@@ -218,8 +219,17 @@ export default function ExamDetails() {
       return;
     }
     setIsImporting(true);
+    setImportProgress(0);
     setAiError('');
     
+    // Fake progress bar that climbs to 90%
+    const progressInterval = setInterval(() => {
+      setImportProgress(prev => {
+        const next = prev + (90 - prev) * 0.1;
+        return next > 90 ? 90 : next;
+      });
+    }, 1000);
+
     const formData = new FormData();
     formData.append('file', importFile);
     
@@ -228,16 +238,21 @@ export default function ExamDetails() {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setShowAiModal(false);
-      setImportFile(null);
-      fetchExam();
+      clearInterval(progressInterval);
+      setImportProgress(100);
+      
+      setTimeout(() => {
+        setShowAiModal(false);
+        setImportFile(null);
+        fetchExam();
+      }, 500);
     } catch (err: unknown) {
+      clearInterval(progressInterval);
       if (axios.isAxiosError(err)) {
         setAiError(err.response?.data?.message || 'Failed to import questions. Ensure Gemini API key is valid.');
       } else {
         setAiError('Failed to import questions.');
       }
-    } finally {
       setIsImporting(false);
     }
   };
@@ -725,26 +740,26 @@ export default function ExamDetails() {
         {/* QUESTION MANAGER */}
         {activeTab === 'questions' && (
           <div className="max-w-5xl">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <h1 className="text-3xl font-black text-gray-900">Question Manager</h1>
-              <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
+              <h1 className="text-3xl font-black text-gray-900 shrink-0">Question Manager</h1>
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 xl:pb-0 w-full xl:w-auto hide-scrollbar">
                 <Link
                   href={`/examiner/exams/${examId}/print`}
-                  className="bg-gray-800 text-white font-black px-5 py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-sm flex items-center gap-2"
+                  className="bg-gray-800 text-white font-black px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
                 >
                   <FileText size={18} /> Print Master Paper
                 </Link>
                 {exam.questions.length > 0 && (
                   <button 
                     onClick={() => setShowDeleteAllModal(true)}
-                    className="bg-red-500 text-white font-black px-5 py-2.5 rounded-xl hover:bg-red-600 transition-colors shadow-sm flex items-center gap-2"
+                    className="bg-red-500 text-white font-black px-4 py-2.5 rounded-xl hover:bg-red-600 transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
                   >
                     <Trash2 size={18} /> Delete All
                   </button>
                 )}
                 <button 
                   onClick={() => setShowAiModal(true)}
-                  className="bg-bsg-gold text-bsg-blue-dark font-black px-5 py-2.5 rounded-xl hover:bg-yellow-500 transition-colors shadow-sm flex items-center gap-2"
+                  className="bg-bsg-gold text-bsg-blue-dark font-black px-4 py-2.5 rounded-xl hover:bg-yellow-500 transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
                 >
                   <Upload size={18} /> AI Import
                 </button>
@@ -767,9 +782,9 @@ export default function ExamDetails() {
                     setMediaFile(null);
                     setShowManualModal(true);
                   }}
-                  className="bg-bsg-blue text-white font-black px-5 py-2.5 rounded-xl hover:bg-bsg-blue-dark transition-colors shadow-sm flex items-center gap-2"
+                  className="bg-bsg-blue text-white font-black px-4 py-2.5 rounded-xl hover:bg-bsg-blue-dark transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
                 >
-                  + Add Manual Question
+                  + Add Manual
                 </button>
               </div>
             </div>
@@ -1499,10 +1514,30 @@ export default function ExamDetails() {
                 type="file" 
                 accept=".txt,.pdf,.docx,image/*"
                 onChange={(e) => setImportFile(e.target.files ? e.target.files[0] : null)}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-bsg-blue/10 file:text-bsg-blue hover:file:bg-bsg-blue/20"
+                disabled={isImporting}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-bsg-blue/10 file:text-bsg-blue hover:file:bg-bsg-blue/20 disabled:opacity-50"
               />
             </div>
-            {aiError && <div className="mb-6 text-sm font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-100">{aiError}</div>}
+
+            {isImporting && (
+              <div className="mb-6">
+                <div className="flex justify-between text-sm font-bold text-gray-700 mb-2">
+                  <span>Extracting & Translating...</span>
+                  <span>{Math.round(importProgress)}%</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden border border-gray-200">
+                  <div 
+                    className="bg-bsg-blue h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden" 
+                    style={{ width: `${importProgress}%` }}
+                  >
+                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2 text-center font-medium">Large documents with many questions take time. Please do not close this window.</p>
+              </div>
+            )}
+
+            {aiError && !isImporting && <div className="mb-6 text-sm font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-100">{aiError}</div>}
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowAiModal(false)} className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100">Cancel</button>
               <button 
