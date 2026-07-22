@@ -21,13 +21,30 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [bsgId, setBsgId] = useState('');
-  const [section, setSection] = useState('Scout');
+  const [section, setSection] = useState('');
   const [district, setDistrict] = useState('Vadodara');
   const [unitNumber, setUnitNumber] = useState('');
   const [unitName, setUnitName] = useState('');
   const [registerType, setRegisterType] = useState<'Candidate' | 'Examiner'>('Candidate');
   const [examinerCode, setExaminerCode] = useState('');
+  const [showSecretCode, setShowSecretCode] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const capitalizeWords = (str: string) => {
+    return str
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  const generatePassword = () => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+    let pass = "";
+    for (let i = 0; i < 12; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setPassword(pass);
+  };
 
   const getPasswordStrength = (pass: string) => {
     if (!pass) return null;
@@ -74,10 +91,8 @@ export default function Register() {
         return;
       }
     }
-    
-    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
-    if (!passwordRegex.test(password)) {
-      setError({ message: 'Password must be at least 6 characters and contain a letter, a number, and a special character.' });
+    if (password.length < 6) {
+      setError({ message: 'Password must be at least 6 characters long.' });
       return;
     }
 
@@ -140,24 +155,23 @@ export default function Register() {
         
         {/* Left Decorative Panel (Hidden on Mobile) */}
         {/* Added pt-20 to clear the global header on desktop */}
-        <div className="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden pt-20">
+        <div className="hidden lg:flex lg:w-5/12 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden pt-12">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
           <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
-          <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
-            <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="relative z-10 flex flex-col items-center text-white px-12 text-center">
+            <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
               <span className="font-extrabold text-bsg-gold text-4xl">BSG</span>
-            </div>
-            <h1 className="text-4xl font-black mb-4 tracking-tight leading-tight">Join the BSG Portal</h1>
-            <p className="text-lg text-blue-100 max-w-md font-medium">Create your account to unlock access to exclusive computer-based tests and resources.</p>
-          </div>
+            </motion.div>
+            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-4xl font-black mb-4 tracking-tight leading-tight">Join the BSG Portal</motion.h1>
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg text-blue-100 max-w-md font-medium">Create your account to unlock access to exclusive computer-based tests and resources.</motion.p>
+          </motion.div>
         </div>
 
         {/* Right Register Panel */}
-        {/* Added pt-28 lg:pt-32 pb-12 to perfectly position form below the global header on PC */}
-        <div className="flex-1 flex flex-col justify-center pt-28 lg:pt-32 pb-12 px-4 sm:px-6 lg:px-20 relative z-10 lg:h-screen lg:overflow-y-auto custom-scrollbar">
+        <div className="flex-1 flex flex-col justify-center pt-20 lg:pt-16 pb-8 px-4 sm:px-6 lg:px-20 relative z-10 lg:h-[100dvh] lg:overflow-y-auto custom-scrollbar">
           <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-bsg-blue/10 blur-[100px] pointer-events-none lg:hidden" />
           
-          <div className="mx-auto w-full max-w-lg my-auto">
+          <div className="mx-auto w-full max-w-lg mt-0 lg:my-auto">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -182,8 +196,8 @@ export default function Register() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <div className="glass-card py-6 px-4 sm:p-8 rounded-3xl">
-                <form className="space-y-5" onSubmit={handleSubmit}>
+              <div className="glass-card py-5 px-4 sm:p-7 rounded-3xl">
+                <form className="space-y-4" onSubmit={handleSubmit}>
                   {error && (
                     <motion.div 
                       initial={{ opacity: 0, x: -10 }}
@@ -234,7 +248,7 @@ export default function Register() {
                           className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
                           placeholder={t("enterFullName")}
                           value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => setName(capitalizeWords(e.target.value))}
                         />
                       </div>
                     </div>
@@ -257,9 +271,7 @@ export default function Register() {
                       </div>
                     </div>
 
-                    {registerType === 'Candidate' ? (
-                      <>
-                        <div>
+                    <div>
                       <label htmlFor="bsgId" className="block text-sm font-semibold text-foreground mb-1.5">{t("bsgId")}</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
@@ -291,6 +303,7 @@ export default function Register() {
                           value={section}
                           onChange={(e) => setSection(e.target.value)}
                         >
+                          <option value="" disabled>{t("selectSection") || "Select"}</option>
                           <option value="Scout">Scout</option>
                           <option value="Guide">Guide</option>
                           <option value="Rover">Rover</option>
@@ -338,29 +351,38 @@ export default function Register() {
                         onChange={(e) => setUnitName(e.target.value)}
                       />
                     </div>
-                  </>
-                ) : (
-                  <div className="md:col-span-2">
-                    <label htmlFor="examinerCode" className="block text-sm font-semibold text-foreground mb-1.5">{t("secretCode") || "Secret Code"}</label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
-                        <Lock size={18} />
+                    {registerType === 'Examiner' && (
+                      <div className="md:col-span-2">
+                        <label htmlFor="examinerCode" className="block text-sm font-semibold text-foreground mb-1.5">{t("secretCode") || "Secret Code"}</label>
+                        <div className="relative group">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                            <Lock size={18} />
+                          </div>
+                          <input
+                            id="examinerCode"
+                            type={showSecretCode ? 'text' : 'password'}
+                            required
+                            className="block w-full pl-10 pr-10 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
+                            placeholder={t("enterSecretCode") || "Enter Examiner Secret Code"}
+                            value={examinerCode}
+                            onChange={(e) => setExaminerCode(e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowSecretCode(!showSecretCode)}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+                          >
+                            {showSecretCode ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
                       </div>
-                      <input
-                        id="examinerCode"
-                        type="password"
-                        required
-                        className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-bsg-blue focus:border-transparent transition-all text-sm sm:text-base"
-                        placeholder={t("enterSecretCode") || "Enter Examiner Secret Code"}
-                        value={examinerCode}
-                        onChange={(e) => setExaminerCode(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                )}
+                    )}
 
                     <div className="md:col-span-2">
-                      <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1.5">{t("password")}</label>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label htmlFor="password" className="block text-sm font-semibold text-foreground">{t("password")}</label>
+                        <button type="button" onClick={generatePassword} className="text-xs font-bold text-bsg-blue hover:text-bsg-blue-dark transition-colors">{t("suggestPassword") || "Suggest Password"}</button>
+                      </div>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                           <Lock size={18} />
@@ -393,7 +415,6 @@ export default function Register() {
                           </div>
                         </div>
                       )}
-                      <p className="text-[10px] text-gray-500 mt-1">Include a letter, number, and special character</p>
                     </div>
 
                     {(globalSettings?.termsUrl || globalSettings?.privacyUrl) && (

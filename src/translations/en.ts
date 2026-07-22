@@ -83,13 +83,15 @@ export const en = {
   "forgotPasswordDesc": "Please contact Anand to have your password reset. They can generate a new password for you from the Admin Dashboard.",
   "gotIt": "Got it, thanks!",
   "rememberMe": "Remember Me",
+  "suggestPassword": "Suggest Password",
+  "selectSection": "Select",
   
   // Register Page
   "createAccount": "Create an Account",
   "joinBsgPortal": "Join the BSG Portal to start your examination journey",
   "fullName": "Full Name",
   "enterFullName": "Enter your full name",
-  "bsgId": "BSG ID (Optional)",
+  "bsgId": "BSG ID",
   "enterBsgId": "Enter your BSG ID",
   "confirmPassword": "Confirm Password",
   "reEnterPassword": "Re-enter your password",

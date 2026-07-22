@@ -83,14 +83,16 @@ export const hi = {
   "forgotPasswordDesc": "अपना पासवर्ड रीसेट करने के लिए कृपया आनंद से संपर्क करें। वे एडमिन डैशबोर्ड से आपके लिए एक नया पासवर्ड बना सकते हैं।",
   "gotIt": "ठीक है, धन्यवाद!",
   "rememberMe": "मुझे याद रखें",
+  "suggestPassword": "पासवर्ड सुझाएं",
+  "selectSection": "चुनें",
   
   // Register Page
   "createAccount": "खाता बनाएं",
   "joinBsgPortal": "अपनी परीक्षा यात्रा शुरू करने के लिए BSG पोर्टल से जुड़ें",
   "fullName": "पूरा नाम",
   "enterFullName": "अपना पूरा नाम दर्ज करें",
-  "bsgId": "BSG ID (वैकल्पिक)",
-  "enterBsgId": "अपनी BSG ID दर्ज करें",
+  "bsgId": "बीएसजी आईडी",
+  "enterBsgId": "अपनी बीएसजी आईडी दर्ज करें",
   "confirmPassword": "पासवर्ड की पुष्टि करें",
   "reEnterPassword": "अपना पासवर्ड फिर से दर्ज करें",
   "alreadyHaveAccount": "क्या आपके पास पहले से खाता है?",
