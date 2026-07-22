@@ -16,18 +16,19 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
-    // Fetch question counts
-    const { data: qCounts } = await supabase.from('questions').select('exam_id');
+    // Fetch question counts and marks
+    const { data: qData } = await supabase.from('questions').select('exam_id, marks');
     const countsMap: Record<string, number> = {};
-    if (qCounts) {
-      qCounts.forEach((q: any) => {
+    const marksMap: Record<string, number> = {};
+    if (qData) {
+      qData.forEach((q: any) => {
         countsMap[q.exam_id] = (countsMap[q.exam_id] || 0) + 1;
+        marksMap[q.exam_id] = (marksMap[q.exam_id] || 0) + (q.marks || 1);
       });
     }
 
     const formattedExams = exams.map(exam => {
-      // Mock score logic since questions might not be fetched here easily without a join
-      const maxScore = countsMap[exam.id] ? countsMap[exam.id] * 2 : 50; // simple mock
+      const maxScore = marksMap[exam.id] || 0;
       return {
         _id: exam.id,
         title: exam.title,

@@ -17,14 +17,30 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ message: 'Invalid test key' }, { status: 403 });
     }
 
-    const { data: attempt, error: attemptError } = await supabaseAdmin.from('exam_attempts').insert([{
-      exam_id: (await params).id,
-      candidate_id: auth.id,
-      status: 'In-Progress',
-      time_remaining: (exam.duration_minutes * 60) + (exam.duration_seconds || 0)
-    }]).select().single();
+    // Check for existing attempt
+    let { data: attempt, error: attemptError } = await supabaseAdmin
+      .from('exam_attempts')
+      .select('*')
+      .eq('exam_id', (await params).id)
+      .eq('candidate_id', auth.id)
+      .single();
 
-    if (attemptError) throw attemptError;
+    if (attempt && attempt.status === 'Completed') {
+      return NextResponse.json({ message: 'Exam already completed' }, { status: 403 });
+    }
+
+    if (!attempt) {
+      // Create new attempt
+      const { data: newAttempt, error: newAttemptError } = await supabaseAdmin.from('exam_attempts').insert([{
+        exam_id: (await params).id,
+        candidate_id: auth.id,
+        status: 'In-Progress',
+        time_remaining: (exam.duration_minutes * 60) + (exam.duration_seconds || 0)
+      }]).select().single();
+      
+      if (newAttemptError) throw newAttemptError;
+      attempt = newAttempt;
+    }
 
     // Fetch questions to send to frontend
     const { data: questions } = await supabase.from('questions').select('*').eq('exam_id', (await params).id);
@@ -38,7 +54,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }));
 
     return NextResponse.json({
-      attempt: { ...attempt, _id: attempt.id },
+      attempt: { 
+        ...attempt, 
+        _id: attempt.id,
+        answers: mappedQuestions.map(q => ({ questionId: q._id, status: 'NotVisited' }))
+      },
       questions: mappedQuestions
     });
   } catch (error: any) {
