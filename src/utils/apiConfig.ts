@@ -1,12 +1,10 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/useAuthStore';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+export const API_URL = ''; // Use relative paths for Next.js API routes
 
 axios.interceptors.request.use((config) => {
-  if (config.url && config.url.startsWith('http://localhost:5000')) {
-    config.url = config.url.replace('http://localhost:5000', API_URL);
-  }
+  // We no longer need to replace localhost:5000 because we use relative paths
   
   // Attach token if it exists (fixes cross-site cookie issues in some browsers)
   const token = useAuthStore.getState().user?.token;
