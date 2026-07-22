@@ -151,35 +151,48 @@ export default function Register() {
         </div>
       )}
       
-      <div className="flex-1 flex min-h-[100dvh] relative items-start justify-center p-4 sm:p-8 pt-24 pb-12 bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light overflow-y-auto custom-scrollbar">
-        {/* Dynamic Background Elements */}
-        <div className="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
-        <div className="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
-        <div className="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-gold-light/10 blur-[120px] pointer-events-none" />
+      <div className="flex-1 flex min-h-[100dvh] bg-white">
+        {/* Left Panel: Hero Graphic */}
+        <div className="hidden lg:flex lg:w-5/12 xl:w-1/2 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+          <motion.div animate={{ scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
+          <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, -2, 2, 0] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold-light/10 blur-[120px] pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, type: "spring" }}
+              className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3"
+            >
+              <span className="font-extrabold text-bsg-gold text-5xl tracking-tighter">BSG</span>
+            </motion.div>
+            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl font-black mb-6 tracking-tight leading-tight">Join the<br/><span className="text-bsg-gold">BSG Portal</span></motion.h1>
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg text-blue-100 max-w-md font-medium leading-relaxed">Create your account to unlock access to exclusive computer-based tests and resources.</motion.p>
+          </div>
+        </div>
 
-        {/* Main Glass Card */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full max-w-[640px] relative z-10"
-        >
-          <div className="glass-card p-6 sm:p-10 rounded-3xl shadow-2xl border border-white/20 relative overflow-hidden">
-            {/* Subtle shine effect on card top */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+        {/* Right Panel: Clean Form */}
+        <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 lg:px-12 xl:px-24 relative z-10 bg-white lg:h-[100dvh] lg:overflow-y-auto custom-scrollbar py-12">
+          <div className="w-full max-w-xl mx-auto">
+            {/* Mobile Logo */}
+            <div className="flex justify-center lg:hidden mb-8">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform -rotate-3">
+                <span className="font-extrabold text-white text-2xl">BSG</span>
+              </div>
+            </div>
             
-            {/* Header/Logo section */}
-            <div className="flex flex-col items-center mb-8 text-center">
-              <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="w-20 h-20 bg-gradient-to-br from-bsg-blue to-bsg-blue-light rounded-2xl flex items-center justify-center mb-5 shadow-xl transform rotate-3">
-                <span className="font-extrabold text-white text-3xl">BSG</span>
-              </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="mb-8 text-center lg:text-left"
+            >
               <h2 className="text-3xl font-black text-gray-900 tracking-tight">
                 {t("createAccount")}
               </h2>
               <p className="mt-2 text-sm text-gray-500 font-medium">
                 {t("joinBsgPortal")}
               </p>
-            </div>
+            </motion.div>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
                   {error && (
@@ -201,22 +214,22 @@ export default function Register() {
                     </motion.div>
                   )}
 
-                  <div className="flex bg-white/40 backdrop-blur-md p-1.5 rounded-xl mb-6 shadow-inner">
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex bg-gray-100/80 p-1.5 rounded-xl mb-6 border border-gray-200">
                     <button
                       type="button"
                       onClick={() => setRegisterType('Candidate')}
-                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Candidate' ? 'bg-white text-bsg-blue shadow-md' : 'text-gray-700 hover:text-gray-900 hover:bg-white/30'}`}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Candidate' ? 'bg-white text-bsg-blue shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
                     >
                       {t("candidate") || "Candidate"}
                     </button>
                     <button
                       type="button"
                       onClick={() => setRegisterType('Examiner')}
-                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Examiner' ? 'bg-white text-bsg-blue shadow-md' : 'text-gray-700 hover:text-gray-900 hover:bg-white/30'}`}
+                      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${registerType === 'Examiner' ? 'bg-white text-bsg-blue shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
                     >
                       {t("examiner") || "Examiner"}
                     </button>
-                  </div>
+                  </motion.div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                     <div className="md:col-span-2">
@@ -229,7 +242,7 @@ export default function Register() {
                           id="name"
                           type="text"
                           required
-                          className="block w-full pl-10 pr-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
+                          className="block w-full pl-11 pr-3 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base shadow-sm"
                           placeholder={t("enterFullName")}
                           value={name}
                           onChange={(e) => setName(capitalizeWords(e.target.value))}
@@ -247,7 +260,7 @@ export default function Register() {
                           id="email"
                           type="email"
                           required
-                          className="block w-full pl-10 pr-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
+                          className="block w-full pl-11 pr-3 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base shadow-sm"
                           placeholder={t("enterEmail")}
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
@@ -266,7 +279,7 @@ export default function Register() {
                           type="text"
                           required
                           maxLength={10}
-                          className="block w-full pl-10 pr-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
+                          className="block w-full pl-11 pr-3 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base shadow-sm"
                           placeholder={t("enterBsgId")}
                           value={bsgId}
                           onChange={(e) => setBsgId(e.target.value.replace(/\D/g, '').slice(0, 10))}
@@ -283,7 +296,7 @@ export default function Register() {
                         <select
                           id="section"
                           required
-                          className="block w-full pl-10 pr-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium appearance-none shadow-inner backdrop-blur-sm"
+                          className="block w-full pl-11 pr-10 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base appearance-none shadow-sm"
                           value={section}
                           onChange={(e) => setSection(e.target.value)}
                         >
@@ -302,7 +315,7 @@ export default function Register() {
                       <select
                         id="district"
                         required
-                        className="block w-full px-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
+                        className="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base shadow-sm"
                         value={district}
                         onChange={(e) => setDistrict(e.target.value)}
                       >
@@ -316,7 +329,7 @@ export default function Register() {
                         id="unitNumber"
                         type="number"
                         required
-                        className="block w-full px-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
+                        className="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base shadow-sm"
                         placeholder="e.g. 33"
                         value={unitNumber}
                         onChange={(e) => setUnitNumber(e.target.value)}
@@ -329,7 +342,7 @@ export default function Register() {
                         id="unitName"
                         type="text"
                         required
-                        className="block w-full px-3 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
+                        className="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base shadow-sm"
                         placeholder="e.g. NAIR, B.P Group"
                         value={unitName}
                         onChange={(e) => setUnitName(e.target.value)}
@@ -346,7 +359,7 @@ export default function Register() {
                             id="examinerCode"
                             type={showSecretCode ? 'text' : 'password'}
                             required
-                            className="block w-full pl-10 pr-10 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
+                            className="block w-full pl-11 pr-10 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base shadow-sm"
                             placeholder={t("enterSecretCode") || "Enter Examiner Secret Code"}
                             value={examinerCode}
                             onChange={(e) => setExaminerCode(e.target.value)}
@@ -375,7 +388,7 @@ export default function Register() {
                           id="password"
                           type={showPassword ? 'text' : 'password'}
                           required
-                          className="block w-full pl-10 pr-10 py-2.5 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all text-sm sm:text-base font-medium shadow-inner backdrop-blur-sm"
+                          className="block w-full pl-11 pr-10 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base shadow-sm"
                           placeholder="••••••••"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
@@ -436,7 +449,7 @@ export default function Register() {
                       <button
                         type="button"
                         onClick={() => router.push('/')}
-                        className="w-full sm:w-1/3 flex justify-center items-center py-3.5 px-4 border-2 border-white/50 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors backdrop-blur-sm"
+                        className="w-full sm:w-1/3 flex justify-center items-center py-3.5 px-4 border-2 border-gray-200 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-100 transition-all"
                       >
                       {t("cancel") || "Cancel"}
                     </button>
@@ -459,14 +472,14 @@ export default function Register() {
                   </div>
                 </form>
                 
-                <div className="mt-6 pt-6 border-t border-gray-300/30 text-center text-sm">
-              <span className="text-gray-600 font-medium">{t("alreadyHaveAccount")} </span>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-8 pt-6 border-t border-gray-100 text-center text-sm">
+              <span className="text-gray-500 font-medium">{t("alreadyHaveAccount")} </span>
               <Link href="/login" className="text-bsg-blue font-black hover:text-bsg-blue-dark hover:underline transition-all">
                 {t("signIn")}
               </Link>
-            </div>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </>
   );

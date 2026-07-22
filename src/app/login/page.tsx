@@ -95,35 +95,48 @@ export default function Login() {
         <p className="mt-4 text-lg font-bold text-bsg-blue animate-pulse">Logging in...</p>
       </div>
     )}
-    <div className="flex-1 flex min-h-[100dvh] relative items-center justify-center p-4 sm:p-8 bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light overflow-hidden">
-      {/* Dynamic Background Elements */}
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-bsg-gold-light/10 blur-[120px] pointer-events-none" />
+    <div className="flex-1 flex min-h-[100dvh] bg-white">
+      {/* Left Panel: Hero Graphic */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-bsg-blue-dark via-bsg-blue to-bsg-blue-light items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+        <motion.div animate={{ scale: [1, 1.05, 1], rotate: [0, 2, -2, 0] }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold/20 blur-[120px] pointer-events-none" />
+        <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, -2, 2, 0] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-bsg-gold-light/10 blur-[120px] pointer-events-none" />
+        
+        <div className="relative z-10 flex flex-col items-center text-white px-12 text-center">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, type: "spring" }}
+            className="w-28 h-28 bg-white/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl border border-white/20 transform rotate-3"
+          >
+            <span className="font-extrabold text-bsg-gold text-5xl tracking-tighter">BSG</span>
+          </motion.div>
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl font-black mb-6 tracking-tight leading-tight">Welcome to the<br/><span className="text-bsg-gold">Future of Assessment</span></motion.h1>
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-lg text-blue-100 max-w-md font-medium leading-relaxed">Experience a seamless, secure, and intuitive computer-based testing environment designed for excellence.</motion.p>
+        </div>
+      </div>
 
-      {/* Main Glass Card */}
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-[440px] relative z-10"
-      >
-        <div className="glass-card p-6 sm:p-10 rounded-3xl shadow-2xl border border-white/20 relative overflow-hidden">
-          {/* Subtle shine effect on card top */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+      {/* Right Panel: Clean Form */}
+      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 xl:px-32 relative z-10 bg-white">
+        <div className="w-full max-w-md mx-auto">
+          {/* Mobile Logo */}
+          <div className="flex justify-center lg:hidden mb-8">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-bsg-blue to-bsg-blue-light flex items-center justify-center shadow-xl transform -rotate-3">
+              <span className="font-extrabold text-white text-2xl">BSG</span>
+            </div>
+          </div>
           
-          {/* Header/Logo section */}
-          <div className="flex flex-col items-center mb-8 text-center">
-            <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="w-20 h-20 bg-gradient-to-br from-bsg-blue to-bsg-blue-light rounded-2xl flex items-center justify-center mb-5 shadow-xl transform rotate-3">
-              <span className="font-extrabold text-white text-3xl">BSG</span>
-            </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-8 text-center lg:text-left"
+          >
             <h2 className="text-3xl font-black text-gray-900 tracking-tight">
               {t("welcomeBack")}
             </h2>
             <p className="mt-2 text-sm text-gray-500 font-medium">
               {t("signInToAccount")}
             </p>
-          </div>
+          </motion.div>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             {error && (
@@ -146,12 +159,16 @@ export default function Login() {
             )}
 
             <div className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <label htmlFor="email" className="block text-sm font-bold text-gray-900 mb-1.5">
                   {t("emailOrBsgId") || "Email Address or BSG ID"}
                 </label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                     <Mail size={18} />
                   </div>
                   <input
@@ -159,7 +176,7 @@ export default function Login() {
                     type="text"
                     required
                     autoComplete="email"
-                    className="block w-full pl-10 pr-3 py-3 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all font-medium sm:text-sm shadow-inner backdrop-blur-sm"
+                    className="block w-full pl-11 pr-3 py-3.5 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm shadow-sm"
                     placeholder="e.g. name@example.com or 12345678"
                     value={email}
                     onChange={(e) => {
@@ -171,14 +188,18 @@ export default function Login() {
                     }}
                   />
                 </div>
-              </div>
+              </motion.div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-foreground mb-1.5">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-1.5">
                   Password
                 </label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">
                     <Lock size={18} />
                   </div>
                   <input
@@ -186,7 +207,7 @@ export default function Login() {
                     type={showPassword ? 'text' : 'password'}
                     required
                     autoComplete="current-password"
-                    className="block w-full pl-10 pr-10 py-3 border-2 border-white/40 rounded-xl bg-white/60 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-bsg-blue/20 focus:border-bsg-blue/50 transition-all font-medium sm:text-sm shadow-inner backdrop-blur-sm"
+                    className="block w-full pl-11 pr-10 py-3.5 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm shadow-sm"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -220,10 +241,10 @@ export default function Login() {
                     Forgot Password?
                   </button>
                 </div>
-              </div>
+              </motion.div>
               
               {(globalSettings?.termsUrl || globalSettings?.privacyUrl) && (
-                <div className="flex items-start mt-4">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex items-start mt-4">
                   <div className="flex items-center h-5">
                     <input
                       id="terms"
@@ -249,15 +270,20 @@ export default function Login() {
                       )}
                     </label>
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row gap-3">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="pt-4 flex flex-col sm:flex-row gap-4"
+            >
               <button
                 type="button"
                 onClick={() => router.push('/')}
-                className="w-full sm:w-1/3 flex justify-center items-center py-3.5 px-4 border-2 border-white/50 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white/50 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bsg-blue transition-colors backdrop-blur-sm"
+                className="w-full sm:w-1/3 flex justify-center items-center py-3.5 px-4 border-2 border-gray-200 rounded-xl shadow-sm text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-100 transition-all"
               >
                 {t("cancel") || "Cancel"}
               </button>
@@ -277,17 +303,17 @@ export default function Login() {
                   </>
                 )}
               </button>
-            </div>
+            </motion.div>
           </form>
           
-          <div className="mt-6 pt-6 border-t border-gray-300/30 text-center text-sm">
-            <span className="text-gray-600 font-medium">{t("dontHaveAccount")} </span>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-8 pt-6 border-t border-gray-100 text-center text-sm">
+            <span className="text-gray-500 font-medium">{t("dontHaveAccount")} </span>
             <Link href="/register" className="text-bsg-blue font-black hover:text-bsg-blue-dark hover:underline transition-all">
               {t("register")}
             </Link>
-          </div>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
