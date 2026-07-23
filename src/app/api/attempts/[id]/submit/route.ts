@@ -26,8 +26,8 @@ export async function POST(
       return camelCaseResponse({ message: 'Invalid attempt' }, { status: 400 });
     }
 
-    if (attempt.status === 'Completed') {
-      return camelCaseResponse({ message: 'Attempt already completed' }, { status: 400 });
+    if (attempt.status === 'Completed' || attempt.status === 'Blocked') {
+      return camelCaseResponse({ message: 'Attempt already processed' }, { status: 400 });
     }
 
     // Safely get exam object whether Supabase returns it as an array or object

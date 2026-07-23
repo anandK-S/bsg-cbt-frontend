@@ -7,6 +7,8 @@ import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
+import { useLanguage } from '@/contexts/LanguageContext';
+
 interface LeaderboardEntry {
   _id: string;
   name: string;
@@ -20,6 +22,7 @@ interface LeaderboardEntry {
 }
 
 export default function LeaderboardPage() {
+  const { language, t } = useLanguage();
   const { user, isAuthenticated, _hasHydrated, logout } = useAuthStore();
   const router = useRouter();
   
