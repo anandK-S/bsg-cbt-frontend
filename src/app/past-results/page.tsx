@@ -18,6 +18,7 @@ interface PastResult {
   examId?: {
     _id: string;
     title: string;
+    issueCertificate?: boolean;
   };
   violationReason?: string;
 }
@@ -233,7 +234,7 @@ export default function PastResultsPage() {
                     <span className={`flex-1 md:flex-none flex items-center justify-center px-4 py-2 rounded-lg font-bold text-sm ${result.violationReason ? 'bg-red-600 text-white border border-red-700' : isPending ? 'bg-gray-100 text-gray-600 border border-gray-300' : isPassed ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
                       {result.violationReason ? t('disqualified') : isPending ? 'Results Pending' : isPassed ? t('passed') : t('failed')}
                     </span>
-                    {!isPending && isPassed && !result.violationReason && (
+                    {!isPending && isPassed && !result.violationReason && (result.examId as any)?.issueCertificate !== false && (
                       <Link href={`/certificate/${result._id}`} className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-bsg-gold text-bsg-blue-dark font-bold text-sm rounded-xl transition-all hover:bg-yellow-500 hover:shadow-md hover:-translate-y-0.5 shadow-sm">
                         {t('downloadCertificate')}
                       </Link>

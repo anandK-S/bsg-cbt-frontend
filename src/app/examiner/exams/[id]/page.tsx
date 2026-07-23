@@ -721,7 +721,24 @@ export default function ExamDetails() {
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Test Key / Password (Optional)</label>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-sm font-bold text-gray-700">Test Key / Password (Optional)</label>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => setEditForm({ ...editForm, testKey: '' })}
+                      className="text-xs font-bold text-gray-500 hover:text-red-500 transition-colors"
+                    >
+                      Clear
+                    </button>
+                    <button 
+                      onClick={handleSaveBasicSettings}
+                      disabled={isSavingBasic}
+                      className="text-xs font-bold text-bsg-blue hover:text-blue-700 transition-colors bg-blue-50 px-2 py-1 rounded disabled:opacity-50"
+                    >
+                      {isSavingBasic ? 'Saving...' : 'Save Key'}
+                    </button>
+                  </div>
+                </div>
                 <input
                   type="text"
                   value={editForm.testKey || ''}
@@ -780,12 +797,13 @@ export default function ExamDetails() {
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-              <button 
+            <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-200">
+              <button
                 onClick={handleSaveBasicSettings}
-                className="bg-bsg-blue text-white px-6 py-3 rounded-xl font-bold hover:bg-bsg-blue-dark transition-colors shadow-sm flex items-center gap-2"
+                disabled={isSavingBasic}
+                className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0"
               >
-                <Save size={18} /> Save Settings
+                <Save size={18} /> {isSavingBasic ? 'Saving Settings...' : 'Save Settings'}
               </button>
 
               <button 

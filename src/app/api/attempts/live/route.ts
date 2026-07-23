@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       const { data: attempts, error } = await supabase
         .from('exam_attempts')
         .select('*, exams(title), profiles!candidate_id(name, bsg_id, district)')
-        .eq('status', 'In-Progress')
+        .in('status', ['In-Progress', 'Completed'])
         .order('start_time', { ascending: false });
 
       if (error) throw error;

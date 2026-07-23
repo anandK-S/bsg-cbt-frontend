@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
           id,
           title,
           duration_minutes,
+          issue_certificate,
           creator_id (
             name
           )
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
         _id: r.exam_id,
         title: (r.exam_id as any)?.title,
         durationMinutes: (r.exam_id as any)?.duration_minutes,
+        issueCertificate: (r.exam_id as any)?.issue_certificate,
         creatorId: {
           name: (r.exam_id as any)?.creator_id?.name || 'Unknown'
         }

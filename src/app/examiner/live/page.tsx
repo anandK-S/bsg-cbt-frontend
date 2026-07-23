@@ -170,7 +170,12 @@ export default function LiveMonitor() {
 
   if (!isAuthenticated || (user?.role !== 'Examiner' && user?.role !== 'Admin')) return null;
 
-  const candidateList = Object.values(candidates);
+  // Filter out candidates who are inactive for > 5 mins and not completed
+  const candidateList = Object.values(candidates).filter(c => {
+    if (c.status === 'Completed') return true;
+    const isOffline = now - new Date(c.lastUpdate).getTime() > 300000; // 5 mins
+    return !isOffline;
+  });
   const activeCount = candidateList.filter(c => c.status === 'Active' || c.status === 'In-Progress').length;
 
   return (

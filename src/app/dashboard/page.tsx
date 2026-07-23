@@ -197,10 +197,18 @@ export default function CandidateDashboard() {
                       <p className="text-xs font-bold text-gray-700">{exam.creatorName || t('unknownExaminer')}</p>
                     </div>
                     {exam.scheduledStartDate ? (
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs text-bsg-blue-light font-medium">{t('scheduledFor')}</p>
-                        <p className="text-xs font-bold text-bsg-blue">{new Date(exam.scheduledStartDate).toLocaleString()}</p>
-                      </div>
+                      <>
+                        <div className="flex justify-between items-center mb-1">
+                          <p className="text-xs text-bsg-blue-light font-medium">Starts:</p>
+                          <p className="text-xs font-bold text-bsg-blue">{new Date(exam.scheduledStartDate).toLocaleString()}</p>
+                        </div>
+                        {exam.scheduledEndDate && (
+                          <div className="flex justify-between items-center">
+                            <p className="text-xs text-red-400 font-medium">Ends:</p>
+                            <p className="text-xs font-bold text-red-500">{new Date(exam.scheduledEndDate).toLocaleString()}</p>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="flex justify-between items-center">
                         <p className="text-xs text-gray-400 font-medium">{t('published')}</p>

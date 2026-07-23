@@ -44,7 +44,7 @@ export default function RootLayout({
           <UnifiedLayout>
             {children}
             <LanguagePopup />
-            <Toaster position="top-right" toastOptions={{ duration: 4000, style: { background: '#333', color: '#fff' } }} />
+            <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: '#333', color: '#fff' } }} />
           </UnifiedLayout>
         </LanguageProvider>
       </body>
