@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { data: exam, error } = await supabaseAdmin
       .from('exams')
-      .select('*, creator:profiles!exams_creator_id_fkey(id, name)')
+      .select('*, creator:profiles!creator_id(id, name)')
       .eq('id', id)
       .single();
 

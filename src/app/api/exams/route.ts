@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     if (!auth) {
       return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
     }
-    let query = supabase.from('exams').select('*, creator_id(name)');
+    let query = supabase.from('exams').select('*, profiles!creator_id(name)');
     if (auth.profile?.role === 'Examiner') {
       query = query.eq('creator_id', auth.id);
     }

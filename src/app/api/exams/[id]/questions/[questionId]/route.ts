@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ questionId: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
@@ -45,7 +45,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const { data, error } = await supabaseAdmin
       .from('questions')
       .update(updateData)
-      .eq('id', (await params).id)
+      .eq('id', (await params).questionId)
       .select()
       .single();
 
@@ -57,14 +57,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ questionId: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
       return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { error } = await supabaseAdmin.from('questions').delete().eq('id', (await params).id);
+    const { error } = await supabaseAdmin.from('questions').delete().eq('id', (await params).questionId);
     if (error) throw error;
 
     return camelCaseResponse({ message: 'Question deleted successfully' });
