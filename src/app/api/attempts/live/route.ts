@@ -1,7 +1,7 @@
 import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
+import { supabaseAdmin } from '@/utils/supabaseClient';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -14,16 +14,18 @@ export async function GET(req: NextRequest) {
 
     if (auth.profile?.role === 'Examiner' || auth.profile?.role === 'Admin') {
       // Return ALL live attempts
-      const { data: attempts, error } = await supabase
+      const { data: attempts, error } = await supabaseAdmin
         .from('exam_attempts')
-        .select('*, exams(title), profiles!candidate_id(name, bsg_id, district)')
+        .select('*, exams(title, duration_minutes, duration_seconds), profiles!candidate_id(name, bsg_id, district)')
         .in('status', ['In-Progress', 'Completed'])
         .order('start_time', { ascending: false });
 
       if (error) throw error;
 
       // Map array for Examiner
-      const formattedAttempts = attempts?.map(a => ({
+      const formattedAttempts = attempts?.map(a => {
+        const examMaxTime = (a.exams as any)?.duration_seconds || ((a.exams as any)?.duration_minutes * 60) || a.time_remaining;
+        return {
         _id: a.id,
         candidateId: {
           _id: a.candidate_id,
@@ -38,8 +40,10 @@ export async function GET(req: NextRequest) {
         status: a.status,
         warnings: a.warnings || 0,
         updatedAt: a.updated_at,
-        timeRemaining: a.time_remaining
-      })) || [];
+        timeRemaining: Math.min(a.time_remaining, examMaxTime),
+        examMaxTime: examMaxTime
+      };
+    }) || [];
 
       return camelCaseResponse(formattedAttempts);
     } else {

@@ -290,8 +290,8 @@ export default function CreateExam() {
                 <input
                   type="datetime-local"
                   id="startDate"
-                  value={scheduledStartDate}
-                  onChange={(e) => setScheduledStartDate(e.target.value)}
+                  value={scheduledStartDate ? (() => { const d = new Date(scheduledStartDate); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; })() : ''}
+                  onChange={(e) => setScheduledStartDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
                   className="w-full border border-gray-200 rounded-xl py-3 px-4 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
                 />
                 <p className="text-xs text-gray-400 mt-1">Candidates cannot start before this time.</p>
@@ -303,8 +303,8 @@ export default function CreateExam() {
                 <input
                   type="datetime-local"
                   id="endDate"
-                  value={scheduledEndDate}
-                  onChange={(e) => setScheduledEndDate(e.target.value)}
+                  value={scheduledEndDate ? (() => { const d = new Date(scheduledEndDate); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; })() : ''}
+                  onChange={(e) => setScheduledEndDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
                   className="w-full border border-gray-200 rounded-xl py-3 px-4 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
                 />
                 <p className="text-xs text-gray-400 mt-1">Candidates cannot start after this time.</p>

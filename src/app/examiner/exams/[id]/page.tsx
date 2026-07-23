@@ -599,54 +599,56 @@ export default function ExamDetails() {
             </div>
 
             {/* Timing & Scoring */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8 mb-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
                   <Clock size={20} />
                 </div>
                 <h2 className="text-xl font-black text-gray-900">Timing & Scoring</h2>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start mb-6">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Duration <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Duration <span className="text-red-500">*</span>
+                  </label>
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all">
+                    <div className="relative flex-1">
                       <input
                         type="number"
                         min="0"
-                        value={editForm.durationHours}
-                        onChange={(e) => setEditForm({ ...editForm, durationHours: e.target.value ? parseInt(e.target.value) : '' })}
-                        className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
+                        value={editForm.durationHours === undefined ? '' : editForm.durationHours}
+                        onChange={(e) => setEditForm({ ...editForm, durationHours: e.target.value === '' ? '' : parseInt(e.target.value) })}
                         placeholder="0"
+                        className="w-full border border-gray-200 rounded-xl py-3 pl-4 pr-10 text-base font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-gray-50"
                       />
-                      <span className="text-xs font-bold text-gray-500 ml-1">hr</span>
+                      <span className="absolute right-4 top-3.5 text-sm text-gray-400 font-bold">hr</span>
                     </div>
                     <span className="text-gray-300 font-bold text-xl">:</span>
-                    <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all">
+                    <div className="relative flex-1">
                       <input
                         type="number"
                         min="0"
                         max="59"
-                        value={editForm.durationMinutes}
-                        onChange={(e) => setEditForm({ ...editForm, durationMinutes: e.target.value ? parseInt(e.target.value) : '' })}
-                        className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
+                        value={editForm.durationMinutes === undefined ? '' : editForm.durationMinutes}
+                        onChange={(e) => setEditForm({ ...editForm, durationMinutes: e.target.value === '' ? '' : parseInt(e.target.value) })}
                         placeholder="0"
+                        className="w-full border border-gray-200 rounded-xl py-3 pl-4 pr-10 text-base font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-gray-50"
                       />
-                      <span className="text-xs font-bold text-gray-500 ml-1">min</span>
+                      <span className="absolute right-3 top-3.5 text-sm text-gray-400 font-bold">min</span>
                     </div>
                     <span className="text-gray-300 font-bold text-xl">:</span>
-                    <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all">
+                    <div className="relative flex-1">
                       <input
                         type="number"
                         min="0"
                         max="59"
-                        value={editForm.durationSeconds}
-                        onChange={(e) => setEditForm({ ...editForm, durationSeconds: e.target.value ? parseInt(e.target.value) : '' })}
-                        className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
+                        value={editForm.durationSeconds === undefined ? '' : editForm.durationSeconds}
+                        onChange={(e) => setEditForm({ ...editForm, durationSeconds: e.target.value === '' ? '' : parseInt(e.target.value) })}
                         placeholder="0"
+                        className="w-full border border-gray-200 rounded-xl py-3 pl-4 pr-10 text-base font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-gray-50"
                       />
-                      <span className="text-xs font-bold text-gray-500 ml-1">sec</span>
+                      <span className="absolute right-3 top-3.5 text-sm text-gray-400 font-bold">sec</span>
                     </div>
                   </div>
                   <p className="text-xs font-medium text-gray-400 mt-2">Leave fields empty to default to 0.</p>
@@ -681,6 +683,15 @@ export default function ExamDetails() {
                   </div>
                 </div>
               </div>
+              <div className="flex justify-end pt-4 border-t border-gray-100">
+                <button
+                  onClick={handleSaveBasicSettings}
+                  disabled={isSavingBasic}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Save size={16} /> {isSavingBasic ? 'Saving...' : 'Save Timing'}
+                </button>
+              </div>
             </div>
 
             {/* Scheduling & Access */}
@@ -702,7 +713,7 @@ export default function ExamDetails() {
                   <label className="block text-sm font-bold text-gray-700 mb-1.5">Scheduled Start Date (Optional)</label>
                   <input
                     type="datetime-local"
-                    value={editForm.scheduledStartDate ? new Date(new Date(editForm.scheduledStartDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+                    value={editForm.scheduledStartDate ? (() => { const d = new Date(editForm.scheduledStartDate); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; })() : ''}
                     onChange={(e) => setEditForm({ ...editForm, scheduledStartDate: e.target.value ? new Date(e.target.value).toISOString() : null })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium text-sm"
                   />
@@ -712,7 +723,7 @@ export default function ExamDetails() {
                   <label className="block text-sm font-bold text-gray-700 mb-1.5">Scheduled End Date (Optional)</label>
                   <input
                     type="datetime-local"
-                    value={editForm.scheduledEndDate ? new Date(new Date(editForm.scheduledEndDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+                    value={editForm.scheduledEndDate ? (() => { const d = new Date(editForm.scheduledEndDate); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; })() : ''}
                     onChange={(e) => setEditForm({ ...editForm, scheduledEndDate: e.target.value ? new Date(e.target.value).toISOString() : null })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium text-sm"
                   />
@@ -745,7 +756,7 @@ export default function ExamDetails() {
                     <button 
                       onClick={handleSaveBasicSettings}
                       disabled={isSavingBasic}
-                      className="px-4 py-2 text-sm font-bold text-white bg-bsg-blue hover:bg-bsg-blue-dark rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
                     >
                       {isSavingBasic ? 'Saving...' : 'Save Key'}
                     </button>
@@ -800,6 +811,15 @@ export default function ExamDetails() {
                   </div>
                 </label>
               </div>
+              <div className="flex justify-end pt-6 mt-6 border-t border-gray-200">
+                <button
+                  onClick={handleSaveBasicSettings}
+                  disabled={isSavingBasic}
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Save size={16} /> {isSavingBasic ? 'Saving...' : 'Save Scheduling Options'}
+                </button>
+              </div>
             </div>
 
             <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-200">
@@ -808,7 +828,7 @@ export default function ExamDetails() {
                 disabled={isSavingBasic}
                 className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0"
               >
-                <Save size={18} /> {isSavingBasic ? 'Saving Settings...' : 'Save Settings'}
+                <Save size={18} /> {isSavingBasic ? 'Saving All Settings...' : 'Save All Settings'}
               </button>
 
               <button 

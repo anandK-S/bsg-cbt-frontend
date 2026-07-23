@@ -52,6 +52,8 @@ export default function LiveMonitor() {
           status: attempt.status === 'In-Progress' ? 'Active' : attempt.status,
           warnings: attempt.warnings || 0,
           lastUpdate: attempt.updatedAt,
+          examMaxTime: attempt.examMaxTime,
+          timeRemaining: attempt.timeRemaining
         };
       });
       setCandidates(attemptsMap);
@@ -89,10 +91,22 @@ export default function LiveMonitor() {
     channel
       .on('broadcast', { event: 'status-update' }, (payload: any) => {
         const data = payload.payload;
-        setCandidates(prev => ({
-          ...prev,
-          [data.candidateId]: { ...data, lastUpdate: new Date() }
-        }));
+        setCandidates(prev => {
+          const existing = prev[data.candidateId] || {};
+          let newTime = data.timeRemaining;
+          if (existing.examMaxTime && newTime > existing.examMaxTime) {
+            newTime = existing.examMaxTime;
+          }
+          return {
+            ...prev,
+            [data.candidateId]: { 
+              ...existing, 
+              ...data, 
+              timeRemaining: newTime,
+              lastUpdate: new Date() 
+            }
+          };
+        });
       })
       .on('broadcast', { event: 'join-exam' }, (payload: any) => {
         fetchLiveAttempts(); // Refresh if a new candidate joins

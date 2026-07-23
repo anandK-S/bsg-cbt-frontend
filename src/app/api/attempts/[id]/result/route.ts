@@ -1,6 +1,6 @@
 import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 export async function GET(
@@ -14,7 +14,7 @@ export async function GET(
     const examId = (await params).id;
 
     if (auth.profile?.role === 'Examiner' || auth.profile?.role === 'Admin') {
-      const { data: results, error } = await supabase
+      const { data: results, error } = await supabaseAdmin
         .from('results')
         .select('*, candidate_id(*)')
         .eq('exam_id', examId)

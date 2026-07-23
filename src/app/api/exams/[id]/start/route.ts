@@ -48,18 +48,42 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // If there's an existing attempt and multiple attempts are allowed, 
-    // and it's 'Completed', we create a new one. We do NOT delete the old one.
+    // and it's 'Completed', we reuse it by updating its status to 'In-Progress'.
+    // This avoids unique constraint errors.
     if (!attempt || (attempt.status === 'Completed' && exam.allow_multiple_attempts)) {
-      // Create new attempt
-      const { data: newAttempt, error: newAttemptError } = await supabaseAdmin.from('exam_attempts').insert([{
-        exam_id: (await params).id,
-        candidate_id: auth.id,
-        status: 'In-Progress',
-        time_remaining: (exam.duration_minutes * 60) + (exam.duration_seconds || 0)
-      }]).select().single();
-      
-      if (newAttemptError) throw newAttemptError;
-      attempt = newAttempt;
+      if (!attempt) {
+        // Create new attempt
+        const { data: newAttempt, error: newAttemptError } = await supabaseAdmin.from('exam_attempts').insert([{
+          exam_id: (await params).id,
+          candidate_id: auth.id,
+          status: 'In-Progress',
+          time_remaining: exam.duration_seconds || (exam.duration_minutes * 60)
+        }]).select().single();
+        
+        if (newAttemptError) throw newAttemptError;
+        attempt = newAttempt;
+      } else {
+        // Update old attempt to restart it
+        const { data: updatedAttempt, error: updateError } = await supabaseAdmin.from('exam_attempts').update({
+          status: 'In-Progress',
+          time_remaining: exam.duration_seconds || (exam.duration_minutes * 60),
+          start_time: new Date().toISOString(),
+          warnings: 0
+        }).eq('id', attempt.id).select().single();
+        
+        if (updateError) throw updateError;
+        attempt = updatedAttempt;
+      }
+    }
+
+    // If it's already in-progress, cap the time_remaining to the current exam duration 
+    // in case the examiner reduced the time while they were paused.
+    if (attempt && attempt.status === 'In-Progress') {
+      const maxTime = exam.duration_seconds || (exam.duration_minutes * 60);
+      if (attempt.time_remaining > maxTime) {
+        attempt.time_remaining = maxTime;
+        await supabaseAdmin.from('exam_attempts').update({ time_remaining: maxTime }).eq('id', attempt.id);
+      }
     }
 
     // Fetch questions to send to frontend

@@ -78,6 +78,9 @@ export async function POST(
 
     const timeTaken = (examObj?.duration_minutes * 60 + (examObj?.duration_seconds || 0)) - (timeRemaining || 0);
 
+    // Delete any old result for this attempt to prevent unique constraint errors during retakes
+    await supabaseAdmin.from('results').delete().eq('attempt_id', attemptId);
+
     // Save Result
     const { data: result } = await supabaseAdmin
       .from('results')

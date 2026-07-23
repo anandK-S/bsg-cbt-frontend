@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     if (examError || !exam) return camelCaseResponse({ message: 'Exam not found' }, { status: 404 });
 
-    const timeRemaining = (exam.duration_minutes * 60) + (exam.duration_seconds || 0);
+    const timeRemaining = exam.duration_seconds || (exam.duration_minutes * 60);
 
     const { data: attempt, error: attemptError } = await supabaseAdmin
       .from('exam_attempts')

@@ -1,6 +1,6 @@
 import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 export async function GET(req: NextRequest) {
@@ -10,15 +10,29 @@ export async function GET(req: NextRequest) {
 
     const now = new Date().toISOString();
 
-    const { data: exams, error } = await supabase
+    const { data: allExams, error } = await supabaseAdmin
       .from('exams')
-      .select('*, creator_id(name)')
-      .or(`status.eq.Published,and(scheduled_start_date.lte.${now},scheduled_end_date.gte.${now})`);
+      .select('*, creator_id(name)');
 
     if (error) throw error;
 
+    const currentTime = new Date().getTime();
+    
+    // Manually filter exams based on status and scheduled dates to bypass RLS for candidates
+    const exams = allExams.filter((exam: any) => {
+      if (exam.status === 'Published') return true;
+      if (exam.status === 'Draft' && exam.scheduled_start_date) {
+        const startDate = new Date(exam.scheduled_start_date).getTime();
+        const endDate = exam.scheduled_end_date ? new Date(exam.scheduled_end_date).getTime() : Infinity;
+        if (currentTime >= startDate && currentTime <= endDate) {
+          return true;
+        }
+      }
+      return false;
+    });
+
     // Fetch question counts and marks
-    const { data: qData } = await supabase.from('questions').select('exam_id, marks');
+    const { data: qData } = await supabaseAdmin.from('questions').select('exam_id, marks');
     const countsMap: Record<string, number> = {};
     const marksMap: Record<string, number> = {};
     if (qData) {
