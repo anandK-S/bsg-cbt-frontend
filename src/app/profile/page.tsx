@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import { useRouter } from 'next/navigation';
-import { UserCircle, Link as LinkIcon, Camera, Upload, X } from 'lucide-react';
+import { UserCircle, Link as LinkIcon, Camera, Upload, X, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ProfilePage() {
@@ -25,6 +25,22 @@ export default function ProfilePage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showPopup, setShowPopup] = useState(false);
+
+  const getPasswordStrength = (pass: string) => {
+    if (!pass) return { score: 0, label: '', color: 'bg-gray-200' };
+    let score = 0;
+    if (pass.length >= 6) score += 1;
+    if (/[a-zA-Z]/.test(pass)) score += 1;
+    if (/\d/.test(pass)) score += 1;
+    if (/[^a-zA-Z0-9]/.test(pass)) score += 1;
+    
+    if (score <= 2) return { score, label: 'Weak', color: 'bg-red-500 text-red-700' };
+    if (score === 3) return { score, label: 'Good', color: 'bg-yellow-500 text-yellow-700' };
+    return { score, label: 'Strong', color: 'bg-green-500 text-green-700' };
+  };
+
+  const strength = getPasswordStrength(password);
 
   useEffect(() => {
     if (_hasHydrated && !isAuthenticated) {
@@ -75,10 +91,14 @@ export default function ProfilePage() {
 
       setUser({ ...user, ...data });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setShowPopup(true);
       setPassword('');
+      setTimeout(() => setShowPopup(false), 3000);
     } catch (err: any) {
       console.error(err);
       setMessage({ type: 'error', text: err.response?.data?.message || 'Failed to update profile' });
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000);
     } finally {
       setLoading(false);
     }
@@ -137,14 +157,35 @@ export default function ProfilePage() {
               )}
             </div>
 
+            {/* Popup Notification */}
+            {showPopup && message.text && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center transform animate-in zoom-in-95 duration-200 relative">
+                  <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full mb-6">
+                    {message.type === 'success' ? (
+                      <CheckCircle className="h-16 w-16 text-green-500" />
+                    ) : (
+                      <XCircle className="h-16 w-16 text-red-500" />
+                    )}
+                  </div>
+                  <h3 className="text-2xl font-black text-gray-900 mb-2">
+                    {message.type === 'success' ? 'Success!' : 'Error'}
+                  </h3>
+                  <p className="text-gray-600 mb-6 font-medium">
+                    {message.text}
+                  </p>
+                  <button
+                    onClick={() => setShowPopup(false)}
+                    className={`w-full font-bold py-3 px-4 rounded-xl shadow-sm transition-all active:scale-95 text-white ${message.type === 'success' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
+                  >
+                    Okay
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Form */}
             <form onSubmit={handleUpdate} className="flex-1 space-y-6 w-full">
-              
-              {message.text && (
-                <div className={`p-4 rounded-xl text-sm font-bold ${message.type === 'error' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'}`}>
-                  {message.text}
-                </div>
-              )}
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Display Name (First Name + Surname)</label>
@@ -160,56 +201,7 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {(user?.role === 'Candidate' || user?.role === 'Examiner') && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">BSG ID</label>
-                    <input
-                      type="text"
-                      value={bsgId}
-                      onChange={(e) => setBsgId(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
-                      placeholder="BSG ID"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Section</label>
-                    <select
-                      value={section}
-                      onChange={(e) => setSection(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
-                    >
-                      <option value="">Select Section</option>
-                      <option value="Cub">Cub</option>
-                      <option value="Bulbul">Bulbul</option>
-                      <option value="Scout">Scout</option>
-                      <option value="Guide">Guide</option>
-                      <option value="Rover">Rover</option>
-                      <option value="Ranger">Ranger</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">District</label>
-                    <input
-                      type="text"
-                      value={district}
-                      onChange={(e) => setDistrict(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
-                      placeholder="District"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Unit Name</label>
-                    <input
-                      type="text"
-                      value={unitName}
-                      onChange={(e) => setUnitName(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
-                      placeholder="Unit Name"
-                    />
-                  </div>
-                </div>
-              )}
+              {/* Removed Extra Fields per Request */}
 
               {/* Profile Image — URL or Upload */}
               <div>
@@ -271,17 +263,29 @@ export default function ProfilePage() {
 
               {/* Password */}
               <div className="pt-4 border-t border-gray-100">
-                <label className="block text-sm font-bold text-gray-700 mb-1">Change Password <span className="font-normal text-gray-400">(Optional)</span></label>
-                <p className="text-xs text-gray-400 mb-2 font-medium">Min. 6 characters — must include a letter, number, and special character.</p>
+                <div className="flex justify-between items-end mb-2">
+                  <label className="block text-sm font-bold text-gray-700">Change Password <span className="font-normal text-gray-400">(Optional)</span></label>
+                  {password && (
+                    <span className={`text-xs font-bold px-2 py-1 rounded-md ${strength.color.split(' ')[0]} text-white`}>
+                      {strength.label}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  pattern="^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$"
-                  title="Min 6 characters with at least one letter, one number, and one special character."
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
                   placeholder="New password (leave blank to keep current)"
                 />
+                {password && (
+                  <div className="flex gap-1 mt-2">
+                    <div className={`h-1.5 flex-1 rounded-full ${strength.score >= 1 ? strength.color.split(' ')[0] : 'bg-gray-200'}`}></div>
+                    <div className={`h-1.5 flex-1 rounded-full ${strength.score >= 2 ? strength.color.split(' ')[0] : 'bg-gray-200'}`}></div>
+                    <div className={`h-1.5 flex-1 rounded-full ${strength.score >= 3 ? strength.color.split(' ')[0] : 'bg-gray-200'}`}></div>
+                    <div className={`h-1.5 flex-1 rounded-full ${strength.score >= 4 ? strength.color.split(' ')[0] : 'bg-gray-200'}`}></div>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-4">

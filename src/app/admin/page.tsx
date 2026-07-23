@@ -172,7 +172,7 @@ export default function AdminDashboard() {
   const toggleBlockStatus = async (userId: string, currentStatus: string) => {
     try {
       const action = currentStatus === 'Active' ? 'block' : 'unblock';
-      await axios.put(`${API_URL}/api/users/${userId}/${action}`, {}, { withCredentials: true });
+      await axios.put(`${API_URL}/api/admin/users/${userId}/${action}`, {}, { withCredentials: true });
       setUsers(users.map(u => u._id === userId ? { ...u, status: currentStatus === 'Active' ? 'Blocked' : 'Active' } : u));
     } catch (error) {
       console.error(error);
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
   const handleEditSubmit = async () => {
     setIsEditing(true);
     try {
-      const { data } = await axios.put(`${API_URL}/api/users/${userToEdit?._id}/update`, editFormData, { withCredentials: true });
+      const { data } = await axios.put(`${API_URL}/api/admin/users/${userToEdit?._id}/update`, editFormData, { withCredentials: true });
       setUsers(users.map(u => u._id === userToEdit?._id ? data.user : u));
       setEditMsg({ text: 'User updated successfully!', type: 'success' });
       setTimeout(() => {
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
 
   const handleUnlock = async (userId: string) => {
     try {
-      const { data } = await axios.put(`${API_URL}/api/users/${userId}/unlock`, {}, { withCredentials: true });
+      const { data } = await axios.put(`${API_URL}/api/admin/users/${userId}/unlock`, {}, { withCredentials: true });
       setUsers(users.map(u => u._id === userId ? { ...u, failedLoginAttempts: 0, lockedUntil: undefined } : u));
     } catch (error) {
       console.error(error);
@@ -295,7 +295,7 @@ export default function AdminDashboard() {
     }
     setIsResetting(true);
     try {
-      await axios.put(`${API_URL}/api/users/${selectedUser?._id}/password`, { newPassword }, { withCredentials: true });
+      await axios.put(`${API_URL}/api/admin/users/${selectedUser?._id}/password`, { newPassword }, { withCredentials: true });
       setResetMsg({ text: 'Password reset successfully!', type: 'success' });
       setTimeout(() => { setShowPasswordModal(false); setNewPassword(''); setResetMsg({text:'', type:''}); }, 1500);
     } catch (error: any) {
@@ -317,7 +317,7 @@ export default function AdminDashboard() {
 
     setIsCreatingExaminer(true);
     try {
-      await axios.post(`${API_URL}/api/auth/create-examiner`, examinerData, { withCredentials: true });
+      await axios.post(`${API_URL}/api/admin/create-examiner`, examinerData, { withCredentials: true });
       setExaminerMsg({ text: 'Examiner created successfully!', type: 'success' });
       const usersRes = await axios.get(`${API_URL}/api/users`, { withCredentials: true });
       setUsers(usersRes.data);
@@ -337,7 +337,7 @@ export default function AdminDashboard() {
     if (!adminPasswordForDelete) return setDeleteError('Password required');
     setIsDeleting(true);
     try {
-      await axios.delete(`${API_URL}/api/users/${userToDelete?._id}`, {
+      await axios.delete(`${API_URL}/api/admin/users/${userToDelete?._id}`, {
         data: { adminPassword: adminPasswordForDelete },
         withCredentials: true,
       });
