@@ -201,6 +201,21 @@ export const en = {
   "offline": "Offline",
   "active": "Active",
   "blocked": "Blocked",
-  "completed": "Completed"
-
+  "completed": "Completed",
+  
+  // Exam Start Instructions
+  "examInstructions": "Examination Instructions",
+  "durationLimit": "Duration Limit",
+  "durationLimitDesc": "You will have exactly {minutes} minutes to complete this assessment. The timer will begin immediately after you click start.",
+  "fullscreenProctoring": "Fullscreen & Proctoring",
+  "fullscreenProctoringDesc": "The exam will automatically enter fullscreen mode once started. Exiting fullscreen will trigger a security warning.",
+  "academicIntegrityTitle": "Academic Integrity",
+  "academicIntegrityDesc": "Any attempt to use unfair means, switch tabs, minimize the browser, or exit fullscreen will be automatically recorded as a security violation. Multiple violations will lead to immediate auto-submission of the exam.",
+  "bilingualQuestionsTitle": "Bilingual Questions",
+  "bilingualQuestionsDesc": "For bilingual questions, the English version will prevail in case of any discrepancy.",
+  "understandRules": "I understand that any attempt to use unfair means will result in immediate disqualification, and I agree to follow all examination rules.",
+  "startExamBtn": "I understand, start exam",
+  "restrictedAccess": "Restricted Access",
+  "testKeyRequiredDesc": "This examination requires a test key or password to proceed. Please enter it below.",
+  "unlockExamination": "Unlock Examination"
 };

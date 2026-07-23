@@ -43,9 +43,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       marks: q.marks || 1
     }));
 
+    const isCandidate = auth.profile?.role === 'Candidate';
+    const hasTestKey = !!exam.test_key;
+    if (isCandidate) {
+      delete exam.test_key;
+    }
+
     return camelCaseResponse({ 
       ...exam, 
       _id: exam.id, 
+      hasTestKey,
       creatorId: exam.creator_id,
       creatorName: exam.creator ? exam.creator.name : 'Unknown',
       durationMinutes: exam.duration_minutes,

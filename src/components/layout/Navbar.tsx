@@ -110,6 +110,12 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
             )}
           </div>
 
+          {/* Center: Language Switcher (Mobile Only) */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex md:hidden items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+            <button onClick={() => setLanguage('en')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500'}`}>EN</button>
+            <button onClick={() => setLanguage('hi')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500'}`}>HI</button>
+          </div>
+
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
             {isAuthenticated ? (
@@ -122,10 +128,6 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
             ) : (
               !isAuthPage && _hasHydrated && (
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200 mr-2">
-                    <button onClick={() => setLanguage('en')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${language === 'en' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500'}`}>EN</button>
-                    <button onClick={() => setLanguage('hi')} className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-white text-bsg-blue shadow-sm' : 'text-gray-500'}`}>HI</button>
-                  </div>
                   <Link href="/login" className="text-primary font-bold text-sm">
                     Login
                   </Link>

@@ -7,8 +7,10 @@ import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import Link from 'next/link';
 import { CheckCircle, AlertTriangle, Clock, Target, FileText, ChevronRight, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ExamStartPage() {
+  const { t } = useLanguage();
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const params = useParams();
@@ -20,6 +22,9 @@ export default function ExamStartPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [enteredKey, setEnteredKey] = useState('');
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [verifyingKey, setVerifyingKey] = useState(false);
+  const [keyError, setKeyError] = useState<string | null>(null);
 
   const [timeUntilStart, setTimeUntilStart] = useState<number | null>(null);
 
@@ -181,6 +186,72 @@ export default function ExamStartPage() {
     );
   }
 
+  const handleVerifyKey = async () => {
+    if (!enteredKey.trim()) return;
+    setVerifyingKey(true);
+    setKeyError(null);
+    try {
+      await axios.post(`${API_URL}/api/exams/${examId}/verify-key`, { testKey: enteredKey }, {
+        withCredentials: true,
+      });
+      setIsUnlocked(true);
+    } catch (err: any) {
+      if (err.response?.status === 403) {
+        setKeyError(err.response.data.message || 'Invalid test key');
+      } else {
+        setKeyError('Failed to verify key. Please try again.');
+      }
+    } finally {
+      setVerifyingKey(false);
+    }
+  };
+
+  // If exam has a test key and it hasn't been unlocked yet
+  if (exam?.hasTestKey && !isUnlocked) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center py-12 px-4 sm:px-6">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 to-orange-600"></div>
+          <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShieldCheck size={40} className="text-orange-500" />
+          </div>
+          <h2 className="text-2xl font-extrabold text-gray-900 mb-2">{t('restrictedAccess') || 'Restricted Access'}</h2>
+          <p className="text-gray-500 font-medium mb-8">{t('testKeyRequiredDesc') || 'This examination requires a test key or password to proceed. Please enter it below.'}</p>
+          
+          <div className="space-y-4 text-left">
+            <div>
+              <label htmlFor="testKey" className="block text-sm font-bold text-gray-700 mb-1.5">Test Key / Password</label>
+              <input
+                id="testKey"
+                type="password"
+                value={enteredKey}
+                onChange={(e) => setEnteredKey(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleVerifyKey()}
+                placeholder="Enter password"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white focus:border-transparent transition-all font-medium text-sm text-gray-900 outline-none"
+              />
+            </div>
+            {keyError && (
+              <p className="text-red-500 text-sm font-bold bg-red-50 p-2.5 rounded-lg border border-red-100">{keyError}</p>
+            )}
+            <button
+              onClick={handleVerifyKey}
+              disabled={verifyingKey || !enteredKey.trim()}
+              className="w-full py-3 bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {verifyingKey ? 'Verifying...' : (t('unlockExamination') || 'Unlock Examination')}
+            </button>
+          </div>
+          <div className="mt-6">
+            <Link href="/dashboard" className="text-gray-400 hover:text-gray-600 text-sm font-semibold transition-colors">
+              Cancel and return to Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50/50 relative py-12 px-4 sm:px-6">
       {/* Decorative Background Elements */}
@@ -224,58 +295,42 @@ export default function ExamStartPage() {
         {/* Instructions & Details */}
         <div className="p-8">
           <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <FileText size={20} className="text-bsg-blue" /> Examination Instructions
+            <FileText size={20} className="text-bsg-blue" /> {t('examInstructions') || 'Examination Instructions'}
           </h2>
 
           <div className="space-y-4 mb-10">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 bg-blue-50 text-bsg-blue p-1 rounded-full"><Clock size={16} /></div>
               <div>
-                <p className="text-sm font-bold text-gray-800">Duration Limit</p>
-                <p className="text-sm text-gray-600 mt-1">You will have exactly <strong>{exam?.durationMinutes || 0} minutes</strong> to complete this assessment. The timer will begin immediately after you click start.</p>
+                <p className="text-sm font-bold text-gray-800">{t('durationLimit') || 'Duration Limit'}</p>
+                <p className="text-sm text-gray-600 mt-1">{(t('durationLimitDesc') || 'You will have exactly {minutes} minutes to complete this assessment. The timer will begin immediately after you click start.').replace('{minutes}', String(exam?.durationMinutes || 0))}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
               <div className="mt-0.5 bg-yellow-50 text-yellow-600 p-1 rounded-full"><Target size={16} /></div>
               <div>
-                <p className="text-sm font-bold text-gray-800">Fullscreen & Proctoring</p>
-                <p className="text-sm text-gray-600 mt-1">The exam will automatically enter fullscreen mode once started. Exiting fullscreen will trigger a security warning.</p>
+                <p className="text-sm font-bold text-gray-800">{t('fullscreenProctoring') || 'Fullscreen & Proctoring'}</p>
+                <p className="text-sm text-gray-600 mt-1">{t('fullscreenProctoringDesc') || 'The exam will automatically enter fullscreen mode once started. Exiting fullscreen will trigger a security warning.'}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
               <div className="mt-0.5 bg-green-50 text-green-600 p-1 rounded-full"><ShieldCheck size={16} /></div>
               <div>
-                <p className="text-sm font-bold text-gray-800">Academic Integrity</p>
-                <p className="text-sm text-gray-600 mt-1">Any attempt to use unfair means, switch tabs, minimize the browser, or exit fullscreen will be automatically recorded as a security violation. Multiple violations will lead to immediate auto-submission of the exam.</p>
+                <p className="text-sm font-bold text-gray-800">{t('academicIntegrityTitle') || 'Academic Integrity'}</p>
+                <p className="text-sm text-gray-600 mt-1">{t('academicIntegrityDesc') || 'Any attempt to use unfair means, switch tabs, minimize the browser, or exit fullscreen will be automatically recorded as a security violation. Multiple violations will lead to immediate auto-submission of the exam.'}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
               <div className="mt-0.5 bg-blue-50 text-bsg-blue p-1 rounded-full"><FileText size={16} /></div>
               <div>
-                <p className="text-sm font-bold text-gray-800">Bilingual Questions</p>
-                <p className="text-sm text-gray-600 mt-1">For bilingual questions, the English version will prevail in case of any discrepancy.</p>
+                <p className="text-sm font-bold text-gray-800">{t('bilingualQuestionsTitle') || 'Bilingual Questions'}</p>
+                <p className="text-sm text-gray-600 mt-1">{t('bilingualQuestionsDesc') || 'For bilingual questions, the English version will prevail in case of any discrepancy.'}</p>
               </div>
             </div>
           </div>
-
-          {exam?.hasTestKey && (
-            <div className="bg-orange-50 p-6 rounded-xl border border-orange-200 mb-6 flex flex-col gap-3">
-              <label htmlFor="testKey" className="text-sm font-bold text-orange-900">
-                Test Key / Password Required
-              </label>
-              <input
-                id="testKey"
-                type="text"
-                value={enteredKey}
-                onChange={(e) => setEnteredKey(e.target.value)}
-                placeholder="Enter test password"
-                className="w-full px-4 py-2.5 bg-white border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all font-medium text-sm text-gray-900 outline-none"
-              />
-            </div>
-          )}
 
           <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 flex items-start gap-3">
             <div className="flex items-center h-5 mt-0.5">
@@ -288,17 +343,17 @@ export default function ExamStartPage() {
               />
             </div>
             <label htmlFor="agree" className="text-sm font-medium text-gray-800 cursor-pointer select-none">
-              I understand that any attempt to use unfair means will result in immediate disqualification, and I agree to follow all examination rules.
+              {t('understandRules') || 'I understand that any attempt to use unfair means will result in immediate disqualification, and I agree to follow all examination rules.'}
             </label>
           </div>
 
           <div className="border-t border-gray-100 pt-8 flex justify-end">
             <button
               onClick={handleStartExam}
-              disabled={starting || !!errorMsg || !agreed || (exam?.hasTestKey && !enteredKey.trim())}
+              disabled={starting || !!errorMsg || !agreed}
               className="inline-flex items-center gap-2 px-8 py-3 bg-bsg-gold hover:bg-yellow-500 text-bsg-blue-dark font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
-              {starting ? 'Initializing...' : 'I understand, start exam'}
+              {starting ? 'Initializing...' : (t('startExamBtn') || 'I understand, start exam')}
               {!starting && <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />}
             </button>
           </div>
