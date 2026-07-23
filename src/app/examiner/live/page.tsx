@@ -76,8 +76,8 @@ export default function LiveMonitor() {
 
     fetchLiveAttempts();
     
-    // Fallback polling for Vercel (every 10 seconds)
-    const interval = setInterval(() => fetchLiveAttempts(), 10000);
+    // Fallback polling for Vercel (every 3 seconds)
+    const interval = setInterval(fetchLiveAttempts, 3000);
     return () => clearInterval(interval);
   }, [_hasHydrated, isAuthenticated, user, router, fetchLiveAttempts]);
 
@@ -186,7 +186,6 @@ export default function LiveMonitor() {
 
   // Filter out candidates who are inactive for > 5 mins and not completed
   const candidateList = Object.values(candidates).filter(c => {
-    if (c.status === 'Submitted' || c.status === 'Auto-Submitted') return true;
     const isOffline = now - new Date(c.lastUpdate).getTime() > 300000; // 5 mins
     return !isOffline;
   });
@@ -247,9 +246,8 @@ export default function LiveMonitor() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Wifi size={16} className="text-green-500" />
-            <span className="font-bold text-gray-700">{t('autoRefreshing') || 'Auto-refreshing every 10s'}</span>
             {lastRefresh && (
-              <span className="text-gray-400">· {t('lastCheck') || 'Last check:'} {lastRefresh.toLocaleTimeString()}</span>
+              <span className="text-gray-500 text-sm font-medium flex items-center gap-1.5"><RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Auto-refreshing every 3s &middot; Last check: {lastRefresh.toLocaleTimeString()}</span>
             )}
           </div>
           <button
@@ -293,7 +291,7 @@ export default function LiveMonitor() {
               
               if (isOffline) { statusColor = 'bg-orange-500'; statusTextColor = 'text-orange-600'; statusBg = 'bg-orange-50'; }
               if (c.status === 'Blocked') { statusColor = 'bg-red-500'; statusTextColor = 'text-red-600'; statusBg = 'bg-red-50'; }
-              if (c.status === 'Submitted' || c.status === 'Auto-Submitted') { statusColor = 'bg-gray-400'; statusTextColor = 'text-gray-600'; statusBg = 'bg-gray-50'; }
+              // if (c.status === 'Submitted' || c.status === 'Auto-Submitted') { statusColor = 'bg-gray-400'; statusTextColor = 'text-gray-600'; statusBg = 'bg-gray-50'; }
 
               return (
                 <div key={c.candidateId} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all overflow-hidden flex flex-col">
@@ -308,9 +306,8 @@ export default function LiveMonitor() {
                         {c.district && <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-0.5 truncate">{c.district}</p>}
                       </div>
                       <div className={`${statusBg} p-2.5 rounded-xl flex-shrink-0`}>
-                        {displayStatusEn === 'Blocked' ? <ShieldAlert size={22} className={statusTextColor} /> :
+                          {displayStatusEn === 'Blocked' ? <ShieldAlert size={22} className={statusTextColor} /> :
                           displayStatusEn === 'Offline' ? <AlertTriangle size={22} className={statusTextColor} /> :
-                          (displayStatusEn === 'Submitted' || displayStatusEn === 'Auto-Submitted' || displayStatusEn === 'Completed') ? <StopCircle size={22} className={statusTextColor} /> :
                           <PlayCircle size={22} className={statusTextColor} />}
                       </div>
                     </div>
@@ -350,7 +347,7 @@ export default function LiveMonitor() {
                     <div className="mt-auto pt-2">
                       <button
                         onClick={() => cancelAttempt(c.candidateId, c.attemptId)}
-                        disabled={c.status === 'Blocked' || c.status === 'Submitted' || c.status === 'Auto-Submitted'}
+                        disabled={c.status === 'Blocked'}
                         className="w-full bg-white text-red-600 font-bold py-2.5 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-40 disabled:hover:bg-white border-2 border-red-100 text-sm"
                       >
                         {t('cancelExam') || 'Cancel Exam'}

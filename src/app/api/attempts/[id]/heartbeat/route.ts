@@ -19,7 +19,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     await supabaseAdmin.from('exam_attempts').update({
-      time_remaining: timeToSave
+      time_remaining: timeToSave,
+      updated_at: new Date().toISOString()
     }).eq('id', (await params).id);
 
     return camelCaseResponse({ success: true, cappedTime: timeToSave, maxTime });
