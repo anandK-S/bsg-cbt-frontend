@@ -18,6 +18,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return camelCaseResponse({ message: 'Invalid test key' }, { status: 403 });
     }
 
+    const now = new Date();
+    if (exam.scheduled_start_date && new Date(exam.scheduled_start_date) > now) {
+      return camelCaseResponse({ message: 'Exam has not started yet' }, { status: 403 });
+    }
+    if (exam.scheduled_end_date && new Date(exam.scheduled_end_date) < now) {
+      return camelCaseResponse({ message: 'Exam has already expired' }, { status: 403 });
+    }
+
     // Check for existing attempt
     let { data: attempt, error: attemptError } = await supabaseAdmin
       .from('exam_attempts')
@@ -26,11 +34,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       .eq('candidate_id', auth.id)
       .single();
 
-    if (attempt && attempt.status === 'Completed') {
+    if (attempt && !exam.allow_multiple_attempts && attempt.status === 'Completed') {
       return camelCaseResponse({ message: 'Exam already completed' }, { status: 403 });
     }
 
-    if (!attempt) {
+    // If there's an existing attempt and multiple attempts are allowed, we could either 
+    // reset the current attempt or let them resume if it's 'In-Progress'.
+    // If it's completed and they are allowed multiple attempts, we should ideally start a new attempt or reset.
+    // Let's reset the attempt so they start fresh if they are allowed multiple attempts and it was completed.
+    if (!attempt || (attempt.status === 'Completed' && exam.allow_multiple_attempts)) {
+      if (attempt) {
+        // Delete old attempt if retaking
+        await supabaseAdmin.from('exam_attempts').delete().eq('id', attempt.id);
+      }
+      
       // Create new attempt
       const { data: newAttempt, error: newAttemptError } = await supabaseAdmin.from('exam_attempts').insert([{
         exam_id: (await params).id,

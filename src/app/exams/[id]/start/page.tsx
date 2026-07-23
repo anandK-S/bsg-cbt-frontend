@@ -98,25 +98,59 @@ export default function ExamStartPage() {
   };
 
   if (loading) return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-bsg-blue mb-4"></div>
-      <p className="text-gray-500 font-medium">Loading Assessment Details...</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-10 h-10 border-4 border-bsg-blue border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
 
-  // If exam is strictly closed (we could also rely on backend)
-  if (exam?.scheduledEndDate && new Date(exam.scheduledEndDate).getTime() < Date.now()) {
+  if (errorMsg && !exam) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
+      <div className="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6">
+        <AlertTriangle size={40} />
+      </div>
+      <h2 className="text-2xl font-black text-gray-900 mb-2">Access Denied</h2>
+      <p className="text-gray-500 mb-8">{errorMsg}</p>
+      <Link href="/dashboard" className="bg-bsg-blue text-white px-6 py-3 rounded-xl font-bold hover:bg-bsg-blue-dark transition-colors">
+        Return to Dashboard
+      </Link>
+    </div>
+  );
+
+  if (exam?.alreadyAttempted) {
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 text-center">
-        <div className="mb-6">
-          <Link href="/dashboard" className="text-bsg-blue hover:text-blue-800 text-sm font-semibold transition-colors flex items-center justify-center gap-1">
-            &larr; Return to Dashboard
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
+        <div className="bg-white max-w-lg w-full rounded-3xl shadow-sm border border-red-100 p-8 text-center">
+          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle size={40} />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 mb-4">Attempt Already Completed</h2>
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            You have already completed this exam, and multiple attempts are not allowed by the examiner. If you believe this is a mistake, please contact your examiner.
+          </p>
+          <Link href="/dashboard" className="block w-full bg-bsg-blue text-white px-6 py-4 rounded-xl font-bold hover:bg-bsg-blue-dark transition-colors shadow-sm">
+            Return to Dashboard
           </Link>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12">
-          <AlertTriangle size={64} className="text-yellow-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Test is Closed</h1>
-          <p className="text-gray-500 font-medium">This examination ended on {new Date(exam.scheduledEndDate).toLocaleString()} and is no longer available.</p>
+      </div>
+    );
+  }
+
+  const now = new Date().getTime();
+  const endTime = exam?.scheduledEndDate ? new Date(exam.scheduledEndDate).getTime() : null;
+  if (endTime && endTime < now) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
+        <div className="bg-white max-w-lg w-full rounded-3xl shadow-sm border border-gray-200 p-8 text-center">
+          <div className="w-20 h-20 bg-gray-100 text-gray-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Clock size={40} />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 mb-4">Exam Expired</h2>
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            This exam was scheduled to end on {new Date(exam.scheduledEndDate).toLocaleString()} and is no longer accessible.
+          </p>
+          <Link href="/dashboard" className="block w-full bg-gray-900 text-white px-6 py-4 rounded-xl font-bold hover:bg-black transition-colors shadow-sm">
+            Return to Dashboard
+          </Link>
         </div>
       </div>
     );

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'react-hot-toast';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
@@ -88,7 +89,7 @@ export default function ExamTakePage() {
         
       } catch (error) {
         console.error('Error starting attempt:', error);
-        alert("Failed to start the exam or you've already submitted it.");
+        toast.error('Failed to start the exam or you\'ve already submitted it.');
         router.push('/dashboard');
       } finally {
         setLoading(false);
@@ -130,7 +131,7 @@ export default function ExamTakePage() {
         router.push(`/dashboard`);
       } else {
         console.error("Auto submit failed", e);
-        alert("Failed to submit the exam.");
+        toast.error('Failed to submit the exam.');
         isSubmittingRef.current = false;
         setIsSubmitting(false);
       }
@@ -185,7 +186,7 @@ export default function ExamTakePage() {
     channel.on('broadcast', { event: 'force-pause' }, (payload: any) => {
       const data = payload.payload;
       if (data.candidateId === user?._id) {
-        alert("Your exam has been forcefully terminated by an Examiner.");
+        toast.error('Your exam has been forcefully terminated by an Examiner.');
         handleAutoSubmit("Exam forcefully terminated by Examiner");
       }
     }).subscribe(async (status) => {

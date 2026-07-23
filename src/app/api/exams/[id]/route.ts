@@ -49,10 +49,34 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       delete exam.test_key;
     }
 
+    let alreadyAttempted = false;
+    let existingAttemptStatus = null;
+    
+    if (isCandidate) {
+      const { data: attempt } = await supabaseAdmin
+        .from('exam_attempts')
+        .select('status')
+        .eq('exam_id', id)
+        .eq('candidate_id', auth.id)
+        .single();
+        
+      if (attempt) {
+        existingAttemptStatus = attempt.status;
+        if (!exam.allow_multiple_attempts) {
+          alreadyAttempted = true;
+        }
+      }
+    }
+
     return camelCaseResponse({ 
       ...exam, 
       _id: exam.id, 
       hasTestKey,
+      alreadyAttempted,
+      existingAttemptStatus,
+      allowMultipleAttempts: exam.allow_multiple_attempts,
+      scheduledStartDate: exam.scheduled_start_date,
+      scheduledEndDate: exam.scheduled_end_date,
       creatorId: exam.creator_id,
       creatorName: exam.creator ? exam.creator.name : 'Unknown',
       durationMinutes: exam.duration_minutes,
@@ -85,6 +109,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (body.allowMultipleAttempts !== undefined) updateData.allow_multiple_attempts = body.allowMultipleAttempts;
     if (body.releaseResultsInstantly !== undefined) updateData.release_results_instantly = body.releaseResultsInstantly;
     if (body.issueCertificate !== undefined) updateData.issue_certificate = body.issueCertificate;
+    if (body.scheduledStartDate !== undefined) updateData.scheduled_start_date = body.scheduledStartDate;
+    if (body.scheduledEndDate !== undefined) updateData.scheduled_end_date = body.scheduledEndDate;
     if (body.status !== undefined) updateData.status = body.status;
     if (body.testKey !== undefined) updateData.test_key = body.testKey;
 

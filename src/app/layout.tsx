@@ -26,6 +26,7 @@ export const metadata: Metadata = {
 
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import LanguagePopup from "@/components/ui/LanguagePopup";
+import { Toaster } from "react-hot-toast";
 
 export default function RootLayout({
   children,
@@ -43,6 +44,7 @@ export default function RootLayout({
           <UnifiedLayout>
             {children}
             <LanguagePopup />
+            <Toaster position="top-right" toastOptions={{ duration: 4000, style: { background: '#333', color: '#fff' } }} />
           </UnifiedLayout>
         </LanguageProvider>
       </body>

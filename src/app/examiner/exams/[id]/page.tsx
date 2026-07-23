@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { API_URL } from '@/utils/apiConfig';
 import { Settings, ListChecks, BarChart2, Users, FileText, ChevronUp, ChevronDown, CheckCircle, Upload, Save, Eye, ArrowLeft, Trash2, Edit2, Mic, BookOpen, Calendar, Clock, Languages } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'react-hot-toast';
 
 interface ExamDetailsData {
   _id: string;
@@ -137,9 +138,9 @@ export default function ExamDetails() {
         durationMinutes: m || '',
         passingMarks: data.passingMarks || 50,
         passingCriteriaType: data.passingCriteriaType || 'percentage',
-        allowMultipleAttempts: data.allowMultipleAttempts,
-        releaseResultsInstantly: data.releaseResultsInstantly !== false,
-        issueCertificate: data.issueCertificate !== false,
+        allowMultipleAttempts: !!data.allowMultipleAttempts,
+        releaseResultsInstantly: !!data.releaseResultsInstantly,
+        issueCertificate: !!data.issueCertificate,
         scheduledStartDate: data.scheduledStartDate ? new Date(data.scheduledStartDate).toISOString().slice(0,16) : '',
         scheduledEndDate: data.scheduledEndDate ? new Date(data.scheduledEndDate).toISOString().slice(0,16) : '',
         testKey: data.testKey || '',
@@ -161,13 +162,13 @@ export default function ExamDetails() {
       const totalSeconds = (h * 3600) + (m * 60) + s;
       
       if (totalSeconds <= 0) {
-        alert("Please enter a valid exam duration greater than 0.");
+        toast.error('Please enter a valid exam duration greater than 0.');
         setIsSavingBasic(false);
         return;
       }
       
       if (editForm.scheduledStartDate && editForm.scheduledEndDate && new Date(editForm.scheduledStartDate) > new Date(editForm.scheduledEndDate)) {
-        alert("Start Date cannot be after End Date.");
+        toast.error('Start Date cannot be after End Date.');
         setIsSavingBasic(false);
         return;
       }
@@ -186,10 +187,10 @@ export default function ExamDetails() {
 
       await axios.put(`${API_URL}/api/exams/${examId}`, payload, { withCredentials: true });
       fetchExam();
-      alert('Basic settings updated successfully');
+      toast.success('Basic settings updated successfully');
     } catch (error) {
       console.error('Error updating exam:', error);
-      alert('Failed to update basic settings');
+      toast.error('Failed to update basic settings');
     } finally {
       setIsSavingBasic(false);
     }
@@ -344,7 +345,7 @@ export default function ExamDetails() {
 
   const handlePublish = async () => {
     if (exam && exam.questions.length === 0) {
-      alert("You cannot publish an exam with 0 questions. Please add some questions first.");
+      toast.error('You cannot publish an exam with 0 questions. Please add some questions first.');
       return;
     }
     if (!confirm("Are you sure you want to publish this exam? Candidates will be able to take it.")) return;
@@ -354,7 +355,7 @@ export default function ExamDetails() {
       fetchExam();
     } catch (err) {
       console.error("Publish Error:", err);
-      alert("Failed to publish exam");
+      toast.error('Failed to publish exam');
     } finally {
       setIsPublishing(false);
     }
@@ -368,7 +369,7 @@ export default function ExamDetails() {
       fetchExam();
     } catch (err) {
       console.error("Unpublish Error:", err);
-      alert("Failed to unpublish exam");
+      toast.error('Failed to unpublish exam');
     } finally {
       setIsPublishing(false);
     }
@@ -383,7 +384,7 @@ export default function ExamDetails() {
       router.push('/examiner'); // Redirect back to dashboard after deletion
     } catch (err) {
       console.error("Delete Exam Error:", err);
-      alert("Failed to delete exam");
+      toast.error('Failed to delete exam');
     }
   };
 
@@ -395,7 +396,7 @@ export default function ExamDetails() {
       fetchExam();
     } catch (err) {
       console.error("Delete All Error:", err);
-      alert("Failed to delete all questions");
+      toast.error('Failed to delete all questions');
     } finally {
       setIsDeletingAll(false);
     }
@@ -927,7 +928,7 @@ export default function ExamDetails() {
                                 await axios.delete(`${API_URL}/api/exams/${examId}/questions/${q.questionId._id}`, { withCredentials: true });
                                 fetchExam(); // refresh
                               } catch (err) {
-                                alert('Failed to delete question');
+                                toast.error('Failed to delete question');
                               }
                             }
                           }}
@@ -985,9 +986,9 @@ export default function ExamDetails() {
                         try {
                           await axios.put(`${API_URL}/api/exams/${examId}`, { releaseResultsInstantly: true }, { withCredentials: true });
                           fetchExam();
-                          alert("Results have been released to candidates!");
+                          toast.success('Results have been released to candidates!');
                         } catch (err) {
-                          alert("Failed to release results.");
+                          toast.error('Failed to release results.');
                         }
                       }
                     }}
@@ -1004,7 +1005,7 @@ export default function ExamDetails() {
                         const { data } = await axios.get(`${API_URL}/api/attempts/${examId}/result`, { withCredentials: true });
                         setResults(Array.isArray(data) ? data : []);
                       } catch (err) {
-                        alert('Failed to clear results');
+                        toast.error('Failed to clear results');
                       }
                     }
                   }}
@@ -1070,7 +1071,7 @@ export default function ExamDetails() {
                                     await axios.put(`${API_URL}/api/attempts/results/${result._id}/release`, {}, { withCredentials: true });
                                     setResults(results.map(r => r._id === result._id ? { ...r, isReleased: !(r as any).isReleased } : r));
                                   } catch (err) {
-                                    alert('Failed to toggle result release');
+                                    toast.error('Failed to toggle result release');
                                   }
                                 }}
                                 className={`font-black px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-2 ${(result as any).isReleased ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
@@ -1088,7 +1089,7 @@ export default function ExamDetails() {
                                     await axios.delete(`${API_URL}/api/attempts/result/${result._id}`, { withCredentials: true });
                                     setResults(results.filter(r => r._id !== result._id));
                                   } catch (err) {
-                                    alert('Failed to delete result');
+                                    toast.error('Failed to delete result');
                                   }
                                 }
                               }}
@@ -1304,7 +1305,7 @@ export default function ExamDetails() {
                     type="button"
                     onClick={() => {
                       if (!('webkitSpeechRecognition' in window)) {
-                        alert("Voice dictation is not supported in this browser. Please use Chrome.");
+                        toast.error('Voice dictation is not supported in this browser. Please use Chrome.');
                         return;
                       }
                       const recognition = new (window as any).webkitSpeechRecognition();
@@ -1358,7 +1359,7 @@ export default function ExamDetails() {
                           }
                         }
                       } catch (err) {
-                        alert('Translation failed. Please try manually.');
+                        toast.error('Translation failed. Please try manually.');
                       }
                     }}
                     className="flex items-center gap-1.5 text-xs font-bold text-green-700 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-full transition-colors ml-2 shadow-sm border border-green-200"
