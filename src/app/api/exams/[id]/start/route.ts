@@ -47,34 +47,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
-    // If there's an existing attempt and multiple attempts are allowed, 
-    // and it's 'Submitted', we reuse it by updating its status to 'In-Progress'.
-    // This avoids unique constraint errors.
+    // If there's no attempt, or the last one is finished and multiple attempts are allowed
     if (!attempt || ((attempt.status === 'Submitted' || attempt.status === 'Auto-Submitted' || attempt.status === 'Blocked') && exam.allow_multiple_attempts)) {
-      if (!attempt) {
-        // Create new attempt
-        const { data: newAttempt, error: newAttemptError } = await supabaseAdmin.from('exam_attempts').insert([{
-          exam_id: (await params).id,
-          candidate_id: auth.id,
-          status: 'In-Progress',
-          start_time: new Date().toISOString(),
-          time_remaining: exam.duration_seconds || (exam.duration_minutes * 60)
-        }]).select().single();
-        
-        if (newAttemptError) throw newAttemptError;
-        attempt = newAttempt;
-      } else {
-        // Update old attempt to restart it
-        const { data: updatedAttempt, error: updateError } = await supabaseAdmin.from('exam_attempts').update({
-          status: 'In-Progress',
-          time_remaining: exam.duration_seconds || (exam.duration_minutes * 60),
-          start_time: new Date().toISOString(),
-          warnings: 0
-        }).eq('id', attempt.id).select().single();
-        
-        if (updateError) throw updateError;
-        attempt = updatedAttempt;
-      }
+      // Always create a new attempt so we preserve history of past attempts
+      const { data: newAttempt, error: newAttemptError } = await supabaseAdmin.from('exam_attempts').insert([{
+        exam_id: (await params).id,
+        candidate_id: auth.id,
+        status: 'In-Progress',
+        start_time: new Date().toISOString(),
+        time_remaining: exam.duration_seconds || (exam.duration_minutes * 60)
+      }]).select().single();
+      
+      if (newAttemptError) throw newAttemptError;
+      attempt = newAttempt;
     }
 
     // If it's already in-progress, cap the time_remaining to the current exam duration 
