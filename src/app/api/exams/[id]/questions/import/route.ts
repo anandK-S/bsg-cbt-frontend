@@ -35,21 +35,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const buffer = Buffer.from(arrayBuffer);
     
     let textContent = '';
-    let isImage = false;
-    let base64Data = '';
+    let isNativeGeminiFile = false;
+    let base64Data = buffer.toString('base64');
     let mimeType = file.type || 'application/octet-stream';
 
     // Parse file content
     if (file.name.toLowerCase().endsWith('.pdf')) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const pdfParse = require('pdf-parse');
-        const pdfData = await pdfParse(buffer);
-        textContent = pdfData.text;
-      } catch (err) {
-        console.error("PDF parse error", err);
-        return camelCaseResponse({ message: 'Failed to read PDF file' }, { status: 400 });
-      }
+      mimeType = 'application/pdf';
+      isNativeGeminiFile = true;
     } else if (file.name.toLowerCase().endsWith('.docx')) {
       try {
         const result = await mammoth.extractRawText({ buffer });
@@ -59,8 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         return camelCaseResponse({ message: 'Failed to read DOCX file' }, { status: 400 });
       }
     } else if (file.type.startsWith('image/')) {
-      isImage = true;
-      base64Data = buffer.toString('base64');
+      isNativeGeminiFile = true;
       mimeType = file.type;
     } else {
       textContent = buffer.toString('utf-8');
@@ -96,7 +88,7 @@ Important Rules:
       const ai = new GoogleGenAI({ apiKey: geminiKey });
       const contents: any[] = [];
       
-      if (isImage) {
+      if (isNativeGeminiFile) {
         contents.push({
           role: 'user',
           parts: [
@@ -114,7 +106,7 @@ Important Rules:
       }
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-pro', // Upgraded to Pro for maximum intelligence
         contents,
         config: {
           responseMimeType: "application/json",
@@ -127,7 +119,20 @@ Important Rules:
       const groq = new Groq({ apiKey: groqKey });
       const messages: any[] = [];
 
-      if (isImage) {
+      let finalContent = textContent;
+      // If Groq fallback is triggered for a PDF, extract text on the fly
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+         try {
+           // eslint-disable-next-line @typescript-eslint/no-require-imports
+           const pdfParse = require('pdf-parse');
+           const pdfData = await pdfParse(buffer);
+           finalContent = pdfData.text;
+         } catch(e) {
+           throw new Error("PDF parse failed for Groq fallback. Gemini is required for this PDF.");
+         }
+      }
+
+      if (mimeType.startsWith('image/')) {
         messages.push({
           role: 'user',
           content: [
@@ -138,7 +143,7 @@ Important Rules:
       } else {
         messages.push({
           role: 'user',
-          content: `Document content:\n${textContent}\n\n${prompt}`
+          content: `Document content:\n${finalContent}\n\n${prompt}`
         });
       }
 

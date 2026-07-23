@@ -290,8 +290,8 @@ export default function CreateExam() {
                 <input
                   type="datetime-local"
                   id="startDate"
-                  value={scheduledStartDate ? (() => { const d = new Date(scheduledStartDate); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; })() : ''}
-                  onChange={(e) => setScheduledStartDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                  value={scheduledStartDate ? (() => { const d = new Date(new Date(scheduledStartDate).getTime() + (5.5 * 60 * 60 * 1000)); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; })() : ''}
+                  onChange={(e) => setScheduledStartDate(e.target.value ? new Date(e.target.value + "+05:30").toISOString() : '')}
                   className="w-full border border-gray-200 rounded-xl py-3 px-4 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
                 />
                 <p className="text-xs text-gray-400 mt-1">Candidates cannot start before this time.</p>
@@ -303,8 +303,8 @@ export default function CreateExam() {
                 <input
                   type="datetime-local"
                   id="endDate"
-                  value={scheduledEndDate ? (() => { const d = new Date(scheduledEndDate); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; })() : ''}
-                  onChange={(e) => setScheduledEndDate(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                  value={scheduledEndDate ? (() => { const d = new Date(new Date(scheduledEndDate).getTime() + (5.5 * 60 * 60 * 1000)); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; })() : ''}
+                  onChange={(e) => setScheduledEndDate(e.target.value ? new Date(e.target.value + "+05:30").toISOString() : '')}
                   className="w-full border border-gray-200 rounded-xl py-3 px-4 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
                 />
                 <p className="text-xs text-gray-400 mt-1">Candidates cannot start after this time.</p>
