@@ -26,6 +26,7 @@ export default function Register() {
   const [unitName, setUnitName] = useState('');
   const [registerType, setRegisterType] = useState<'Candidate' | 'Examiner'>('Candidate');
   const [examinerCode, setExaminerCode] = useState('');
+  const [rank, setRank] = useState('');
   const [showSecretCode, setShowSecretCode] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -122,16 +123,21 @@ export default function Register() {
 
       // 3. The SQL trigger automatically creates the base profile.
       // Now we update the profile with the rest of the metadata.
+      const profileUpdate: any = {};
       if (registerType === 'Candidate') {
+        profileUpdate.bsg_id = bsgId;
+        profileUpdate.section = section;
+        profileUpdate.district = district;
+        profileUpdate.unit_number = unitNumber;
+        profileUpdate.unit_name = unitName;
+      } else if (registerType === 'Examiner') {
+        profileUpdate.rank = rank;
+      }
+
+      if (Object.keys(profileUpdate).length > 0) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({
-            bsg_id: bsgId,
-            section: section,
-            district: district,
-            unit_number: unitNumber,
-            unit_name: unitName
-          })
+          .update(profileUpdate)
           .eq('id', data.user.id);
           
         if (profileError) throw profileError;
@@ -160,7 +166,13 @@ export default function Register() {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      setError({ message: err.message || 'Registration failed. Please try again.' });
+      let errorMessage = err.message || 'Registration failed. Please try again.';
+      if (errorMessage.includes('User already registered')) {
+        errorMessage = language === 'hi' ? 'यह ईमेल पहले से ही पंजीकृत है।' : 'This email is already registered. Please login.';
+      } else if (errorMessage.includes('Invalid Examiner Code')) {
+        errorMessage = language === 'hi' ? 'अमान्य परीक्षक कोड।' : 'Invalid Examiner Code.';
+      }
+      setError({ message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -238,7 +250,7 @@ export default function Register() {
                 {t("createAccount")}
               </h2>
               <p className="mt-2 text-sm text-gray-500 font-medium">
-                {t("joinBsgPortal")}
+                {t("alreadyHaveAccount") || "Already have an account?"} <Link href="/login" className="text-bsg-blue font-bold hover:underline transition-all">{t("loginHere") || "Login here"}</Link>
               </p>
             </motion.div>
 
@@ -397,7 +409,20 @@ export default function Register() {
                       />
                     </div>
                     {registerType === 'Examiner' && (
-                      <div className="md:col-span-2">
+                      <>
+                        <div className="md:col-span-2">
+                          <label htmlFor="rank" className="block text-sm font-semibold text-foreground mb-1.5">{t("rank") || "Rank"}</label>
+                          <input
+                            id="rank"
+                            type="text"
+                            required
+                            className="block w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm sm:text-base shadow-sm"
+                            placeholder="e.g. Scout Master"
+                            value={rank}
+                            onChange={(e) => setRank(e.target.value)}
+                          />
+                        </div>
+                        <div className="md:col-span-2">
                         <label htmlFor="examinerCode" className="block text-sm font-semibold text-foreground mb-1.5">{t("secretCode") || "Secret Code"}</label>
                         <div className="relative group">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-bsg-blue transition-colors">

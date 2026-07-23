@@ -62,30 +62,30 @@ export default function MasterQuestionPaper() {
   return (
     <div className="bg-white min-h-screen p-8 text-black" style={{ fontFamily: 'Times New Roman, serif' }}>
       {/* Print button - hidden when printing */}
-      <div className="print:hidden mb-6 flex items-center gap-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
-        <div className="flex-1">
+      <div className="print:hidden mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <div className="flex-1 w-full">
           <p className="font-bold text-gray-900">Master Question Paper — {exam.title}</p>
           <p className="text-sm text-gray-500">{(exam.questions || []).length} Questions · {totalMarks} Marks · {exam.durationMinutes} Minutes</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <select 
             value={printLang} 
             onChange={(e) => setPrintLang(e.target.value as any)}
-            className="bg-white border border-gray-300 text-gray-900 font-bold px-4 py-2.5 rounded-xl outline-none focus:border-gray-900 transition-colors"
+            className="bg-white border border-gray-300 text-gray-900 font-bold px-4 py-2.5 rounded-xl outline-none focus:border-gray-900 transition-colors flex-1 sm:flex-none"
           >
             <option value="English">English Only</option>
             <option value="Hindi">Hindi Only</option>
-            <option value="Bilingual">Bilingual (Both)</option>
+            <option value="Bilingual">Bilingual</option>
           </select>
           <button
             onClick={() => window.print()}
-            className="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-black transition-colors"
+            className="bg-gray-900 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-black transition-colors flex-1 sm:flex-none whitespace-nowrap"
           >
-            🖨️ Print / Save PDF
+            🖨️ Print
           </button>
           <button
             onClick={() => router.back()}
-            className="bg-gray-100 text-gray-700 font-bold px-5 py-2.5 rounded-xl hover:bg-gray-200 transition-colors"
+            className="bg-gray-100 text-gray-700 font-bold px-5 py-2.5 rounded-xl hover:bg-gray-200 transition-colors flex-1 sm:flex-none"
           >
             Back
           </button>

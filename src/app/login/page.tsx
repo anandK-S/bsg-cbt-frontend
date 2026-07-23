@@ -110,7 +110,15 @@ export default function Login() {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      setError({ message: err.message || 'Login failed. Please try again.' });
+      let errorMessage = err.message || 'Login failed. Please try again.';
+      if (errorMessage.includes('Invalid login credentials')) {
+        errorMessage = language === 'hi' ? 'गलत ईमेल या पासवर्ड!' : 'Wrong Email or Password!';
+      } else if (errorMessage.includes('User is blocked')) {
+        errorMessage = language === 'hi' ? 'आपका खाता ब्लॉक कर दिया गया है।' : 'Your account has been blocked.';
+      } else if (errorMessage.includes('Failed to load user profile')) {
+        errorMessage = language === 'hi' ? 'तकनीकी त्रुटि! कृपया बाद में प्रयास करें।' : 'Technical Error! Failed to load profile.';
+      }
+      setError({ message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -187,7 +195,7 @@ export default function Login() {
               {t("welcomeBack")}
             </h2>
             <p className="mt-2 text-sm text-gray-500 font-medium">
-              {t("signInToAccount")}
+              {t("dontHaveAccount") || "Don't have an account?"} <Link href="/register" className="text-bsg-blue font-bold hover:underline transition-all">{t("register") || "Register"}</Link>
             </p>
           </motion.div>
 

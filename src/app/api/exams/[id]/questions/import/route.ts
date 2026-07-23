@@ -149,7 +149,7 @@ Important Rules:
 
       const response = await groq.chat.completions.create({
         messages,
-        model: isImage ? 'llama-3.2-90b-vision-preview' : 'llama-3.3-70b-versatile',
+        model: mimeType.startsWith('image/') ? 'llama-3.2-90b-vision-preview' : 'llama-3.3-70b-versatile',
         response_format: { type: 'json_object' }
       });
       
@@ -190,7 +190,8 @@ Important Rules:
 
     let questionsData: any[] = [];
     try {
-      questionsData = JSON.parse(jsonString);
+      const cleanJsonStr = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
+      questionsData = JSON.parse(cleanJsonStr);
     } catch (parseError) {
       console.error("Failed to parse JSON from AI:", jsonString);
       return camelCaseResponse({ message: 'AI returned invalid JSON format' }, { status: 500 });
