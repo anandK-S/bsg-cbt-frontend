@@ -2,9 +2,6 @@ import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
-import { getUserFromRequest } from '@/utils/authServer';
 
 export async function GET(req: NextRequest) {
   try {
