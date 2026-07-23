@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
+import { camelCaseResponse } from '@/utils/apiResponse';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
-    if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (!auth) return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
     const { testKey } = body;
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (error || !exam) throw new Error('Exam not found');
 
     if (exam.test_key && exam.test_key !== testKey) {
-      return NextResponse.json({ message: 'Invalid test key' }, { status: 403 });
+      return camelCaseResponse({ message: 'Invalid test key' }, { status: 403 });
     }
 
     // Check for existing attempt
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       .single();
 
     if (attempt && attempt.status === 'Completed') {
-      return NextResponse.json({ message: 'Exam already completed' }, { status: 403 });
+      return camelCaseResponse({ message: 'Exam already completed' }, { status: 403 });
     }
 
     if (!attempt) {
@@ -53,15 +54,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       acceptableAnswers: undefined
     }));
 
-    return NextResponse.json({
+    return camelCaseResponse({
       attempt: { 
         ...attempt, 
         _id: attempt.id,
         answers: mappedQuestions.map(q => ({ questionId: q._id, status: 'NotVisited' }))
       },
-      questions: mappedQuestions
+      questions: mappedQuestions,
+      examTitle: exam.title,
+      durationMinutes: exam.duration_minutes
     });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return camelCaseResponse({ message: error.message }, { status: 500 });
   }
 }

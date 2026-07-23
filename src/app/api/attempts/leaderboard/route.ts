@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabaseClient';
 
@@ -40,8 +41,8 @@ export async function GET(req: NextRequest) {
       timeTaken: r.time_taken_seconds,
     }));
 
-    return NextResponse.json(formattedLeaderboard);
+    return camelCaseResponse(formattedLeaderboard);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
+    return camelCaseResponse({ message: error.message || 'Server error' }, { status: 500 });
   }
 }

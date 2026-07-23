@@ -1,7 +1,8 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  return NextResponse.json({
+  return camelCaseResponse({
     platformName: "BSG CBT",
     maintenanceMode: false,
     termsUrl: "",
@@ -10,5 +11,5 @@ export async function GET() {
 }
 
 export async function PUT() {
-  return NextResponse.json({ message: "Settings updated (mocked)" });
+  return camelCaseResponse({ message: "Settings updated (mocked)" });
 }

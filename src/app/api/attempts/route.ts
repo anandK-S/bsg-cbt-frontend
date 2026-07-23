@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
@@ -5,12 +6,12 @@ import { getUserFromRequest } from '@/utils/authServer';
 export async function POST(req: NextRequest) {
   try {
     const auth = await getUserFromRequest(req);
-    if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (!auth) return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
     const { examId } = body;
 
-    if (!examId) return NextResponse.json({ message: 'examId is required' }, { status: 400 });
+    if (!examId) return camelCaseResponse({ message: 'examId is required' }, { status: 400 });
 
     const { data: exam, error: examError } = await supabase
       .from('exams')
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
       .eq('id', examId)
       .single();
 
-    if (examError || !exam) return NextResponse.json({ message: 'Exam not found' }, { status: 404 });
+    if (examError || !exam) return camelCaseResponse({ message: 'Exam not found' }, { status: 404 });
 
     const timeRemaining = (exam.duration_minutes * 60) + (exam.duration_seconds || 0);
 
@@ -36,8 +37,8 @@ export async function POST(req: NextRequest) {
 
     if (attemptError) throw attemptError;
 
-    return NextResponse.json({ _id: attempt.id, ...attempt }, { status: 201 });
+    return camelCaseResponse({ _id: attempt.id, ...attempt }, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
+    return camelCaseResponse({ message: error.message || 'Server error' }, { status: 500 });
   }
 }

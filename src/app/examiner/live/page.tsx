@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
-import { io, Socket } from 'socket.io-client';
+import { supabase } from '@/utils/supabaseClient';
 import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import { 
@@ -79,28 +79,30 @@ export default function LiveMonitor() {
     return () => clearInterval(interval);
   }, [_hasHydrated, isAuthenticated, user, router, fetchLiveAttempts]);
 
-  // Socket.io Real-time Setup
+  // Supabase Realtime Setup
   useEffect(() => {
     if (!isAuthenticated) return;
     
-    const newSocket = io(API_URL, { withCredentials: true });
-    setSocket(newSocket);
+    const channel = supabase.channel('monitor-room');
+    setSocket(channel); // Storing channel in state variable socket for backwards compatibility
 
-    newSocket.on('connect', () => {
-      newSocket.emit('join-monitor-room'); 
-    });
-
-    newSocket.on('candidate-status', (data) => {
-      setCandidates(prev => ({
-        ...prev,
-        [data.candidateId]: { ...data, lastUpdate: new Date() }
-      }));
-    });
+    channel
+      .on('broadcast', { event: 'status-update' }, (payload: any) => {
+        const data = payload.payload;
+        setCandidates(prev => ({
+          ...prev,
+          [data.candidateId]: { ...data, lastUpdate: new Date() }
+        }));
+      })
+      .on('broadcast', { event: 'join-exam' }, (payload: any) => {
+        fetchLiveAttempts(); // Refresh if a new candidate joins
+      })
+      .subscribe();
 
     return () => {
-      newSocket.disconnect();
+      channel.unsubscribe();
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchLiveAttempts]);
 
   // Clock for detecting offline status
   useEffect(() => {
@@ -113,7 +115,7 @@ export default function LiveMonitor() {
       try {
         await axios.post(`${API_URL}/api/attempts/${attemptId}/cancel`, {}, { withCredentials: true });
         if (socket) {
-          socket.emit('force-pause', { candidateId }); 
+          socket.send({ type: 'broadcast', event: 'force-pause', payload: { candidateId } }); 
         }
         setCandidates(prev => {
           const newMap = { ...prev };
@@ -143,7 +145,7 @@ export default function LiveMonitor() {
         if (socket) {
           Object.keys(candidates).forEach((cid) => {
             if (candidates[cid].status === 'Active' || candidates[cid].status === 'In-Progress') {
-              socket.emit('force-pause', { candidateId: cid });
+              socket.send({ type: 'broadcast', event: 'force-pause', payload: { candidateId: cid } });
             }
           });
         }

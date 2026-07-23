@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
@@ -9,7 +10,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+      return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
     }
 
     const { id: examId } = await params;
@@ -17,12 +18,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const file = formData.get('file') as File;
 
     if (!file) {
-      return NextResponse.json({ message: 'No file uploaded' }, { status: 400 });
+      return camelCaseResponse({ message: 'No file uploaded' }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ message: 'GEMINI_API_KEY is not configured on the server' }, { status: 500 });
+      return camelCaseResponse({ message: 'GEMINI_API_KEY is not configured on the server' }, { status: 500 });
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -76,11 +77,11 @@ Determine the correct answer based on context, or pick 0 if unsure.`;
       questionsData = JSON.parse(jsonString);
     } catch (parseError) {
       console.error("Failed to parse JSON from AI:", jsonString);
-      return NextResponse.json({ message: 'AI returned invalid JSON format' }, { status: 500 });
+      return camelCaseResponse({ message: 'AI returned invalid JSON format' }, { status: 500 });
     }
 
     if (!Array.isArray(questionsData) || questionsData.length === 0) {
-      return NextResponse.json({ message: 'No questions were extracted' }, { status: 400 });
+      return camelCaseResponse({ message: 'No questions were extracted' }, { status: 400 });
     }
 
     // Map to Supabase Schema
@@ -99,12 +100,12 @@ Determine the correct answer based on context, or pick 0 if unsure.`;
 
     if (insertError) {
       console.error("Supabase insert error:", insertError);
-      return NextResponse.json({ message: 'Failed to save questions to database' }, { status: 500 });
+      return camelCaseResponse({ message: 'Failed to save questions to database' }, { status: 500 });
     }
 
-    return NextResponse.json({ message: 'Successfully imported questions', count: insertData.length });
+    return camelCaseResponse({ message: 'Successfully imported questions', count: insertData.length });
   } catch (error: any) {
     console.error("AI Import error:", error);
-    return NextResponse.json({ message: error.message || 'Internal server error' }, { status: 500 });
+    return camelCaseResponse({ message: error.message || 'Internal server error' }, { status: 500 });
   }
 }

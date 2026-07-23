@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { openDB } from 'idb';
 import { useRouter } from 'next/navigation';
-import { io, Socket } from 'socket.io-client';
+import { supabase } from '@/utils/supabaseClient';
 import { API_URL } from '@/utils/apiConfig';
 
 interface AttemptData {
@@ -21,7 +21,7 @@ export function useExamEngine(examId: string) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [warnings, setWarnings] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [channel, setChannel] = useState<any>(null);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -54,15 +54,21 @@ export function useExamEngine(examId: string) {
           setTimeRemaining(data.attempt.timeRemaining);
         }
 
-        // Connect Socket
-        const newSocket = io(API_URL, { withCredentials: true });
-        setSocket(newSocket);
+        // Connect Supabase Realtime
+        const newChannel = supabase.channel(`monitor-room`);
+        setChannel(newChannel);
         
-        newSocket.emit('join-exam', { examId, candidateId: data.attempt.candidateId });
-        
-        newSocket.on('force-pause', () => {
+        newChannel.on('broadcast', { event: 'force-pause' }, () => {
           alert('Your exam has been paused by the invigilator.');
           // In a real app, this would show an overlay and disable inputs
+        }).subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            await newChannel.send({
+              type: 'broadcast',
+              event: 'join-exam',
+              payload: { examId, candidateId: data.attempt.candidateId }
+            });
+          }
         });
 
       } catch (error) {
@@ -131,13 +137,17 @@ export function useExamEngine(examId: string) {
           warnings,
         }, { withCredentials: true });
 
-        // Emit Socket Event
-        if (socket) {
-          socket.emit('status-update', {
-            examId,
-            candidateId: attempt.candidateId,
-            status: attempt.status,
-            warnings,
+        // Emit Realtime Event
+        if (channel) {
+          channel.send({
+            type: 'broadcast',
+            event: 'status-update',
+            payload: {
+              examId,
+              candidateId: attempt.candidateId,
+              status: attempt.status,
+              warnings,
+            }
           });
         }
       } catch (error) {
@@ -148,9 +158,9 @@ export function useExamEngine(examId: string) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       clearInterval(heartbeatInterval);
-      if (socket) socket.disconnect();
+      if (channel) channel.unsubscribe();
     };
-  }, [attempt, timeRemaining, warnings, isSubmitting, examId, socket, handleSubmit]);
+  }, [attempt, timeRemaining, warnings, isSubmitting, examId, channel, handleSubmit]);
 
   // Anti-cheat mechanisms
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
@@ -5,7 +6,7 @@ import { getUserFromRequest } from '@/utils/authServer';
 export async function GET(req: NextRequest) {
   try {
     const auth = await getUserFromRequest(req);
-    if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (!auth) return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
 
     const { data: attempt, error } = await supabase
       .from('exam_attempts')
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!attempt) {
-      return NextResponse.json({ message: 'No live attempt found' }, { status: 404 });
+      return camelCaseResponse({ message: 'No live attempt found' }, { status: 404 });
     }
 
     // Fetch questions for this exam
@@ -59,8 +60,8 @@ export async function GET(req: NextRequest) {
       questions: formattedQuestions
     };
 
-    return NextResponse.json(result);
+    return camelCaseResponse(result);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
+    return camelCaseResponse({ message: error.message || 'Server error' }, { status: 500 });
   }
 }

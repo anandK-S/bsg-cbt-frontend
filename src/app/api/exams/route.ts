@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
@@ -7,7 +8,7 @@ export async function GET(req: NextRequest) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
     }
     let query = supabase.from('exams').select('*, creator_id(name)');
     if (auth.profile?.role === 'Examiner') {
@@ -39,9 +40,9 @@ export async function GET(req: NextRequest) {
       createdAt: exam.created_at,
     }));
 
-    return NextResponse.json(formattedExams);
+    return camelCaseResponse(formattedExams);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
+    return camelCaseResponse({ message: error.message || 'Server error' }, { status: 500 });
   }
 }
 
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+      return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
     }
 
     const body = await req.json();
@@ -87,8 +88,8 @@ export async function POST(req: NextRequest) {
       creatorId: data.creator_id,
     };
 
-    return NextResponse.json(formattedExam, { status: 201 });
+    return camelCaseResponse(formattedExam, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
+    return camelCaseResponse({ message: error.message || 'Server error' }, { status: 500 });
   }
 }

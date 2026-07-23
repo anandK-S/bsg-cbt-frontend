@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -5,7 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   // Stub for examiner insights
-  return NextResponse.json({
+  return camelCaseResponse({
     totalExamsCreated: 0,
     totalQuestionsAdded: 0,
     averageExamScore: 0,

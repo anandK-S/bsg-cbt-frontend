@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
@@ -5,7 +6,7 @@ import { getUserFromRequest } from '@/utils/authServer';
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
-    if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (!auth) return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
 
@@ -16,11 +17,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .single();
 
     if (error || !exam) {
-      return NextResponse.json({ message: 'Exam not found', error: error?.message || 'No exam returned' }, { status: 404 });
+      return camelCaseResponse({ message: 'Exam not found', error: error?.message || 'No exam returned' }, { status: 404 });
     }
 
     if (auth.profile?.role === 'Examiner' && exam.creator_id !== auth.id) {
-      return NextResponse.json({ message: 'Not authorized' }, { status: 403 });
+      return camelCaseResponse({ message: 'Not authorized' }, { status: 403 });
     }
 
     // Fetch questions manually if needed
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       marks: q.marks || 1
     }));
 
-    return NextResponse.json({ 
+    return camelCaseResponse({ 
       ...exam, 
       _id: exam.id, 
       creatorId: exam.creator_id,
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       questions: formattedQuestions 
     });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return camelCaseResponse({ message: error.message }, { status: 500 });
   }
 }
 
@@ -60,7 +61,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+      return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
     }
 
     const body = await req.json();
@@ -88,9 +89,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       .single();
 
     if (error) throw error;
-    return NextResponse.json(data);
+    return camelCaseResponse(data);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return camelCaseResponse({ message: error.message }, { status: 500 });
   }
 }
 
@@ -98,14 +99,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+      return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
     }
 
     const { error } = await supabase.from('exams').delete().eq('id', (await params).id);
     if (error) throw error;
 
-    return NextResponse.json({ message: 'Exam deleted successfully' });
+    return camelCaseResponse({ message: 'Exam deleted successfully' });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return camelCaseResponse({ message: error.message }, { status: 500 });
   }
 }

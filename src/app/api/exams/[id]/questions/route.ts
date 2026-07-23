@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
@@ -5,7 +6,7 @@ import { getUserFromRequest } from '@/utils/authServer';
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
-    if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (!auth) return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
 
     const { data: questions, error } = await supabase
       .from('questions')
@@ -13,9 +14,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq('exam_id', (await params).id);
 
     if (error) throw error;
-    return NextResponse.json(questions);
+    return camelCaseResponse(questions);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return camelCaseResponse({ message: error.message }, { status: 500 });
   }
 }
 
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   try {
     const auth = await getUserFromRequest(req);
     if (!auth || (auth.profile?.role !== 'Examiner' && auth.profile?.role !== 'Admin')) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
+      return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
     }
 
     const formData = await req.formData();
@@ -80,8 +81,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     if (error) throw error;
     
-    return NextResponse.json(question, { status: 201 });
+    return camelCaseResponse(question, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return camelCaseResponse({ message: error.message }, { status: 500 });
   }
 }

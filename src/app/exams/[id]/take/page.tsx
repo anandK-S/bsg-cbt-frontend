@@ -8,7 +8,6 @@ import axios from 'axios';
 import { API_URL } from '@/utils/apiConfig';
 import { Menu, X, CheckCircle2, Circle, Clock, UserCircle, Save, Eraser, BookmarkPlus, AlertTriangle } from 'lucide-react';
 import LoadingScreen from '@/components/ui/LoadingScreen';
-import { io } from 'socket.io-client';
 import QRCode from 'react-qr-code';
 
 // Status Types for Government BSG

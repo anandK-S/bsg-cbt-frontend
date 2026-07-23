@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
@@ -5,7 +6,7 @@ import { getUserFromRequest } from '@/utils/authServer';
 export async function GET(req: NextRequest) {
   try {
     const auth = await getUserFromRequest(req);
-    if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (!auth) return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
 
     const now = new Date().toISOString();
 
@@ -46,8 +47,8 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json(formattedExams);
+    return camelCaseResponse(formattedExams);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return camelCaseResponse({ message: error.message }, { status: 500 });
   }
 }

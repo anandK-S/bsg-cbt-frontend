@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
@@ -8,7 +9,7 @@ export async function GET(
 ) {
   try {
     const auth = await getUserFromRequest(req);
-    if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (!auth) return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
 
     const examId = (await params).id;
 
@@ -27,11 +28,11 @@ export async function GET(
     }
 
     if (!result) {
-      return NextResponse.json({ message: 'Result not found' }, { status: 404 });
+      return camelCaseResponse({ message: 'Result not found' }, { status: 404 });
     }
 
     if (!result.is_released) {
-      return NextResponse.json({ message: 'Results are pending' }, { status: 403 });
+      return camelCaseResponse({ message: 'Results are pending' }, { status: 403 });
     }
 
     const formattedResult = {
@@ -43,8 +44,8 @@ export async function GET(
       aiFeedback: result.ai_feedback,
     };
 
-    return NextResponse.json(formattedResult);
+    return camelCaseResponse(formattedResult);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
+    return camelCaseResponse({ message: error.message || 'Server error' }, { status: 500 });
   }
 }

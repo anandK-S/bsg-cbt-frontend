@@ -1,3 +1,4 @@
+import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
@@ -8,7 +9,7 @@ export async function POST(
 ) {
   try {
     const auth = await getUserFromRequest(req);
-    if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    if (!auth) return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
 
     const attemptId = (await params).id;
     const body = await req.json();
@@ -22,11 +23,11 @@ export async function POST(
       .single();
 
     if (!attempt || attempt.candidate_id !== auth.id) {
-      return NextResponse.json({ message: 'Invalid attempt' }, { status: 400 });
+      return camelCaseResponse({ message: 'Invalid attempt' }, { status: 400 });
     }
 
     if (attempt.status === 'Completed') {
-      return NextResponse.json({ message: 'Attempt already completed' }, { status: 400 });
+      return camelCaseResponse({ message: 'Attempt already completed' }, { status: 400 });
     }
 
     // Fetch questions to calculate score
@@ -97,8 +98,8 @@ export async function POST(
       })
       .eq('id', attemptId);
 
-    return NextResponse.json({ message: 'Submitted', resultId: result?.id });
+    return camelCaseResponse({ message: 'Submitted', resultId: result?.id });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message || 'Server error' }, { status: 500 });
+    return camelCaseResponse({ message: error.message || 'Server error' }, { status: 500 });
   }
 }
