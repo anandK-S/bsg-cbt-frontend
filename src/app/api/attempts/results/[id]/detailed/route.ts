@@ -16,7 +16,7 @@ export async function GET(
     // 1. Fetch the result
     const { data: result, error: resultError } = await supabase
       .from('results')
-      .select('*, exams(*), attempt_id')
+      .select('*, exam_id(*), attempt_id(*)')
       .eq('id', resultId)
       .single();
 
@@ -32,11 +32,17 @@ export async function GET(
       return camelCaseResponse({ message: 'Results are pending' }, { status: 403 });
     }
 
+    const attemptObj = Array.isArray(result.attempt_id) ? result.attempt_id[0] : result.attempt_id;
+    const attemptUuid = attemptObj?.id || result.attempt_id;
+
     // 2. Fetch all questions for this exam
+    const examObj = Array.isArray(result.exam_id) ? result.exam_id[0] : result.exam_id;
+    const examUuid = examObj?.id || result.exam_id;
+
     const { data: questions, error: questionsError } = await supabase
       .from('questions')
       .select('*')
-      .eq('exam_id', result.exam_id)
+      .eq('exam_id', examUuid)
       .order('order_index', { ascending: true });
 
     if (questionsError) throw questionsError;
@@ -45,7 +51,7 @@ export async function GET(
     const { data: answers, error: answersError } = await supabase
       .from('attempt_answers')
       .select('*')
-      .eq('attempt_id', result.attempt_id);
+      .eq('attempt_id', attemptUuid);
 
     if (answersError) throw answersError;
 
@@ -69,7 +75,6 @@ export async function GET(
       };
     });
 
-    const examObj = Array.isArray(result.exams) ? result.exams[0] : result.exams;
     const formattedResult = {
       _id: result.id,
       score: result.score,
@@ -77,7 +82,7 @@ export async function GET(
       timeTaken: result.time_taken_seconds,
       endTime: result.created_at,
       examId: {
-        _id: result.exam_id,
+        _id: examUuid,
         title: examObj?.title,
         description: examObj?.description,
         category: examObj?.category
