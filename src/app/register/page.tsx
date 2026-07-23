@@ -100,10 +100,22 @@ export default function Register() {
       // 1. Determine User Role
       let role = 'Candidate';
       if (registerType === 'Examiner') {
-        if (examinerCode !== 'EXAM2024') { // Mock validation, adjust as needed
+        if (examinerCode !== 'BRC@1141144') { // Mock validation, adjust as needed
           throw new Error('Invalid Examiner Code');
         }
         role = 'Examiner';
+      }
+
+      // Check for duplicate BSG ID
+      if (registerType === 'Candidate' && bsgId) {
+        const { data: existingUsers } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('bsg_id', bsgId);
+          
+        if (existingUsers && existingUsers.length > 0) {
+          throw new Error('BSG ID already registered');
+        }
       }
 
       // 2. Register User via Supabase Auth
@@ -171,6 +183,8 @@ export default function Register() {
         errorMessage = language === 'hi' ? 'यह ईमेल पहले से ही पंजीकृत है।' : 'This email is already registered. Please login.';
       } else if (errorMessage.includes('Invalid Examiner Code')) {
         errorMessage = language === 'hi' ? 'अमान्य परीक्षक कोड।' : 'Invalid Examiner Code.';
+      } else if (errorMessage.includes('BSG ID already registered')) {
+        errorMessage = language === 'hi' ? 'यह BSG ID पहले से ही पंजीकृत है।' : 'This BSG ID is already registered.';
       }
       setError({ message: errorMessage });
     } finally {
