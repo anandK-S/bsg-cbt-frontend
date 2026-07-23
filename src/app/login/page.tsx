@@ -86,9 +86,11 @@ export default function Login() {
         email: authData.user.email as string,
         role: profile.role,
         bsgId: profile.bsg_id,
+        section: profile.section,
         district: profile.district,
         unitNumber: profile.unit_number,
         unitName: profile.unit_name,
+        profileImage: profile.profile_image,
         token: authData.session?.access_token,
       };
 

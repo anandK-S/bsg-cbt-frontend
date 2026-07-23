@@ -16,7 +16,7 @@ export async function GET(
     // 1. Fetch the result
     const { data: result, error: resultError } = await supabase
       .from('results')
-      .select('*, exam_id(*), attempt_id')
+      .select('*, exams(*), attempt_id')
       .eq('id', resultId)
       .single();
 
@@ -36,7 +36,7 @@ export async function GET(
     const { data: questions, error: questionsError } = await supabase
       .from('questions')
       .select('*')
-      .eq('exam_id', (result.exam_id as any).id)
+      .eq('exam_id', result.exam_id)
       .order('order_index', { ascending: true });
 
     if (questionsError) throw questionsError;
@@ -76,10 +76,10 @@ export async function GET(
       timeTaken: result.time_taken_seconds,
       endTime: result.created_at,
       examId: {
-        _id: (result.exam_id as any).id,
-        title: (result.exam_id as any).title,
-        description: (result.exam_id as any).description,
-        category: (result.exam_id as any).category
+        _id: result.exam_id,
+        title: (result.exams as any)?.title,
+        description: (result.exams as any)?.description,
+        category: (result.exams as any)?.category
       }
     };
 
