@@ -231,9 +231,9 @@ export default function ExamStartPage() {
       setIsUnlocked(true);
     } catch (err: any) {
       if (err.response?.status === 403) {
-        setKeyError(err.response.data.message || 'Invalid test key');
+        setKeyError(err.response.data.message || t('invalidTestKey') || 'Invalid test key');
       } else {
-        setKeyError('Failed to verify key. Please try again.');
+        setKeyError(t('failedToVerifyKey') || 'Failed to verify key. Please try again.');
       }
     } finally {
       setVerifyingKey(false);
@@ -254,14 +254,14 @@ export default function ExamStartPage() {
           
           <div className="space-y-4 text-left">
             <div>
-              <label htmlFor="testKey" className="block text-sm font-bold text-gray-700 mb-1.5">Test Key / Password</label>
+              <label htmlFor="testKey" className="block text-sm font-bold text-gray-700 mb-1.5">{t('testKeyOrPassword') || 'Test Key / Password'}</label>
               <input
                 id="testKey"
                 type="password"
                 value={enteredKey}
                 onChange={(e) => setEnteredKey(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleVerifyKey()}
-                placeholder="Enter password"
+                placeholder={t('enterPassword') || 'Enter password'}
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white focus:border-transparent transition-all font-medium text-sm text-gray-900 outline-none"
               />
             </div>

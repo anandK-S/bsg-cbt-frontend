@@ -162,13 +162,13 @@ export default function ExamDetails() {
       const totalSeconds = (h * 3600) + (m * 60) + s;
       
       if (totalSeconds <= 0) {
-        toast.error('Please enter a valid exam duration greater than 0.');
+        toast.error(t('invalidDuration') || 'Please enter a valid exam duration greater than 0.');
         setIsSavingBasic(false);
         return;
       }
       
       if (editForm.scheduledStartDate && editForm.scheduledEndDate && new Date(editForm.scheduledStartDate) > new Date(editForm.scheduledEndDate)) {
-        toast.error('Start Date cannot be after End Date.');
+        toast.error(t('invalidDates') || 'Start Date cannot be after End Date.');
         setIsSavingBasic(false);
         return;
       }
@@ -180,17 +180,17 @@ export default function ExamDetails() {
         scheduledStartDate: editForm.scheduledStartDate || null,
         scheduledEndDate: editForm.scheduledEndDate || null,
         issueCertificate: editForm.issueCertificate,
-        testKey: editForm.testKey || undefined,
+        testKey: editForm.testKey === '' ? null : (editForm.testKey || null),
         passingMarks: editForm.passingMarks,
         passingCriteriaType: editForm.passingCriteriaType,
       };
 
       await axios.put(`${API_URL}/api/exams/${examId}`, payload, { withCredentials: true });
       fetchExam();
-      toast.success('Basic settings updated successfully');
+      toast.success(t('settingsSaved') || 'Basic settings updated successfully');
     } catch (error) {
       console.error('Error updating exam:', error);
-      toast.error('Failed to update basic settings');
+      toast.error(t('failedToUpdate') || 'Failed to update basic settings');
     } finally {
       setIsSavingBasic(false);
     }
@@ -720,33 +720,38 @@ export default function ExamDetails() {
                 </div>
               </div>
 
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="block text-sm font-bold text-gray-700">Test Key / Password (Optional)</label>
-                  <div className="flex gap-2">
+              <div className="mb-6 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Test Key / Password (Optional)</label>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock size={16} className="text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      value={editForm.testKey || ''}
+                      onChange={(e) => setEditForm({ ...editForm, testKey: e.target.value })}
+                      placeholder="Enter a password to restrict access"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium text-sm bg-white shadow-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
                     <button 
                       onClick={() => setEditForm({ ...editForm, testKey: '' })}
-                      className="text-xs font-bold text-gray-500 hover:text-red-500 transition-colors"
+                      className="px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded-xl transition-all shadow-sm"
                     >
                       Clear
                     </button>
                     <button 
                       onClick={handleSaveBasicSettings}
                       disabled={isSavingBasic}
-                      className="text-xs font-bold text-bsg-blue hover:text-blue-700 transition-colors bg-blue-50 px-2 py-1 rounded disabled:opacity-50"
+                      className="px-4 py-2 text-sm font-bold text-white bg-bsg-blue hover:bg-bsg-blue-dark rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
                     >
                       {isSavingBasic ? 'Saving...' : 'Save Key'}
                     </button>
                   </div>
                 </div>
-                <input
-                  type="text"
-                  value={editForm.testKey || ''}
-                  onChange={(e) => setEditForm({ ...editForm, testKey: e.target.value })}
-                  placeholder="Enter a password if you want to restrict access"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium text-sm"
-                />
-                <p className="text-xs font-medium text-gray-400 mt-1.5">If set, candidates must enter this exact password to start the exam.</p>
+                <p className="text-xs font-medium text-gray-500 mt-2">If set, candidates must enter this exact password to start the exam.</p>
               </div>
 
               <div className="space-y-4">
