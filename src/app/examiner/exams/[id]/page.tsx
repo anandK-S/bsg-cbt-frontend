@@ -157,7 +157,8 @@ export default function ExamDetails() {
     try {
       const h = Number(editForm.durationHours) || 0;
       const m = Number(editForm.durationMinutes) || 0;
-      const totalSeconds = (h * 3600) + (m * 60);
+      const s = Number(editForm.durationSeconds) || 0;
+      const totalSeconds = (h * 3600) + (m * 60) + s;
       
       if (totalSeconds <= 0) {
         alert("Please enter a valid exam duration greater than 0.");
@@ -619,6 +620,19 @@ export default function ExamDetails() {
                         placeholder="0"
                       />
                       <span className="text-xs font-bold text-gray-500 ml-1">min</span>
+                    </div>
+                    <span className="text-gray-300 font-bold text-xl">:</span>
+                    <div className="flex-1 flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-orange-500 focus-within:border-transparent transition-all">
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={editForm.durationSeconds}
+                        onChange={(e) => setEditForm({ ...editForm, durationSeconds: e.target.value ? parseInt(e.target.value) : '' })}
+                        className="w-full bg-transparent border-none p-0 focus:ring-0 text-center font-bold text-gray-900"
+                        placeholder="0"
+                      />
+                      <span className="text-xs font-bold text-gray-500 ml-1">sec</span>
                     </div>
                   </div>
                   <p className="text-xs font-medium text-gray-400 mt-2">Leave fields empty to default to 0.</p>

@@ -81,7 +81,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (body.status !== undefined) updateData.status = body.status;
     if (body.testKey !== undefined) updateData.test_key = body.testKey;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('exams')
       .update(updateData)
       .eq('id', (await params).id)
