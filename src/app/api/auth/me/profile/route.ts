@@ -10,11 +10,16 @@ export async function PUT(req: NextRequest) {
       return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, profileImage, password } = await req.json();
+    const { name, profileImage, password, bsgId, section, district, unitName, unitNumber } = await req.json();
 
     const updateData: any = {
       name,
-      profile_image: profileImage
+      profile_image: profileImage,
+      bsg_id: bsgId,
+      section: section,
+      district: district,
+      unit_name: unitName,
+      unit_number: unitNumber
     };
 
     // Update profile in profiles table

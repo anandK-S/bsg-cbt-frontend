@@ -15,6 +15,12 @@ export default function ProfilePage() {
 
   const [name, setName] = useState('');
   const [profileImage, setProfileImage] = useState('');
+  const [bsgId, setBsgId] = useState('');
+  const [section, setSection] = useState('');
+  const [district, setDistrict] = useState('');
+  const [unitName, setUnitName] = useState('');
+  const [unitNumber, setUnitNumber] = useState('');
+  
   const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,8 +30,13 @@ export default function ProfilePage() {
     if (_hasHydrated && !isAuthenticated) {
       router.push('/login');
     } else if (user) {
-      setName(user.name);
+      setName(user.name || '');
       setProfileImage(user.profileImage || '');
+      setBsgId(user.bsgId || '');
+      setSection(user.section || '');
+      setDistrict(user.district || '');
+      setUnitName(user.unitName || '');
+      setUnitNumber(user.unitNumber || '');
     }
   }, [_hasHydrated, isAuthenticated, user, router]);
 
@@ -53,11 +64,16 @@ export default function ProfilePage() {
         name,
         profileImage,
         password: password || undefined,
+        bsgId,
+        section,
+        district,
+        unitName,
+        unitNumber
       }, {
         withCredentials: true
       });
 
-      setUser(data);
+      setUser({ ...user, ...data });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       setPassword('');
     } catch (err: any) {
@@ -143,6 +159,57 @@ export default function ProfilePage() {
                   placeholder="E.g. Anandkumar Sharma"
                 />
               </div>
+
+              {user?.role === 'Candidate' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">BSG ID</label>
+                    <input
+                      type="text"
+                      value={bsgId}
+                      onChange={(e) => setBsgId(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
+                      placeholder="BSG ID"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Section</label>
+                    <select
+                      value={section}
+                      onChange={(e) => setSection(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
+                    >
+                      <option value="">Select Section</option>
+                      <option value="Cub">Cub</option>
+                      <option value="Bulbul">Bulbul</option>
+                      <option value="Scout">Scout</option>
+                      <option value="Guide">Guide</option>
+                      <option value="Rover">Rover</option>
+                      <option value="Ranger">Ranger</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">District</label>
+                    <input
+                      type="text"
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
+                      placeholder="District"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Unit Name</label>
+                    <input
+                      type="text"
+                      value={unitName}
+                      onChange={(e) => setUnitName(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-all"
+                      placeholder="Unit Name"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Profile Image — URL or Upload */}
               <div>

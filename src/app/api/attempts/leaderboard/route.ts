@@ -9,10 +9,8 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('results')
-      .select('*, profiles(name, section, district, profile_image, unit_name), exams(title)')
-      .order('score', { ascending: false })
-      .order('time_taken_seconds', { ascending: true })
-      .limit(100);
+      .select('*, profiles(name, section, district, profile_image, unit_name, bsg_id)')
+      .is('violation_reason', null);
 
     if (examId) {
       query = query.eq('exam_id', examId);
@@ -22,26 +20,44 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
-    const formattedLeaderboard = results.map(r => ({
-      _id: r.id,
-      candidate: {
-        _id: r.candidate_id,
-        name: (r.profiles as any)?.name || 'Unknown',
-        section: (r.profiles as any)?.section,
-        district: (r.profiles as any)?.district,
-        profileImage: (r.profiles as any)?.profile_image,
-        unitName: (r.profiles as any)?.unit_name,
-      },
-      exam: {
-        _id: r.exam_id,
-        title: (r.exams as any)?.title || 'Exam',
-      },
-      score: r.score,
-      totalMarks: r.total_marks,
-      timeTaken: r.time_taken_seconds,
-    }));
+    // Aggregate by candidate
+    const candidateMap = new Map<string, any>();
 
-    return camelCaseResponse(formattedLeaderboard);
+    results.forEach(r => {
+      const candidateId = r.candidate_id;
+      if (!candidateMap.has(candidateId)) {
+        candidateMap.set(candidateId, {
+          _id: candidateId,
+          name: (r.profiles as any)?.name || 'Unknown',
+          bsgId: (r.profiles as any)?.bsg_id || '',
+          section: (r.profiles as any)?.section || '',
+          district: (r.profiles as any)?.district || '',
+          totalScore: 0,
+          totalMarksPossible: 0,
+          examsTaken: 0,
+          timeTaken: 0,
+        });
+      }
+      
+      const candidate = candidateMap.get(candidateId);
+      candidate.totalScore += r.score;
+      candidate.totalMarksPossible += r.total_marks;
+      candidate.examsTaken += 1;
+      candidate.timeTaken += r.time_taken_seconds || 0;
+    });
+
+    const aggregatedLeaderboard = Array.from(candidateMap.values())
+      .map(candidate => ({
+        ...candidate,
+        percentage: candidate.totalMarksPossible > 0 ? ((candidate.totalScore / candidate.totalMarksPossible) * 100).toFixed(1) : '0.0',
+      }))
+      .sort((a, b) => {
+        if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+        return a.timeTaken - b.timeTaken;
+      })
+      .slice(0, 100);
+
+    return camelCaseResponse(aggregatedLeaderboard);
   } catch (error: any) {
     return camelCaseResponse({ message: error.message || 'Server error' }, { status: 500 });
   }
