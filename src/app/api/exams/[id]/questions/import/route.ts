@@ -24,9 +24,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const geminiKey = process.env.GEMINI_API_KEY;
+    const geminiKey2 = process.env.GEMINI_API_KEY_2;
     const groqKey = process.env.GROQ_API_KEY;
 
-    if (!geminiKey && !groqKey) {
+    if (!geminiKey && !geminiKey2 && !groqKey) {
       return camelCaseResponse({ message: 'No AI API keys configured.' }, { status: 500 });
     }
 
@@ -84,8 +85,8 @@ Important Rules:
 
     let jsonString = '';
 
-    const callGemini = async () => {
-      const ai = new GoogleGenAI({ apiKey: geminiKey });
+    const callGemini = async (apiKey: string) => {
+      const ai = new GoogleGenAI({ apiKey });
       const contents: any[] = [];
       
       if (isNativeGeminiFile) {
@@ -158,8 +159,18 @@ Important Rules:
 
     // Try Gemini First, Fallback to Groq
     try {
-      if (!geminiKey) throw new Error("Gemini key missing, falling back to Groq");
-      jsonString = await callGemini() || '';
+      const primaryKey = geminiKey || geminiKey2;
+      if (!primaryKey) throw new Error("Gemini key missing, falling back to Groq");
+      try {
+        jsonString = await callGemini(primaryKey) || '';
+      } catch (e: any) {
+        if (geminiKey && geminiKey2 && primaryKey === geminiKey) {
+          console.warn("Primary Gemini key failed, trying GEMINI_API_KEY_2:", e.message);
+          jsonString = await callGemini(geminiKey2) || '';
+        } else {
+          throw e;
+        }
+      }
     } catch (geminiError: any) {
       console.warn("Gemini AI failed, falling back to Groq:", geminiError.message);
       try {
