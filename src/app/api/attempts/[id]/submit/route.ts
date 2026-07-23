@@ -107,9 +107,7 @@ export async function POST(
       status: violationReason ? 'Blocked' : 'Completed',
       end_time: new Date().toISOString(),
       time_remaining: timeRemaining,
-      time_taken: timeTaken > 0 ? timeTaken : 0,
-      warnings: attempt.warnings || 0,
-      violation_reason: violationReason || null
+      warnings: attempt.warnings || 0
     }).eq('id', attemptId);
 
     return camelCaseResponse({ message: 'Submitted', resultId: result?.id });
