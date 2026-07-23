@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
         .from('exam_attempts')
         .select('*, exams(title), profiles!candidate_id(name, bsg_id, district)')
         .eq('status', 'In-Progress')
-        .order('created_at', { ascending: false });
+        .order('start_time', { ascending: false });
 
       if (error) throw error;
 
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
         .select('*, exam_id(*)')
         .eq('candidate_id', auth.id)
         .eq('status', 'In-Progress')
-        .order('created_at', { ascending: false })
+        .order('start_time', { ascending: false })
         .limit(1)
         .single();
 

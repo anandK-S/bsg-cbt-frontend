@@ -103,6 +103,6 @@ export async function GET(
     return camelCaseResponse({ result: formattedResult, questionDetails });
   } catch (error: any) {
     console.error('Error in detailed result:', error);
-    return camelCaseResponse({ message: error.message || 'Server error' }, { status: 500 });
+    return camelCaseResponse({ message: error.message || JSON.stringify(error) || 'Server error' }, { status: 500 });
   }
 }

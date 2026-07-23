@@ -32,9 +32,9 @@ export default function ExamReviewPage() {
           withCredentials: true,
         });
         setData(response.data);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching detailed result:', error);
-        alert("Could not load your detailed exam review.");
+        alert(error.response?.data?.message || "Could not load your detailed exam review.");
         router.push('/dashboard');
       } finally {
         setLoading(false);
