@@ -89,6 +89,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       .single();
 
     if (error) throw error;
+
+    // Dynamically retro-update existing results if releaseResultsInstantly was changed
+    if (body.releaseResultsInstantly !== undefined) {
+      await supabaseAdmin
+        .from('results')
+        .update({ is_released: body.releaseResultsInstantly })
+        .eq('exam_id', (await params).id);
+    }
     return camelCaseResponse(data);
   } catch (error: any) {
     return camelCaseResponse({ message: error.message }, { status: 500 });

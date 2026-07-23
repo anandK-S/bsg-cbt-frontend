@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
       totalMarks: r.total_marks,
       score: r.score,
       createdAt: r.created_at,
+      isReleased: r.is_released,
       violationReason: r.violation_reason,
       examId: {
         _id: r.exam_id,

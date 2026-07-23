@@ -206,11 +206,13 @@ export default function PastResultsPage() {
                 }
               }
 
+              const isPending = result.isReleased === false;
+
               return (
                 <div key={result._id} className={`bg-gray-50 p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${result.violationReason ? 'border-red-300 bg-red-50/50' : 'border-gray-100 hover:bg-white hover:shadow-md hover:border-gray-200'}`}>
                   <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-extrabold shrink-0 border-4 ${result.violationReason ? 'bg-red-100 text-red-600 border-red-200' : isPassed ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
-                      {result.violationReason ? '!' : `${percentage}%`}
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-extrabold shrink-0 border-4 ${result.violationReason ? 'bg-red-100 text-red-600 border-red-200' : isPending ? 'bg-gray-100 text-gray-500 border-gray-200 text-sm' : isPassed ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                      {result.violationReason ? '!' : isPending ? '⏳' : `${percentage}%`}
                     </div>
                     <div>
                       <h4 className="text-lg font-bold text-gray-900 leading-tight mb-1">{result.examId?.title || t('unknownExam')}</h4>
@@ -228,17 +230,19 @@ export default function PastResultsPage() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-3 mt-2 md:mt-0">
-                    <span className={`flex-1 md:flex-none flex items-center justify-center px-4 py-2 rounded-lg font-bold text-sm ${result.violationReason ? 'bg-red-600 text-white border border-red-700' : isPassed ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                      {result.violationReason ? t('disqualified') : isPassed ? t('passed') : t('failed')}
+                    <span className={`flex-1 md:flex-none flex items-center justify-center px-4 py-2 rounded-lg font-bold text-sm ${result.violationReason ? 'bg-red-600 text-white border border-red-700' : isPending ? 'bg-gray-100 text-gray-600 border border-gray-300' : isPassed ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                      {result.violationReason ? t('disqualified') : isPending ? 'Results Pending' : isPassed ? t('passed') : t('failed')}
                     </span>
-                    {isPassed && !result.violationReason && (
+                    {!isPending && isPassed && !result.violationReason && (
                       <Link href={`/certificate/${result._id}`} className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-bsg-gold text-bsg-blue-dark font-bold text-sm rounded-xl transition-all hover:bg-yellow-500 hover:shadow-md hover:-translate-y-0.5 shadow-sm">
                         {t('downloadCertificate')}
                       </Link>
                     )}
-                    <Link href={`/exams/${result._id}/review`} className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-white text-gray-700 hover:bg-gray-50 hover:text-bsg-blue font-bold text-sm rounded-lg transition-colors border border-gray-200 shadow-sm">
-                      {t('viewFeedback')}
-                    </Link>
+                    {!isPending && (
+                      <Link href={`/exams/${result._id}/review`} className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-white text-gray-700 hover:bg-gray-50 hover:text-bsg-blue font-bold text-sm rounded-lg transition-colors border border-gray-200 shadow-sm">
+                        {t('viewFeedback')}
+                      </Link>
+                    )}
                   </div>
                 </div>
               );

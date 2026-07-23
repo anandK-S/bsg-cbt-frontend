@@ -15,6 +15,7 @@ export default function CreateExam() {
   const [presetCategory, setPresetCategory] = useState('General');
   const [durationHours, setDurationHours] = useState<number | ''>('');
   const [durationMinutes, setDurationMinutes] = useState<number | ''>('');
+  const [durationSeconds, setDurationSeconds] = useState<number | ''>('');
   const [passingMarks, setPassingMarks] = useState<number | ''>(50);
   const [passingCriteriaType, setPassingCriteriaType] = useState<'percentage' | 'marks'>('percentage');
   const [allowMultipleAttempts, setAllowMultipleAttempts] = useState(false);
@@ -30,7 +31,8 @@ export default function CreateExam() {
     
     const h = Number(durationHours) || 0;
     const m = Number(durationMinutes) || 0;
-    const totalSeconds = (h * 3600) + (m * 60);
+    const s = Number(durationSeconds) || 0;
+    const totalSeconds = (h * 3600) + (m * 60) + s;
     
     if (totalSeconds <= 0) {
       alert("Please enter a valid exam duration greater than 0.");
@@ -223,6 +225,19 @@ export default function CreateExam() {
                       className="w-full border border-gray-200 rounded-xl py-3 pl-4 pr-10 text-base font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
                     />
                     <span className="absolute right-3 top-3.5 text-sm text-gray-400 font-bold">min</span>
+                  </div>
+                  <span className="text-gray-300 font-bold text-xl">:</span>
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={durationSeconds}
+                      onChange={(e) => setDurationSeconds(e.target.value ? parseInt(e.target.value) : '')}
+                      placeholder="0"
+                      className="w-full border border-gray-200 rounded-xl py-3 pl-4 pr-10 text-base font-bold text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-bsg-blue/50 focus:border-bsg-blue transition-all bg-gray-50"
+                    />
+                    <span className="absolute right-3 top-3.5 text-sm text-gray-400 font-bold">sec</span>
                   </div>
                 </div>
                 <p className="mt-2 text-xs text-gray-400 font-medium">Leave fields empty to default to 0.</p>

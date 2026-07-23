@@ -374,6 +374,19 @@ export default function ExamDetails() {
     }
   };
 
+  const handleDeleteExam = async () => {
+    if (!confirm("Are you absolutely sure you want to delete this entire exam? This action cannot be undone and will delete all associated questions and attempts.")) return;
+    
+    // We can use a simple loading state or just rely on the redirect
+    try {
+      await axios.delete(`${API_URL}/api/exams/${examId}`, { withCredentials: true });
+      router.push('/examiner'); // Redirect back to dashboard after deletion
+    } catch (err) {
+      console.error("Delete Exam Error:", err);
+      alert("Failed to delete exam");
+    }
+  };
+
   const handleDeleteAllQuestions = async () => {
     setIsDeletingAll(true);
     try {
@@ -766,12 +779,19 @@ export default function ExamDetails() {
               </div>
             </div>
 
-            <div className="flex gap-4 pt-4 border-t border-gray-200">
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200">
               <button 
                 onClick={handleSaveBasicSettings}
                 className="bg-bsg-blue text-white px-6 py-3 rounded-xl font-bold hover:bg-bsg-blue-dark transition-colors shadow-sm flex items-center gap-2"
               >
                 <Save size={18} /> Save Settings
+              </button>
+
+              <button 
+                onClick={handleDeleteExam}
+                className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-xl font-bold transition-colors flex items-center gap-2"
+              >
+                <Trash2 size={18} /> Delete Exam
               </button>
             </div>
           </div>
