@@ -12,6 +12,7 @@
     "@google/genai": "^2.13.0",
     "@supabase/supabase-js": "^2.110.8",
     "axios": "^1.18.1",
+    "dotenv": "^17.4.2",
     "framer-motion": "^12.42.2",
     "i18next": "^26.3.6",
     "idb": "^8.0.3",

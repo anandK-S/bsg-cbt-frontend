@@ -27,6 +27,7 @@ export async function GET(
         score: r.score,
         totalMarks: r.total_marks,
         createdAt: r.created_at,
+        isReleased: r.is_released,
         candidateId: {
           name: (r.candidate_id as any)?.name || 'Unknown',
           bsgId: (r.candidate_id as any)?.bsg_id || 'N/A'
