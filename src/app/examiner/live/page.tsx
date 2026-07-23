@@ -186,7 +186,7 @@ export default function LiveMonitor() {
 
   // Filter out candidates who are inactive for > 5 mins and not completed
   const candidateList = Object.values(candidates).filter(c => {
-    if (c.status === 'Completed') return true;
+    if (c.status === 'Submitted' || c.status === 'Auto-Submitted') return true;
     const isOffline = now - new Date(c.lastUpdate).getTime() > 300000; // 5 mins
     return !isOffline;
   });
@@ -293,7 +293,7 @@ export default function LiveMonitor() {
               
               if (isOffline) { statusColor = 'bg-orange-500'; statusTextColor = 'text-orange-600'; statusBg = 'bg-orange-50'; }
               if (c.status === 'Blocked') { statusColor = 'bg-red-500'; statusTextColor = 'text-red-600'; statusBg = 'bg-red-50'; }
-              if (c.status === 'Completed') { statusColor = 'bg-gray-400'; statusTextColor = 'text-gray-600'; statusBg = 'bg-gray-50'; }
+              if (c.status === 'Submitted' || c.status === 'Auto-Submitted') { statusColor = 'bg-gray-400'; statusTextColor = 'text-gray-600'; statusBg = 'bg-gray-50'; }
 
               return (
                 <div key={c.candidateId} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all overflow-hidden flex flex-col">
@@ -310,7 +310,7 @@ export default function LiveMonitor() {
                       <div className={`${statusBg} p-2.5 rounded-xl flex-shrink-0`}>
                         {displayStatusEn === 'Blocked' ? <ShieldAlert size={22} className={statusTextColor} /> :
                           displayStatusEn === 'Offline' ? <AlertTriangle size={22} className={statusTextColor} /> :
-                          displayStatusEn === 'Completed' ? <StopCircle size={22} className={statusTextColor} /> :
+                          (displayStatusEn === 'Submitted' || displayStatusEn === 'Auto-Submitted' || displayStatusEn === 'Completed') ? <StopCircle size={22} className={statusTextColor} /> :
                           <PlayCircle size={22} className={statusTextColor} />}
                       </div>
                     </div>
@@ -350,7 +350,7 @@ export default function LiveMonitor() {
                     <div className="mt-auto pt-2">
                       <button
                         onClick={() => cancelAttempt(c.candidateId, c.attemptId)}
-                        disabled={c.status === 'Blocked' || c.status === 'Completed'}
+                        disabled={c.status === 'Blocked' || c.status === 'Submitted' || c.status === 'Auto-Submitted'}
                         className="w-full bg-white text-red-600 font-bold py-2.5 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-40 disabled:hover:bg-white border-2 border-red-100 text-sm"
                       >
                         {t('cancelExam') || 'Cancel Exam'}
