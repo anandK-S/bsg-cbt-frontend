@@ -184,11 +184,8 @@ export default function LiveMonitor() {
 
   if (!isAuthenticated || (user?.role !== 'Examiner' && user?.role !== 'Admin')) return null;
 
-  // Filter out candidates who are inactive for > 5 mins
-  const candidateList = Object.values(candidates).filter(c => {
-    const isOffline = now - new Date(c.lastUpdate).getTime() > 300000; // 5 mins
-    return !isOffline;
-  });
+  // Show EVERY candidate from the database, exactly mirroring Supabase without any filtering
+  const candidateList = Object.values(candidates);
   const activeCount = candidateList.filter(c => c.status === 'Active' || c.status === 'In-Progress').length;
 
   return (
@@ -291,7 +288,7 @@ export default function LiveMonitor() {
               
               if (isOffline) { statusColor = 'bg-orange-500'; statusTextColor = 'text-orange-600'; statusBg = 'bg-orange-50'; }
               if (c.status === 'Blocked') { statusColor = 'bg-red-500'; statusTextColor = 'text-red-600'; statusBg = 'bg-red-50'; }
-              // if (c.status === 'Submitted' || c.status === 'Auto-Submitted') { statusColor = 'bg-gray-400'; statusTextColor = 'text-gray-600'; statusBg = 'bg-gray-50'; }
+              if (c.status === 'Submitted' || c.status === 'Auto-Submitted' || c.status === 'Completed') { statusColor = 'bg-gray-400'; statusTextColor = 'text-gray-600'; statusBg = 'bg-gray-50'; }
 
               return (
                 <div key={c.candidateId} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all overflow-hidden flex flex-col">
@@ -308,6 +305,7 @@ export default function LiveMonitor() {
                       <div className={`${statusBg} p-2.5 rounded-xl flex-shrink-0`}>
                           {displayStatusEn === 'Blocked' ? <ShieldAlert size={22} className={statusTextColor} /> :
                           displayStatusEn === 'Offline' ? <AlertTriangle size={22} className={statusTextColor} /> :
+                          (displayStatusEn === 'Submitted' || displayStatusEn === 'Auto-Submitted' || displayStatusEn === 'Completed') ? <StopCircle size={22} className={statusTextColor} /> :
                           <PlayCircle size={22} className={statusTextColor} />}
                       </div>
                     </div>

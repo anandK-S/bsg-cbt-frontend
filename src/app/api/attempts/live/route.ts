@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
       const { data: attempts, error } = await supabaseAdmin
         .from('exam_attempts')
         .select('*, exams(*), profiles(name, bsg_id, district)')
-        .in('status', ['In-Progress', 'Blocked'])
         .order('start_time', { ascending: false });
 
       if (error) throw error;
