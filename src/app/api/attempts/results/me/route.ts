@@ -1,7 +1,58 @@
+import { NextRequest } from 'next/server';
+import { supabase } from '@/utils/supabaseClient';
 import { camelCaseResponse } from '@/utils/apiResponse';
-import { NextRequest, NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/utils/authServer';
 
 export async function GET(req: NextRequest) {
-  // Stub for now
-  return camelCaseResponse([]);
+  try {
+    const auth = await getUserFromRequest(req);
+    if (!auth) {
+      return camelCaseResponse({ message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: results, error } = await supabase
+      .from('results')
+      .select(`
+        *,
+        exam_id (
+          id,
+          title,
+          duration_minutes,
+          creator_id (
+            name
+          )
+        ),
+        attempt_id (
+          time_remaining
+        )
+      `)
+      .eq('candidate_id', auth.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const formattedResults = results.map(r => ({
+      _id: r.id,
+      totalMarks: r.total_marks,
+      score: r.score,
+      createdAt: r.created_at,
+      violationReason: r.violation_reason,
+      examId: {
+        _id: r.exam_id,
+        title: (r.exam_id as any)?.title,
+        durationMinutes: (r.exam_id as any)?.duration_minutes,
+        creatorId: {
+          name: (r.exam_id as any)?.creator_id?.name || 'Unknown'
+        }
+      },
+      attemptId: {
+        timeRemaining: (r.attempt_id as any)?.time_remaining
+      }
+    }));
+
+    return camelCaseResponse(formattedResults);
+  } catch (error: any) {
+    console.error('Error fetching past results:', error);
+    return camelCaseResponse({ message: 'Server error' }, { status: 500 });
+  }
 }
