@@ -13,7 +13,29 @@ export async function GET(
 
     const examId = (await params).id;
 
-    // The frontend expects the result for the specific exam for the logged-in user
+    if (auth.profile?.role === 'Examiner' || auth.profile?.role === 'Admin') {
+      const { data: results, error } = await supabase
+        .from('results')
+        .select('*, candidate_id(*)')
+        .eq('exam_id', examId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formattedResults = results.map((r: any) => ({
+        _id: r.id,
+        score: r.score,
+        totalMarks: r.total_marks,
+        createdAt: r.created_at,
+        candidateId: {
+          name: (r.candidate_id as any)?.name || 'Unknown',
+          bsgId: (r.candidate_id as any)?.bsg_id || 'N/A'
+        }
+      }));
+      return camelCaseResponse(formattedResults);
+    }
+
+    // Candidate view: return single result
     const { data: result, error } = await supabase
       .from('results')
       .select('*, exam_id(*), attempt_id(*)')
