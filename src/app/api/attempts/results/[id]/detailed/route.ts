@@ -48,7 +48,11 @@ export async function GET(
 
     // 2. Fetch all questions for this exam
     const examObj = Array.isArray(result.exam_id) ? result.exam_id[0] : result.exam_id;
-    const examUuid = examObj?.id || result.exam_id;
+    const examUuid = examObj?.id || (typeof result.exam_id === 'string' ? result.exam_id : null);
+
+    if (!examUuid) {
+      return camelCaseResponse({ message: 'Exam no longer exists' }, { status: 404 });
+    }
 
     const { data: questions, error: questionsError } = await supabase
       .from('questions')

@@ -597,6 +597,15 @@ export default function ExamDetails() {
                   </select>
                 </div>
               </div>
+              <div className="flex justify-end pt-4 border-t border-gray-100">
+                <button
+                  onClick={handleSaveBasicSettings}
+                  disabled={isSavingBasic}
+                  className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Save size={16} /> {isSavingBasic ? 'Saving...' : 'Save General Info'}
+                </button>
+              </div>
             </div>
 
             {/* Timing & Scoring */}
@@ -688,7 +697,7 @@ export default function ExamDetails() {
                 <button
                   onClick={handleSaveBasicSettings}
                   disabled={isSavingBasic}
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50"
+                  className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50"
                 >
                   <Save size={16} /> {isSavingBasic ? 'Saving...' : 'Save Timing'}
                 </button>
@@ -736,9 +745,9 @@ export default function ExamDetails() {
                 <button
                   onClick={handleSaveBasicSettings}
                   disabled={isSavingBasic}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-5 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2 text-sm disabled:opacity-50"
+                  className="bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 text-sm disabled:opacity-50"
                 >
-                  <Save size={14} /> {isSavingBasic ? 'Saving...' : 'Save Schedule Time'}
+                  <Save size={14} /> {isSavingBasic ? 'Saving...' : 'Save Schedule'}
                 </button>
               </div>
 
@@ -851,33 +860,12 @@ export default function ExamDetails() {
             </div>
           </div>
         )}
-
-        {/* QUESTION MANAGER */}
+{/* QUESTION MANAGER */}
         {activeTab === 'questions' && (
           <div className="max-w-5xl">
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
               <h1 className="text-3xl font-black text-gray-900 shrink-0">Question Manager</h1>
               <div className="flex items-center gap-2 overflow-x-auto pb-2 xl:pb-0 w-full xl:w-auto hide-scrollbar">
-                <Link
-                  href={`/examiner/exams/${examId}/print`}
-                  className="bg-gray-800 text-white font-black px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
-                >
-                  <FileText size={18} /> Print Master Paper
-                </Link>
-                {exam.questions.length > 0 && (
-                  <button 
-                    onClick={() => setShowDeleteAllModal(true)}
-                    className="bg-red-500 text-white font-black px-4 py-2.5 rounded-xl hover:bg-red-600 transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
-                  >
-                    <Trash2 size={18} /> Delete All
-                  </button>
-                )}
-                <button 
-                  onClick={() => setShowAiModal(true)}
-                  className="bg-bsg-gold text-bsg-blue-dark font-black px-4 py-2.5 rounded-xl hover:bg-yellow-500 transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
-                >
-                  <Upload size={18} /> AI Import
-                </button>
                 <button 
                   onClick={() => {
                     setEditingQuestionId(null);
@@ -899,8 +887,28 @@ export default function ExamDetails() {
                   }}
                   className="bg-bsg-blue text-white font-black px-4 py-2.5 rounded-xl hover:bg-bsg-blue-dark transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
                 >
-                  + Add Manual
+                  <ListChecks size={18} /> {language === 'hi' ? '+ मैन्युअल जोड़ें' : '+ Add Manual'}
                 </button>
+                <button 
+                  onClick={() => setShowAiModal(true)}
+                  className="bg-bsg-gold text-bsg-blue-dark font-black px-4 py-2.5 rounded-xl hover:bg-yellow-500 transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
+                >
+                  <Upload size={18} /> {language === 'hi' ? 'AI आयात' : 'AI Import'}
+                </button>
+                <Link
+                  href={`/examiner/exams/${examId}/print`}
+                  className="bg-gray-800 text-white font-black px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
+                >
+                  <FileText size={18} /> {language === 'hi' ? 'मास्टर पेपर प्रिंट करें' : 'Print Master Paper'}
+                </Link>
+                {exam.questions.length > 0 && (
+                  <button 
+                    onClick={() => setShowDeleteAllModal(true)}
+                    className="bg-red-500 text-white font-black px-4 py-2.5 rounded-xl hover:bg-red-600 transition-colors shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
+                  >
+                    <Trash2 size={18} /> {language === 'hi' ? 'सभी हटाएं' : 'Delete All'}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1322,6 +1330,45 @@ export default function ExamDetails() {
                             <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                             <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 'bold' }} />
                           </PieChart>
+                        </ResponsiveContainer>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-8 col-span-1 lg:col-span-2">
+                  <h3 className="text-xl font-black text-gray-900 mb-6">Score Distribution</h3>
+                  <div className="h-[300px] w-full">
+                    {(() => {
+                      const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = require('recharts');
+                      
+                      const bins = { '0-20%': 0, '21-40%': 0, '41-60%': 0, '61-80%': 0, '81-100%': 0 };
+                      results.forEach(r => {
+                        const pct = (r.score / r.totalMarks) * 100;
+                        if (pct <= 20) bins['0-20%']++;
+                        else if (pct <= 40) bins['21-40%']++;
+                        else if (pct <= 60) bins['41-60%']++;
+                        else if (pct <= 80) bins['61-80%']++;
+                        else bins['81-100%']++;
+                      });
+
+                      const data = Object.keys(bins).map(key => ({
+                        range: key,
+                        candidates: bins[key as keyof typeof bins]
+                      }));
+
+                      return (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                            <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 'bold', fill: '#6b7280' }} dy={10} />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 'bold', fill: '#6b7280' }} allowDecimals={false} />
+                            <Tooltip
+                              cursor={{ fill: '#f3f4f6' }}
+                              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
+                            />
+                            <Bar dataKey="candidates" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+                          </BarChart>
                         </ResponsiveContainer>
                       );
                     })()}
