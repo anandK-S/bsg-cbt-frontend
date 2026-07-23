@@ -184,9 +184,8 @@ export default function LiveMonitor() {
 
   if (!isAuthenticated || (user?.role !== 'Examiner' && user?.role !== 'Admin')) return null;
 
-  // Filter out candidates who are inactive for > 5 mins and not completed
+  // Filter out candidates who are inactive for > 5 mins
   const candidateList = Object.values(candidates).filter(c => {
-    if (c.status === 'Submitted' || c.status === 'Auto-Submitted' || c.status === 'Blocked' || c.status === 'Completed') return true;
     const isOffline = now - new Date(c.lastUpdate).getTime() > 300000; // 5 mins
     return !isOffline;
   });
