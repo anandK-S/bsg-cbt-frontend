@@ -446,6 +446,7 @@ export default function Register() {
                           </button>
                         </div>
                       </div>
+                      </>
                     )}
 
                     <div className="md:col-span-2">
