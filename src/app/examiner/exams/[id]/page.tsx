@@ -713,7 +713,7 @@ export default function ExamDetails() {
                   <label className="block text-sm font-bold text-gray-700 mb-1.5">Scheduled Start Date (Optional)</label>
                   <input
                     type="datetime-local"
-                    value={editForm.scheduledStartDate ? (() => { const d = new Date(new Date(editForm.scheduledStartDate).getTime() + (5.5 * 60 * 60 * 1000)); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; })() : ''}
+                    value={editForm.scheduledStartDate ? (() => { const dateStr = editForm.scheduledStartDate.includes('Z') || editForm.scheduledStartDate.includes('+') ? editForm.scheduledStartDate : editForm.scheduledStartDate + 'Z'; const d = new Date(new Date(dateStr).getTime() + (5.5 * 60 * 60 * 1000)); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; })() : ''}
                     onChange={(e) => setEditForm({ ...editForm, scheduledStartDate: e.target.value ? new Date(e.target.value + "+05:30").toISOString() : null })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium text-sm"
                   />
@@ -723,7 +723,7 @@ export default function ExamDetails() {
                   <label className="block text-sm font-bold text-gray-700 mb-1.5">Scheduled End Date (Optional)</label>
                   <input
                     type="datetime-local"
-                    value={editForm.scheduledEndDate ? (() => { const d = new Date(new Date(editForm.scheduledEndDate).getTime() + (5.5 * 60 * 60 * 1000)); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; })() : ''}
+                    value={editForm.scheduledEndDate ? (() => { const dateStr = editForm.scheduledEndDate.includes('Z') || editForm.scheduledEndDate.includes('+') ? editForm.scheduledEndDate : editForm.scheduledEndDate + 'Z'; const d = new Date(new Date(dateStr).getTime() + (5.5 * 60 * 60 * 1000)); const p = (n: number) => n.toString().padStart(2, '0'); return `${d.getUTCFullYear()}-${p(d.getUTCMonth()+1)}-${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; })() : ''}
                     onChange={(e) => setEditForm({ ...editForm, scheduledEndDate: e.target.value ? new Date(e.target.value + "+05:30").toISOString() : null })}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all font-medium text-sm"
                   />
