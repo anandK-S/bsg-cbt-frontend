@@ -14,12 +14,12 @@ export async function PUT(req: NextRequest) {
 
     const updateData: any = {
       name,
-      profile_image: profileImage,
-      bsg_id: bsgId,
-      section: section,
-      district: district,
-      unit_name: unitName,
-      unit_number: unitNumber
+      profile_image: profileImage || null,
+      bsg_id: bsgId || null,
+      section: section || null,
+      district: district || null,
+      unit_name: unitName || null,
+      unit_number: unitNumber || null
     };
 
     // Update profile in profiles table
