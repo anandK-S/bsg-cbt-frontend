@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
        // Ignore not found
     }
 
-    if (attempt && !exam.allow_multiple_attempts && (attempt.status === 'Submitted' || attempt.status === 'Auto-Submitted' || attempt.status === 'Blocked')) {
+    if (attempt && !exam.allow_multiple_attempts && (attempt.status === 'Submitted' || attempt.status === 'Auto-Submitted')) {
       return camelCaseResponse({ message: 'Exam already completed' }, { status: 403 });
     }
 
@@ -47,9 +47,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
-    // If there's no attempt, or the last one is finished and multiple attempts are allowed
-    if (!attempt || ((attempt.status === 'Submitted' || attempt.status === 'Auto-Submitted' || attempt.status === 'Blocked') && exam.allow_multiple_attempts)) {
-      // Always create a new attempt so we preserve history of past attempts
+    // If there's no attempt, or the last one is finished (Submitted/Auto-Submitted) and multiple attempts are allowed
+    if (!attempt || ((attempt.status === 'Submitted' || attempt.status === 'Auto-Submitted') && exam.allow_multiple_attempts)) {
+      // Always create a new attempt for completed tests so we preserve history of past attempts
       const { data: newAttempt, error: newAttemptError } = await supabaseAdmin.from('exam_attempts').insert([{
         exam_id: (await params).id,
         candidate_id: auth.id,
@@ -60,6 +60,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       
       if (newAttemptError) throw newAttemptError;
       attempt = newAttempt;
+    } else if (attempt && attempt.status === 'Blocked') {
+      // If the attempt is Blocked (Paused/Cancelled by examiner), RESUME it with the remaining time!
+      const { data: updatedAttempt, error: updateError } = await supabaseAdmin.from('exam_attempts').update({
+        status: 'In-Progress',
+        start_time: new Date().toISOString(),
+        warnings: 0
+      }).eq('id', attempt.id).select().single();
+      
+      if (updateError) throw updateError;
+      attempt = updatedAttempt;
     }
 
     // If it's already in-progress, cap the time_remaining to the current exam duration 

@@ -312,6 +312,18 @@ export default function LiveMonitor() {
                       </div>
                     </div>
                     
+                    <div className="px-4 mb-2">
+                      {(() => {
+                        const examMaxTime = (c.exams as any)?.duration_seconds || ((c.exams as any)?.duration_minutes * 60) || c.timeRemaining;
+                        const progressPercent = examMaxTime > 0 ? Math.min(100, Math.max(0, ((examMaxTime - c.timeRemaining) / examMaxTime) * 100)) : 0;
+                        return (
+                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                            <div className={`h-full rounded-full transition-all duration-1000 ease-out ${progressPercent > 80 ? 'bg-orange-500' : progressPercent > 90 ? 'bg-red-500' : 'bg-bsg-blue'}`} style={{ width: `${progressPercent}%` }}></div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    
                     <div className="bg-blue-50/50 rounded-xl px-3 py-2.5 mb-4 text-xs font-bold text-bsg-blue truncate border border-blue-100">
                       📝 {c.examTitle}
                     </div>

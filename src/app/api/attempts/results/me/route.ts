@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
       createdAt: r.created_at,
       isReleased: r.is_released,
       violationReason: r.violation_reason,
+      timeTakenSeconds: r.time_taken_seconds,
       examId: {
         _id: r.exam_id,
         title: (r.exam_id as any)?.title,

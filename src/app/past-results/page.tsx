@@ -196,15 +196,10 @@ export default function PastResultsPage() {
               
               // Calculate time taken
               let timeTakenStr = 'N/A';
-              if (result.attemptId) {
-                const totalSeconds = (result.examId as any)?.durationMinutes * 60 + ((result.examId as any)?.durationSeconds || 0);
-                const timeRemaining = result.attemptId.timeRemaining;
-                if (totalSeconds > 0 && timeRemaining !== undefined) {
-                  const takenSeconds = totalSeconds - timeRemaining;
-                  const m = Math.floor(takenSeconds / 60);
-                  const s = takenSeconds % 60;
-                  timeTakenStr = `${m}m ${s}s`;
-                }
+              if (result.timeTakenSeconds !== undefined && result.timeTakenSeconds !== null) {
+                const m = Math.floor(result.timeTakenSeconds / 60);
+                const s = result.timeTakenSeconds % 60;
+                timeTakenStr = `${m}m ${s}s`;
               }
 
               const isPending = result.isReleased === false;

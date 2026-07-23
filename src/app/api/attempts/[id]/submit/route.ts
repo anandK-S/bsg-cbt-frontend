@@ -98,7 +98,8 @@ export async function POST(
         score,
         total_marks: totalMarks,
         is_released: examObj?.release_results_instantly ?? true,
-        violation_reason: violationReason || null
+        violation_reason: violationReason || null,
+        time_taken_seconds: timeTaken
       })
       .select()
       .single();
