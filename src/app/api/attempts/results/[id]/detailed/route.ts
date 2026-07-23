@@ -54,7 +54,7 @@ export async function GET(
       .from('questions')
       .select('*')
       .eq('exam_id', examUuid)
-      .order('order_index', { ascending: true });
+      .order('created_at', { ascending: true });
 
     if (questionsError) throw questionsError;
 
