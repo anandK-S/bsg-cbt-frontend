@@ -9,6 +9,7 @@ import { API_URL } from '@/utils/apiConfig';
 import { Menu, X, CheckCircle2, Circle, Clock, UserCircle, Save, Eraser, BookmarkPlus, AlertTriangle } from 'lucide-react';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import QRCode from 'react-qr-code';
+import { supabase } from '@/utils/supabaseClient';
 
 // Status Types for Government BSG
 type QuestionStatus = 'NotVisited' | 'Visited' | 'Answered' | 'MarkedForReview' | 'AnsweredAndMarkedForReview';
@@ -175,25 +176,30 @@ export default function ExamTakePage() {
     return () => clearInterval(syncInterval);
   }, [loading, isSubmitting]);
 
-  // Socket listener for Examiner Force Pause
+  // Supabase Realtime listener for Examiner Force Pause
   useEffect(() => {
     if (loading || isSubmitting || !attemptIdRef.current) return;
 
-    const socket = io(API_URL, { withCredentials: true });
+    const channel = supabase.channel('monitor-room');
     
-    socket.on('connect', () => {
-      socket.emit('join-exam', { examId, candidateId: user?._id });
-    });
-
-    socket.on('force-pause', (data: any) => {
+    channel.on('broadcast', { event: 'force-pause' }, (payload: any) => {
+      const data = payload.payload;
       if (data.candidateId === user?._id) {
         alert("Your exam has been forcefully terminated by an Examiner.");
         handleAutoSubmit("Exam forcefully terminated by Examiner");
       }
+    }).subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.send({
+          type: 'broadcast',
+          event: 'join-exam',
+          payload: { examId, candidateId: user?._id }
+        });
+      }
     });
 
     return () => {
-      socket.disconnect();
+      channel.unsubscribe();
     };
   }, [loading, isSubmitting, examId, user?._id, handleAutoSubmit]);
 
