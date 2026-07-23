@@ -58,6 +58,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       attempt: { 
         ...attempt, 
         _id: attempt.id,
+        timeRemaining: attempt.time_remaining,
         answers: mappedQuestions.map(q => ({ questionId: q._id, status: 'NotVisited' }))
       },
       questions: mappedQuestions,

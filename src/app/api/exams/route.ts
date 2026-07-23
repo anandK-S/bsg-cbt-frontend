@@ -28,6 +28,15 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Fetch attempt counts (completed results)
+    const { data: attemptCountsData } = await supabaseAdmin.from('results').select('exam_id');
+    const attemptCountsMap: Record<string, number> = {};
+    if (attemptCountsData) {
+      attemptCountsData.forEach((a: any) => {
+        attemptCountsMap[a.exam_id] = (attemptCountsMap[a.exam_id] || 0) + 1;
+      });
+    }
+
     // Map Supabase 'id' to MongoDB '_id' and 'creator_id' to 'creatorId' for frontend compatibility
     const formattedExams = exams.map((exam) => ({
       ...exam,
@@ -36,7 +45,7 @@ export async function GET(req: NextRequest) {
       durationMinutes: exam.duration_minutes,
       durationSeconds: exam.duration_seconds,
       questionCount: countsMap[exam.id] || 0,
-      attemptCount: 0, // Default for now
+      attemptCount: attemptCountsMap[exam.id] || 0,
       createdAt: exam.created_at,
     }));
 
