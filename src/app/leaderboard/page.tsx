@@ -98,7 +98,7 @@ export default function LeaderboardPage() {
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between w-full">
             <div>
               <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight flex items-center gap-3">
-                🏆 Global Leaderboard
+                🏆 {t('globalLeaderboard') || 'Global Leaderboard'}
               </h1>
               <p className="text-blue-100 font-medium">Top performing scouts across all examinations.</p>
             </div>

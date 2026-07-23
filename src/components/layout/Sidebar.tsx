@@ -47,6 +47,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         return [
           { name: t('dashboard') || 'Dashboard', href: '/examiner', icon: LayoutDashboard },
           { name: t('liveMonitoring') || 'Live Monitoring', href: '/examiner/live', icon: Activity },
+          { name: t('leaderboard') || 'Leaderboard', href: '/leaderboard', icon: Award },
           { name: t('profileSettings') || 'Profile', href: '/profile', icon: UserIcon },
         ];
       case 'Candidate':

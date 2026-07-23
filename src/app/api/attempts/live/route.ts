@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await getUserFromRequest(req);

@@ -8,6 +8,8 @@ export const en = {
   "logout": "Logout",
   "login": "Login",
   "register": "Register",
+  "leaderboard": "Leaderboard",
+  "globalLeaderboard": "Global Leaderboard",
   
   // Exam Engine
   "questionNo": "Question No.",

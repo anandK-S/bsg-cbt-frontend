@@ -8,6 +8,8 @@ export const hi = {
   "logout": "लॉग आउट",
   "login": "लॉग इन",
   "register": "पंजीकरण",
+  "leaderboard": "लीडरबोर्ड",
+  "globalLeaderboard": "ग्लोबल लीडरबोर्ड",
   
   // Exam Engine
   "questionNo": "प्रश्न संख्या",

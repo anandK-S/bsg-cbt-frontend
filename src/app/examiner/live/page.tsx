@@ -37,7 +37,7 @@ export default function LiveMonitor() {
   const fetchLiveAttempts = useCallback(async (showRefreshing = false) => {
     if (showRefreshing) setIsRefreshing(true);
     try {
-      const { data } = await axios.get(`${API_URL}/api/attempts/live`, { withCredentials: true });
+      const { data } = await axios.get(`${API_URL}/api/attempts/live?t=${Date.now()}`, { withCredentials: true });
       const attemptsMap: { [key: string]: any } = {};
       
       data.forEach((attempt: any) => {
