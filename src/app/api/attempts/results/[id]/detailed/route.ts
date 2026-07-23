@@ -69,6 +69,7 @@ export async function GET(
       };
     });
 
+    const examObj = Array.isArray(result.exams) ? result.exams[0] : result.exams;
     const formattedResult = {
       _id: result.id,
       score: result.score,
@@ -77,9 +78,9 @@ export async function GET(
       endTime: result.created_at,
       examId: {
         _id: result.exam_id,
-        title: (result.exams as any)?.title,
-        description: (result.exams as any)?.description,
-        category: (result.exams as any)?.category
+        title: examObj?.title,
+        description: examObj?.description,
+        category: examObj?.category
       }
     };
 

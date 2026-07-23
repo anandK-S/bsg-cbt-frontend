@@ -30,11 +30,14 @@ export async function POST(
       return camelCaseResponse({ message: 'Attempt already completed' }, { status: 400 });
     }
 
+    // Safely get exam object whether Supabase returns it as an array or object
+    const examObj = Array.isArray(attempt.exams) ? attempt.exams[0] : attempt.exams;
+
     // Fetch questions to calculate score
     const { data: questions } = await supabase
       .from('questions')
       .select('*')
-      .eq('exam_id', attempt.exams.id);
+      .eq('exam_id', attempt.exam_id);
 
     let score = 0;
     let totalMarks = 0;
@@ -73,7 +76,7 @@ export async function POST(
       }
     }
 
-    const timeTaken = (attempt.exams.duration_minutes * 60 + (attempt.exams.duration_seconds || 0)) - (timeRemaining || 0);
+    const timeTaken = (examObj?.duration_minutes * 60 + (examObj?.duration_seconds || 0)) - (timeRemaining || 0);
 
     // Save Result
     const { data: result } = await supabaseAdmin
@@ -81,10 +84,10 @@ export async function POST(
       .insert({
         attempt_id: attemptId,
         candidate_id: auth.id,
-        exam_id: attempt.exams.id,
+        exam_id: attempt.exam_id,
         score,
         total_marks: totalMarks,
-        is_released: attempt.exams.release_results_instantly,
+        is_released: examObj?.release_results_instantly ?? true,
         time_taken_seconds: timeTaken > 0 ? timeTaken : 0,
         violation_reason: violationReason || null,
         submitted_at: new Date().toISOString()
