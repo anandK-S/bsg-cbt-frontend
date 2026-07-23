@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       // Return ALL live attempts
       const { data: attempts, error } = await supabaseAdmin
         .from('exam_attempts')
-        .select('*, exams(title, duration_minutes, duration_seconds), profiles(name, bsg_id, district)')
+        .select('*, exams(*), profiles(name, bsg_id, district)')
         .in('status', ['In-Progress', 'Completed'])
         .order('start_time', { ascending: false });
 

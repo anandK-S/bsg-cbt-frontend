@@ -18,7 +18,7 @@ export async function POST(
     // Fetch attempt and exam
     const { data: attempt } = await supabaseAdmin
       .from('exam_attempts')
-      .select('*, exams(duration_minutes, duration_seconds, passing_criteria_type, passing_marks, release_results_instantly)')
+      .select('*, exams(*)')
       .eq('id', attemptId)
       .single();
 

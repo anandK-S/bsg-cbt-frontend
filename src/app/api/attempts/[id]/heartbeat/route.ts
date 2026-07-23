@@ -5,7 +5,7 @@ import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const body = await req.json();
-    const { data: attempt } = await supabaseAdmin.from('exam_attempts').select('exam_id, exams(duration_minutes, duration_seconds)').eq('id', (await params).id).single();
+    const { data: attempt } = await supabaseAdmin.from('exam_attempts').select('exam_id, exams(*)').eq('id', (await params).id).single();
     
     let timeToSave = body.timeRemaining;
     let maxTime = null;
