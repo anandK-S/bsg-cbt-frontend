@@ -136,6 +136,7 @@ export default function ExamDetails() {
         category: data.category,
         durationHours: h || '',
         durationMinutes: m || '',
+        durationSeconds: s || '',
         passingMarks: data.passingMarks || 50,
         passingCriteriaType: data.passingCriteriaType || 'percentage',
         allowMultipleAttempts: !!data.allowMultipleAttempts,
