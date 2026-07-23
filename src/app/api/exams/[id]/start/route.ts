@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
        // Ignore not found
     }
 
-    if (attempt && !exam.allow_multiple_attempts && attempt.status === 'Completed') {
+    if (attempt && !exam.allow_multiple_attempts && (attempt.status === 'Submitted' || attempt.status === 'Auto-Submitted' || attempt.status === 'Blocked')) {
       return camelCaseResponse({ message: 'Exam already completed' }, { status: 403 });
     }
 
@@ -48,9 +48,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // If there's an existing attempt and multiple attempts are allowed, 
-    // and it's 'Completed', we reuse it by updating its status to 'In-Progress'.
+    // and it's 'Submitted', we reuse it by updating its status to 'In-Progress'.
     // This avoids unique constraint errors.
-    if (!attempt || (attempt.status === 'Completed' && exam.allow_multiple_attempts)) {
+    if (!attempt || ((attempt.status === 'Submitted' || attempt.status === 'Auto-Submitted' || attempt.status === 'Blocked') && exam.allow_multiple_attempts)) {
       if (!attempt) {
         // Create new attempt
         const { data: newAttempt, error: newAttemptError } = await supabaseAdmin.from('exam_attempts').insert([{

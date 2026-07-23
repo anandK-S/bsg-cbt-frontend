@@ -26,7 +26,7 @@ export async function POST(
       return camelCaseResponse({ message: 'Invalid attempt' }, { status: 400 });
     }
 
-    if (attempt.status === 'Completed' || attempt.status === 'Blocked') {
+    if (attempt.status === 'Submitted' || attempt.status === 'Blocked' || attempt.status === 'Auto-Submitted') {
       return camelCaseResponse({ message: 'Attempt already processed' }, { status: 400 });
     }
 
@@ -106,7 +106,7 @@ export async function POST(
 
     // Mark Attempt as Completed
     const { error: updateError } = await supabaseAdmin.from('exam_attempts').update({
-      status: violationReason ? 'Blocked' : 'Completed',
+      status: violationReason ? 'Blocked' : 'Submitted',
       end_time: new Date().toISOString(),
       time_remaining: timeRemaining,
       warnings: attempt.warnings || 0
