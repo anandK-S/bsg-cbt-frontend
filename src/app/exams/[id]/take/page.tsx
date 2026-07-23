@@ -131,7 +131,7 @@ export default function ExamTakePage() {
         router.push(`/dashboard`);
       } else {
         console.error("Auto submit failed", e);
-        toast.error('Failed to submit the exam.');
+        toast.error(e.response?.data?.message || 'Failed to submit the exam.');
         isSubmittingRef.current = false;
         setIsSubmitting(false);
       }

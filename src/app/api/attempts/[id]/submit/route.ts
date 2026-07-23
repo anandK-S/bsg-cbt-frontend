@@ -78,7 +78,8 @@ export async function POST(
       if (answerInserts.length > 0) {
         // We can ignore errors if answers are already saved, but upsert is better.
         // For simplicity, just insert.
-        await supabaseAdmin.from('attempt_answers').upsert(answerInserts, { onConflict: 'attempt_id,question_id' });
+        const { error: ansError } = await supabaseAdmin.from('attempt_answers').upsert(answerInserts, { onConflict: 'attempt_id,question_id' });
+        if (ansError) throw new Error(`Answer save error: ${ansError.message}`);
       }
     }
 
@@ -88,7 +89,7 @@ export async function POST(
     const timeTaken = (examObj?.duration_seconds || (examObj?.duration_minutes * 60) || 0) - (timeRemaining || 0);
 
     // Save Result
-    const { data: result } = await supabaseAdmin
+    const { data: result, error: resultError } = await supabaseAdmin
       .from('results')
       .insert({
         attempt_id: attemptId,
@@ -101,14 +102,16 @@ export async function POST(
       })
       .select()
       .single();
+    if (resultError) throw new Error(`Result save error: ${resultError.message}`);
 
     // Mark Attempt as Completed
-    await supabaseAdmin.from('exam_attempts').update({
+    const { error: updateError } = await supabaseAdmin.from('exam_attempts').update({
       status: violationReason ? 'Blocked' : 'Completed',
       end_time: new Date().toISOString(),
       time_remaining: timeRemaining,
       warnings: attempt.warnings || 0
     }).eq('id', attemptId);
+    if (updateError) throw new Error(`Attempt update error: ${updateError.message}`);
 
     return camelCaseResponse({ message: 'Submitted', resultId: result?.id });
   } catch (error: any) {
