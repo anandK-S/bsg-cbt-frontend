@@ -186,6 +186,7 @@ export default function LiveMonitor() {
 
   // Filter out candidates who are inactive for > 5 mins and not completed
   const candidateList = Object.values(candidates).filter(c => {
+    if (c.status === 'Submitted' || c.status === 'Auto-Submitted' || c.status === 'Blocked' || c.status === 'Completed') return true;
     const isOffline = now - new Date(c.lastUpdate).getTime() > 300000; // 5 mins
     return !isOffline;
   });

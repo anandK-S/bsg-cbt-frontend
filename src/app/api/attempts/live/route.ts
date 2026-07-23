@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       const { data: attempts, error } = await supabaseAdmin
         .from('exam_attempts')
         .select('*, exams(*), profiles(name, bsg_id, district)')
-        .in('status', ['In-Progress', 'Blocked'])
+        .in('status', ['In-Progress', 'Submitted', 'Auto-Submitted', 'Blocked'])
         .order('start_time', { ascending: false });
 
       if (error) throw error;
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
         },
         status: a.status,
         warnings: a.warnings || 0,
-        updatedAt: a.updated_at,
+        updatedAt: a.updated_at || a.start_time,
         timeRemaining: Math.min(a.time_remaining, examMaxTime),
         examMaxTime: examMaxTime
       };
