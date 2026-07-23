@@ -57,7 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           exam_id: (await params).id,
           candidate_id: auth.id,
           status: 'In-Progress',
-          time_remaining: exam.duration_seconds || (exam.duration_minutes * 60)
+          time_remaining: ((exam.duration_hours || 0) * 3600) + ((exam.duration_minutes || 0) * 60) + (exam.duration_seconds || 0)
         }]).select().single();
         
         if (newAttemptError) throw newAttemptError;
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         // Update old attempt to restart it
         const { data: updatedAttempt, error: updateError } = await supabaseAdmin.from('exam_attempts').update({
           status: 'In-Progress',
-          time_remaining: exam.duration_seconds || (exam.duration_minutes * 60),
+          time_remaining: ((exam.duration_hours || 0) * 3600) + ((exam.duration_minutes || 0) * 60) + (exam.duration_seconds || 0),
           start_time: new Date().toISOString(),
           warnings: 0
         }).eq('id', attempt.id).select().single();
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // If it's already in-progress, cap the time_remaining to the current exam duration 
     // in case the examiner reduced the time while they were paused.
     if (attempt && attempt.status === 'In-Progress') {
-      const maxTime = exam.duration_seconds || (exam.duration_minutes * 60);
+      const maxTime = ((exam.duration_hours || 0) * 3600) + ((exam.duration_minutes || 0) * 60) + (exam.duration_seconds || 0);
       if (attempt.time_remaining > maxTime) {
         attempt.time_remaining = maxTime;
         await supabaseAdmin.from('exam_attempts').update({ time_remaining: maxTime }).eq('id', attempt.id);

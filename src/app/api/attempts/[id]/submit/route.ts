@@ -18,7 +18,7 @@ export async function POST(
     // Fetch attempt and exam
     const { data: attempt } = await supabase
       .from('exam_attempts')
-      .select('*, exams(*)')
+      .select('*, exams(duration_hours, duration_minutes, duration_seconds, passing_criteria_type, passing_marks)')
       .eq('id', attemptId)
       .single();
 
@@ -76,7 +76,7 @@ export async function POST(
       }
     }
 
-    const timeTaken = (examObj?.duration_minutes * 60 + (examObj?.duration_seconds || 0)) - (timeRemaining || 0);
+    const timeTaken = (((examObj?.duration_hours || 0) * 3600) + ((examObj?.duration_minutes || 0) * 60) + (examObj?.duration_seconds || 0)) - (timeRemaining || 0);
 
     // Delete any old result for this attempt to prevent unique constraint errors during retakes
     await supabaseAdmin.from('results').delete().eq('attempt_id', attemptId);

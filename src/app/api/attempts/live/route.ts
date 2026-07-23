@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       // Return ALL live attempts
       const { data: attempts, error } = await supabaseAdmin
         .from('exam_attempts')
-        .select('*, exams(title, duration_minutes, duration_seconds), profiles!candidate_id(name, bsg_id, district)')
+        .select('*, exams(title, duration_hours, duration_minutes, duration_seconds), profiles!candidate_id(name, bsg_id, district)')
         .in('status', ['In-Progress', 'Completed'])
         .order('start_time', { ascending: false });
 
@@ -24,7 +24,8 @@ export async function GET(req: NextRequest) {
 
       // Map array for Examiner
       const formattedAttempts = attempts?.map(a => {
-        const examMaxTime = (a.exams as any)?.duration_seconds || ((a.exams as any)?.duration_minutes * 60) || a.time_remaining;
+        const e = a.exams as any;
+        const examMaxTime = ((e?.duration_hours || 0) * 3600) + ((e?.duration_minutes || 0) * 60) + (e?.duration_seconds || 0) || a.time_remaining;
         return {
         _id: a.id,
         candidateId: {

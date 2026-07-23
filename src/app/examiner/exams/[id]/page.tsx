@@ -730,6 +730,16 @@ export default function ExamDetails() {
                   <p className="text-xs font-medium text-gray-400 mt-1.5">Candidates cannot start after this time.</p>
                 </div>
               </div>
+              
+              <div className="flex justify-end mb-8 mt-[-1rem]">
+                <button
+                  onClick={handleSaveBasicSettings}
+                  disabled={isSavingBasic}
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-5 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2 text-sm disabled:opacity-50"
+                >
+                  <Save size={14} /> {isSavingBasic ? 'Saving...' : 'Save Schedule Time'}
+                </button>
+              </div>
 
               <div className="mb-6 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
                 <label className="block text-sm font-bold text-gray-700 mb-2">Test Key / Password (Optional)</label>
