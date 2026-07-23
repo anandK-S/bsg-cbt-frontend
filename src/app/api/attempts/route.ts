@@ -15,13 +15,13 @@ export async function POST(req: NextRequest) {
 
     const { data: exam, error: examError } = await supabase
       .from('exams')
-      .select('duration_hours, duration_minutes, duration_seconds')
+      .select('duration_minutes, duration_seconds')
       .eq('id', examId)
       .single();
 
     if (examError || !exam) return camelCaseResponse({ message: 'Exam not found' }, { status: 404 });
 
-    const timeRemaining = ((exam.duration_hours || 0) * 3600) + ((exam.duration_minutes || 0) * 60) + (exam.duration_seconds || 0);
+    const timeRemaining = exam.duration_seconds || (exam.duration_minutes * 60);
 
     const { data: attempt, error: attemptError } = await supabaseAdmin
       .from('exam_attempts')

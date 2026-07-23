@@ -16,9 +16,9 @@ export async function POST(
     const { answers, timeRemaining, violationReason } = body;
 
     // Fetch attempt and exam
-    const { data: attempt } = await supabase
+    const { data: attempt } = await supabaseAdmin
       .from('exam_attempts')
-      .select('*, exams(duration_hours, duration_minutes, duration_seconds, passing_criteria_type, passing_marks)')
+      .select('*, exams(duration_minutes, duration_seconds, passing_criteria_type, passing_marks, release_results_instantly)')
       .eq('id', attemptId)
       .single();
 
@@ -32,6 +32,12 @@ export async function POST(
 
     // Safely get exam object whether Supabase returns it as an array or object
     const examObj = Array.isArray(attempt.exams) ? attempt.exams[0] : attempt.exams;
+
+    const e = attempt.exams as any;
+    const maxTime = e?.duration_seconds || (e?.duration_minutes * 60) || 0;
+    if (body.timeRemaining > maxTime) {
+      return camelCaseResponse({ message: 'Invalid time remaining' }, { status: 400 });
+    }
 
     // Fetch questions to calculate score
     const { data: questions } = await supabase
@@ -76,10 +82,10 @@ export async function POST(
       }
     }
 
-    const timeTaken = (((examObj?.duration_hours || 0) * 3600) + ((examObj?.duration_minutes || 0) * 60) + (examObj?.duration_seconds || 0)) - (timeRemaining || 0);
-
     // Delete any old result for this attempt to prevent unique constraint errors during retakes
     await supabaseAdmin.from('results').delete().eq('attempt_id', attemptId);
+
+    const timeTaken = (examObj?.duration_seconds || (examObj?.duration_minutes * 60) || 0) - (timeRemaining || 0);
 
     // Save Result
     const { data: result } = await supabaseAdmin
@@ -96,16 +102,15 @@ export async function POST(
       .select()
       .single();
 
-    // Update attempt
-    await supabaseAdmin
-      .from('exam_attempts')
-      .update({
-        status: 'Completed',
-        end_time: new Date().toISOString(),
-        time_remaining: timeRemaining,
-        violation_reason: violationReason || null
-      })
-      .eq('id', attemptId);
+    // Mark Attempt as Completed
+    await supabaseAdmin.from('exam_attempts').update({
+      status: violationReason ? 'Blocked' : 'Completed',
+      end_time: new Date().toISOString(),
+      time_remaining: timeRemaining,
+      time_taken: timeTaken > 0 ? timeTaken : 0,
+      warnings: attempt.warnings || 0,
+      violation_reason: violationReason || null
+    }).eq('id', attemptId);
 
     return camelCaseResponse({ message: 'Submitted', resultId: result?.id });
   } catch (error: any) {

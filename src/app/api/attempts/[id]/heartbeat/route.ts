@@ -5,14 +5,14 @@ import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const body = await req.json();
-    const { data: attempt } = await supabaseAdmin.from('exam_attempts').select('exam_id, exams(duration_hours, duration_minutes, duration_seconds)').eq('id', (await params).id).single();
+    const { data: attempt } = await supabaseAdmin.from('exam_attempts').select('exam_id, exams(duration_minutes, duration_seconds)').eq('id', (await params).id).single();
     
     let timeToSave = body.timeRemaining;
     let maxTime = null;
 
     if (attempt?.exams) {
       const e = attempt.exams as any;
-      maxTime = ((e?.duration_hours || 0) * 3600) + ((e?.duration_minutes || 0) * 60) + (e?.duration_seconds || 0);
+      maxTime = e?.duration_seconds || (e?.duration_minutes * 60) || 0;
       if (timeToSave > maxTime) {
         timeToSave = maxTime;
       }
