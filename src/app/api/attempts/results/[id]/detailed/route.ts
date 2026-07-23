@@ -24,11 +24,11 @@ export async function GET(
     if (!result) return camelCaseResponse({ message: 'Result not found' }, { status: 404 });
 
     // Verify ownership or examiner permissions
-    if (result.candidate_id !== auth.id && auth.role === 'Candidate') {
+    if (result.candidate_id !== auth.id && auth.profile?.role === 'Candidate') {
       return camelCaseResponse({ message: 'Forbidden' }, { status: 403 });
     }
 
-    if (!result.is_released && auth.role === 'Candidate') {
+    if (!result.is_released && auth.profile?.role === 'Candidate') {
       return camelCaseResponse({ message: 'Results are pending' }, { status: 403 });
     }
 

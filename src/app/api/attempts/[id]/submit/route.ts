@@ -18,7 +18,7 @@ export async function POST(
     // Fetch attempt and exam
     const { data: attempt } = await supabase
       .from('exam_attempts')
-      .select('*, exam_id(*)')
+      .select('*, exams(*)')
       .eq('id', attemptId)
       .single();
 
@@ -34,7 +34,7 @@ export async function POST(
     const { data: questions } = await supabase
       .from('questions')
       .select('*')
-      .eq('exam_id', attempt.exam_id.id);
+      .eq('exam_id', attempt.exams.id);
 
     let score = 0;
     let totalMarks = 0;
@@ -42,22 +42,27 @@ export async function POST(
     // Save answers
     if (answers && questions) {
       const answerInserts = [];
-      for (const [qId, ans] of Object.entries(answers as Record<string, any>)) {
+      for (const ans of answers as any[]) {
+        const qId = ans.questionId;
         const question = questions.find((q: any) => q.id === qId);
         if (!question) continue;
 
         totalMarks += question.marks || 1;
 
-        if (ans.selectedOptionIndex === question.correct_option_index) {
-          score += question.marks || 1;
+        // check if candidate marked as Answered and the choice is correct
+        if (ans.selectedOptionIndex !== undefined && ans.selectedOptionIndex !== null) {
+          if (ans.selectedOptionIndex === question.correct_option_index) {
+            score += question.marks || 1;
+          }
         }
 
         answerInserts.push({
           attempt_id: attemptId,
           question_id: qId,
-          selected_option_index: ans.selectedOptionIndex,
+          selected_option_index: ans.selectedOptionIndex !== undefined ? ans.selectedOptionIndex : null,
           status: ans.status || 'Answered',
-          time_spent_seconds: ans.timeSpent || 0
+          time_spent_seconds: ans.timeSpent || 0,
+          viewed_language: ans.viewedLanguage || 'en'
         });
       }
 
@@ -68,7 +73,7 @@ export async function POST(
       }
     }
 
-    const timeTaken = (attempt.exam_id.duration_minutes * 60 + (attempt.exam_id.duration_seconds || 0)) - (timeRemaining || 0);
+    const timeTaken = (attempt.exams.duration_minutes * 60 + (attempt.exams.duration_seconds || 0)) - (timeRemaining || 0);
 
     // Save Result
     const { data: result } = await supabaseAdmin
@@ -76,10 +81,10 @@ export async function POST(
       .insert({
         attempt_id: attemptId,
         candidate_id: auth.id,
-        exam_id: attempt.exam_id.id,
+        exam_id: attempt.exams.id,
         score,
         total_marks: totalMarks,
-        is_released: attempt.exam_id.release_results_instantly,
+        is_released: attempt.exams.release_results_instantly,
         time_taken_seconds: timeTaken > 0 ? timeTaken : 0,
         violation_reason: violationReason || null,
         submitted_at: new Date().toISOString()
