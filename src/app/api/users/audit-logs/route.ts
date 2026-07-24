@@ -15,7 +15,9 @@ export async function GET(req: NextRequest) {
       .from('audit_logs')
       .select(`
         *,
-        userId:profiles!audit_logs_user_id_fkey(id, name, email, role)
+        profiles (
+          id, name, email, role
+        )
       `)
       .order('timestamp', { ascending: false });
 
@@ -23,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     const formattedLogs = logs.map(log => ({
       _id: log.id,
-      userId: log.userId ? { _id: log.userId.id, name: log.userId.name, email: log.userId.email, role: log.userId.role } : null,
+      userId: log.profiles ? { _id: log.profiles.id, name: log.profiles.name, email: log.profiles.email, role: log.profiles.role } : null,
       action: log.action,
       details: log.details,
       timestamp: log.timestamp

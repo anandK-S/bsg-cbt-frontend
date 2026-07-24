@@ -29,8 +29,16 @@ export default function Login() {
 
   useEffect(() => {
     setMounted(true);
-    // TODO: Move settings fetch to Supabase later
-    setGlobalSettings(null); 
+    // Fetch global settings directly from Supabase
+    const fetchSettings = async () => {
+      try {
+        const { data } = await supabase.from('settings').select('*').limit(1).single();
+        if (data) setGlobalSettings(data);
+      } catch (err) {
+        console.error('Failed to load settings', err);
+      }
+    };
+    fetchSettings(); 
 
     // Diagnostics check to see if Supabase env variables are actually present in the browser
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -79,6 +87,10 @@ export default function Login() {
         throw new Error('User is blocked');
       }
 
+      if (globalSettings?.maintenance_mode && profile.role !== 'Admin') {
+        throw new Error('Maintenance Mode');
+      }
+
       // 3. Update Zustand Store
       const userData = {
         _id: authData.user.id,
@@ -117,6 +129,8 @@ export default function Login() {
         errorMessage = language === 'hi' ? 'आपका खाता ब्लॉक कर दिया गया है।' : 'Your account has been blocked.';
       } else if (errorMessage.includes('Failed to load user profile')) {
         errorMessage = language === 'hi' ? 'तकनीकी त्रुटि! कृपया बाद में प्रयास करें।' : 'Technical Error! Failed to load profile.';
+      } else if (errorMessage.includes('Maintenance Mode')) {
+        errorMessage = language === 'hi' ? 'सिस्टम अभी मेंटेनेंस मोड में है। कृपया बाद में प्रयास करें।' : 'System is currently under maintenance. Please try again later.';
       }
       setError({ message: errorMessage });
     } finally {
