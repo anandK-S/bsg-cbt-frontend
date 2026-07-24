@@ -107,7 +107,7 @@ Important Rules:
       }
 
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-pro', // Upgraded to Pro for maximum intelligence
+        model: 'gemini-1.5-flash', // Switched to flash as pro alias is returning 404
         contents,
         config: {
           responseMimeType: "application/json",
