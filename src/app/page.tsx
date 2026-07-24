@@ -127,7 +127,7 @@ export default function Home() {
       </header>
 
       <main className="relative z-10 flex flex-col items-center justify-center min-h-screen pt-24 pb-16 px-4">
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="max-w-4xl mx-auto flex flex-col items-center text-center mt-4 sm:mt-8">
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="max-w-4xl mx-auto flex flex-col items-center text-center mt-4 sm:mt-8">
           
           <motion.div whileHover={{ scale: 1.05 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/80 border border-blue-100/50 text-bsg-blue text-xs sm:text-sm font-bold mb-8 shadow-sm backdrop-blur-sm">
             <span className="relative flex h-2.5 w-2.5">
@@ -142,11 +142,11 @@ export default function Home() {
             <TypewriterText text={t("bsgPortal")} className="text-transparent bg-clip-text bg-gradient-to-r from-bsg-blue to-blue-500" />
           </h1>
 
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.8 }} className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.3 }} className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
             {t("landingDesc")}
           </motion.p>
 
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.2, type: "spring" }} className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto px-4 sm:px-0 bg-white/50 p-3 rounded-[2rem] backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, type: "spring" }} className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto px-4 sm:px-0 bg-white/50 p-3 rounded-[2rem] backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
             <Link href="/login" className="group relative inline-flex items-center justify-center px-10 py-4 font-bold text-white bg-gray-900 rounded-2xl overflow-hidden transition-all hover:bg-black shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:-translate-y-1">
               <span className="relative z-10 flex items-center gap-2 text-lg">
                 {t("startExamination")} <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -160,7 +160,7 @@ export default function Home() {
         </motion.div>
 
         {/* Feature Cards Grid (Light Glassmorphism) */}
-        <motion.div initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }} className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-24 sm:mt-32 max-w-6xl mx-auto w-full px-4 sm:px-6">
+        <motion.div initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.3, ease: "easeOut" }} className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-24 sm:mt-32 max-w-6xl mx-auto w-full px-4 sm:px-6">
           {[
             { icon: ShieldCheck, color: 'text-rose-500', bg: 'bg-rose-50', title: t("secureExamination"), desc: t("secureExamDesc") },
             { icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50', title: t("reliableOffline"), desc: t("reliableOfflineDesc") },
@@ -180,7 +180,7 @@ export default function Home() {
         </motion.div>
         
         {/* Developed By Section (Dark Premium Card on Light BG) */}
-        <motion.div initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }} className="mt-32 max-w-5xl mx-auto w-full px-4 sm:px-6 mb-20 group">
+        <motion.div initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.3, ease: "easeOut" }} className="mt-32 max-w-5xl mx-auto w-full px-4 sm:px-6 mb-20 group">
           <div className="bg-[#192330] rounded-[3rem] p-8 sm:p-12 shadow-[0_30px_60px_rgba(25,35,48,0.3)] flex flex-col md:flex-row items-center gap-10 sm:gap-16 relative overflow-hidden text-white border border-gray-800 transform transition-transform duration-500 hover:rotate-1">
             
             {/* Animated Background Sweep */}

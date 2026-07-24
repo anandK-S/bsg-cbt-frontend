@@ -165,7 +165,7 @@ export default function Login() {
         {/* Animated Grid / Tech Pattern */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
         
-        <div className="relative z-10 flex flex-col items-center justify-center text-white px-8 lg:px-16 text-center h-full pt-16">
+        <div className="relative z-10 flex flex-col items-center justify-center text-white px-8 lg:px-16 text-center h-full pt-10 pb-6">
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, type: "spring" }}
             whileHover={{ scale: 1.05, rotate: 0 }}
@@ -186,11 +186,11 @@ export default function Login() {
             className="group relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl max-w-sm mt-auto mb-4 transition-all duration-300 cursor-default"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            <p className="text-blue-100/80 italic font-medium">"Be Prepared."</p>
+            <p className="text-blue-100/80 italic font-medium">"Creating a better India through education, empowerment, and character."</p>
             <p className="text-bsg-gold text-sm font-bold mt-2 tracking-widest uppercase">— Bharat Scouts and Guides</p>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mb-12 text-center">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mt-4 text-center">
             <span className="text-blue-100/80 font-medium">{t("dontHaveAccount") || "Don't have an account?"} </span>
             <Link href="/register" className="text-bsg-gold font-bold hover:text-white hover:underline transition-all">
               {t("register") || "Register"}
@@ -398,6 +398,13 @@ export default function Login() {
               </button>
             </motion.div>
           </form>
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-8 pt-6 border-t border-gray-100 text-center text-sm lg:hidden">
+            <span className="text-gray-500 font-medium">{t("dontHaveAccount") || "Don't have an account?"} </span>
+            <Link href="/register" className="text-bsg-blue font-black hover:text-bsg-blue-dark hover:underline transition-all">
+              {t("register") || "Register"}
+            </Link>
+          </motion.div>
         </div>
       </div>
 

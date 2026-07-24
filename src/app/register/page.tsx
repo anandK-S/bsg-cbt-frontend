@@ -212,7 +212,7 @@ export default function Register() {
           {/* Animated Grid / Tech Pattern */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
           
-          <div className="relative z-10 flex flex-col items-center justify-center text-white px-8 lg:px-16 text-center h-full pt-16">
+          <div className="relative z-10 flex flex-col items-center justify-center text-white px-8 lg:px-16 text-center h-full pt-10 pb-6">
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, type: "spring" }}
               whileHover={{ scale: 1.05, rotate: 0 }}
@@ -583,6 +583,13 @@ export default function Register() {
                   </div>
                 </form>
             )}
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-8 pt-6 border-t border-gray-100 text-center text-sm lg:hidden">
+              <span className="text-gray-500 font-medium">{t("alreadyHaveAccount") || "Already have an account?"} </span>
+              <Link href="/login" className="text-bsg-blue font-black hover:text-bsg-blue-dark hover:underline transition-all">
+                {t("signIn") || "Login here"}
+              </Link>
+            </motion.div>
           </div>
         </div>
       </div>
