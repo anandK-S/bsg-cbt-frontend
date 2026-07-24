@@ -195,7 +195,11 @@ Important Rules:
         }
       } catch (groqError: any) {
         console.error("Groq AI also failed:", groqError.message);
-        return camelCaseResponse({ message: 'AI processing failed on both Gemini and Groq' }, { status: 500 });
+        return camelCaseResponse({ 
+          message: 'AI processing failed on both models',
+          geminiError: geminiError.message,
+          groqError: groqError.message 
+        }, { status: 500 });
       }
     }
 

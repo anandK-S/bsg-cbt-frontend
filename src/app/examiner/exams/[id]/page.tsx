@@ -260,7 +260,19 @@ export default function ExamDetails() {
     } catch (err: unknown) {
       clearInterval(progressInterval);
       if (axios.isAxiosError(err)) {
-        setAiError(err.response?.data?.message || 'Failed to import questions. Ensure Gemini API key is valid.');
+        let errorMessage = 'Failed to process AI import. Ensure your API keys are valid.';
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+          if (err.response.data.geminiError) {
+            errorMessage += ` | Gemini: ${err.response.data.geminiError}`;
+          }
+          if (err.response.data.groqError) {
+            errorMessage += ` | Groq: ${err.response.data.groqError}`;
+          }
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        setAiError(errorMessage);
       } else {
         setAiError('Failed to import questions.');
       }
