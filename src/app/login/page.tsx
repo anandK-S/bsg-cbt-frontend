@@ -47,9 +47,17 @@ export default function Login() {
     }
 
     const savedEmail = localStorage.getItem('rememberMeEmail');
+    const savedPassword = localStorage.getItem('rememberMePassword');
     if (savedEmail) {
       setEmail(savedEmail);
       setRememberMe(true);
+    }
+    if (savedPassword) {
+      try {
+        setPassword(atob(savedPassword));
+      } catch (e) {
+        // Ignore decoding error
+      }
     }
   }, []);
 
@@ -113,8 +121,10 @@ export default function Login() {
 
       if (rememberMe) {
         localStorage.setItem('rememberMeEmail', email);
+        localStorage.setItem('rememberMePassword', btoa(password));
       } else {
         localStorage.removeItem('rememberMeEmail');
+        localStorage.removeItem('rememberMePassword');
       }
 
       if (profile.role === 'Admin') {
@@ -153,7 +163,7 @@ export default function Login() {
     )}
     <div className="flex-1 flex flex-col lg:flex-row min-h-screen bg-white">
       {/* Left Panel: Hero Graphic */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#0B1B3D] items-center justify-center overflow-hidden lg:sticky lg:top-0 lg:h-screen">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-[#0B1B3D] items-center justify-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] lg:sticky lg:top-0 lg:h-screen">
         {/* Deep immersive background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0B1B3D] via-[#112A5E] to-[#1A3F8C] opacity-90"></div>
         
@@ -165,7 +175,7 @@ export default function Login() {
         {/* Animated Grid / Tech Pattern */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
         
-        <div className="relative z-10 flex flex-col items-center justify-center text-white px-8 lg:px-16 text-center h-full pt-10 pb-6">
+        <div className="relative z-10 flex flex-col items-center justify-center text-white px-8 lg:px-16 text-center min-h-full py-10">
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, type: "spring" }}
             whileHover={{ scale: 1.05, rotate: 0 }}
