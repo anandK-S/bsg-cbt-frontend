@@ -5,7 +5,7 @@ import { getUserFromRequest } from '@/utils/authServer';
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from('settings').select('*').limit(1).single();
+    const { data, error } = await supabaseAdmin.from('settings').select('*').limit(1).single();
     
     if (error && error.code !== 'PGRST116') throw error; // Ignore no rows error
     
@@ -13,7 +13,8 @@ export async function GET() {
       platformName: "BSG CBT",
       maintenanceMode: false,
       termsUrl: "",
-      supportEmail: "support@bsg-india.org"
+      supportEmail: "support@bsg-india.org",
+      maxFailedLoginAttempts: 5
     });
   } catch (error: any) {
     return camelCaseResponse({ message: error.message }, { status: 500 });

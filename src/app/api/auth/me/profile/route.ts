@@ -12,15 +12,14 @@ export async function PUT(req: NextRequest) {
 
     const { name, profileImage, password, bsgId, section, district, unitName, unitNumber } = await req.json();
 
-    const updateData: any = {
-      name,
-      profile_image: profileImage || null,
-      bsg_id: bsgId || null,
-      section: section || null,
-      district: district || null,
-      unit_name: unitName || null,
-      unit_number: unitNumber || null
-    };
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (profileImage !== undefined) updateData.profile_image = profileImage;
+    if (bsgId !== undefined) updateData.bsg_id = bsgId;
+    if (section !== undefined) updateData.section = section;
+    if (district !== undefined) updateData.district = district;
+    if (unitName !== undefined) updateData.unit_name = unitName;
+    if (unitNumber !== undefined) updateData.unit_number = unitNumber;
 
     // Update profile in profiles table
     const { data: updatedProfile, error: profileError } = await supabaseAdmin
