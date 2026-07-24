@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { camelCaseResponse } from '@/utils/apiResponse';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 export async function GET(req: NextRequest) {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch audit logs with the associated user profile
-    const { data: logs, error } = await supabase
+    const { data: logs, error } = await supabaseAdmin
       .from('audit_logs')
       .select(`
         *,

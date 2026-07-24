@@ -1,6 +1,6 @@
 import { camelCaseResponse } from '@/utils/apiResponse';
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabaseClient';
+import { NextRequest } from 'next/server';
+import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
 export async function GET(req: NextRequest) {
@@ -10,12 +10,12 @@ export async function GET(req: NextRequest) {
       return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
     }
 
-    const { data: users, error } = await supabase.from('profiles').select('*');
+    const { data: users, error } = await supabaseAdmin.from('profiles').select('*');
 
     if (error) throw error;
 
     // Map `id` to `_id` for frontend compatibility
-    const formattedUsers = users.map(u => ({ ...u, _id: u.id, bsgId: u.bsg_id }));
+    const formattedUsers = users.map((u: any) => ({ ...u, _id: u.id, bsgId: u.bsg_id }));
 
     return camelCaseResponse(formattedUsers);
   } catch (error: any) {
