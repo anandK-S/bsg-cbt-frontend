@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleAIFileManager } from '@google/generative-ai/server';
+import { writeFile, unlink } from 'fs/promises';
+import { join } from 'path';
+import { tmpdir } from 'os';
 import Groq from 'groq-sdk';
 import mammoth from 'mammoth';
 
@@ -40,21 +44,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let base64Data = buffer.toString('base64');
     let mimeType = file.type || 'application/octet-stream';
 
+    let pdfUploadUri = null;
+    let pdfUploadMime = null;
+    let tempFilePath = null;
+
     if (file.name.toLowerCase().endsWith('.pdf')) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const PDFParser = require('pdf2json');
-        
-        textContent = await new Promise((resolve, reject) => {
-          const pdfParser = new PDFParser(null, 1); // 1 = extract raw text
-          pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
-          pdfParser.on("pdfParser_dataReady", () => resolve(pdfParser.getRawTextContent()));
-          pdfParser.parseBuffer(buffer);
-        });
-        
+        // Since raw text extraction scrambles layout, we will upload the PDF natively using File API
+        const tempFilename = `upload_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
+        tempFilePath = join(tmpdir(), tempFilename);
+        await writeFile(tempFilePath, buffer);
+        isNativeGeminiFile = true;
+        mimeType = 'application/pdf';
+        pdfUploadMime = 'application/pdf';
       } catch (err) {
-        console.error("PDF parse error", err);
-        return camelCaseResponse({ message: 'Failed to read PDF file on the server. Try uploading a text file or image instead.' }, { status: 400 });
+        console.error("PDF setup error", err);
+        return camelCaseResponse({ message: 'Failed to prepare PDF file on the server.' }, { status: 500 });
       }
     } else if (file.name.toLowerCase().endsWith('.docx')) {
       try {
@@ -77,10 +82,11 @@ For each question, extract or generate the question and its options in BOTH Engl
 If the document is only in English, translate it to Hindi. If it is only in Hindi, translate it to English.
 
 CRITICAL RULES:
-1. You MUST extract EVERY SINGLE QUESTION from the document. There may be 50-100 questions.
-2. DO NOT stop early. DO NOT truncate the list. DO NOT skip any questions.
-3. Return a strict JSON array of objects. Do not include markdown codeblocks around the output. Just return the JSON array.
-4. Each object must follow this exact schema:
+1. You MUST extract EVERY SINGLE QUESTION sequentially exactly as they appear (e.g. Q.1, Q.2, up to Q.60).
+2. DO NOT stop early. DO NOT truncate the list. If there are 60 questions, your JSON array MUST contain 60 objects.
+3. PRESERVE THE CORRECT OPTION exactly. Look for "Correct Answer: Option X" and ensure it is accurately reflected in your JSON.
+4. Return a strict JSON array of objects. Do not include markdown codeblocks around the output. Just return the JSON array.
+5. Each object must follow this exact schema:
 {
   "text": "The question text in English",
   "text_hindi": "The question text translated to Hindi",
@@ -112,7 +118,21 @@ Important Rules:
       
       const contents = [];
       
-      if (isNativeGeminiFile) {
+      if (isNativeGeminiFile && tempFilePath) {
+        const fileManager = new GoogleAIFileManager(apiKey);
+        const uploadResult = await fileManager.uploadFile(tempFilePath, {
+          mimeType: pdfUploadMime,
+          displayName: file.name,
+        });
+        
+        contents.push({
+          fileData: {
+            mimeType: uploadResult.file.mimeType,
+            fileUri: uploadResult.file.uri
+          }
+        });
+        contents.push(prompt);
+      } else if (isNativeGeminiFile && mimeType.startsWith('image/')) {
         contents.push({
           inlineData: { data: base64Data, mimeType }
         });
@@ -122,6 +142,12 @@ Important Rules:
       }
 
       const response = await model.generateContent(contents);
+      
+      // Cleanup temp file if exists
+      if (tempFilePath) {
+        try { await unlink(tempFilePath); } catch (e) { console.error("Cleanup error", e); }
+      }
+      
       return response.response.text();
     };
 
