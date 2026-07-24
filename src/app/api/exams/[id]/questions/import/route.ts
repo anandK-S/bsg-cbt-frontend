@@ -2,7 +2,7 @@ import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import mammoth from 'mammoth';
 
@@ -86,34 +86,25 @@ Important Rules:
     let jsonString = '';
 
     const callGemini = async (apiKey: string) => {
-      const ai = new GoogleGenAI({ apiKey });
-      const contents: any[] = [];
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-pro', // Using the stable pro model via the generative-ai SDK
+        generationConfig: { responseMimeType: 'application/json' }
+      });
+      
+      const contents = [];
       
       if (isNativeGeminiFile) {
         contents.push({
-          role: 'user',
-          parts: [
-            { inlineData: { data: base64Data, mimeType } },
-            { text: prompt }
-          ]
+          inlineData: { data: base64Data, mimeType }
         });
+        contents.push(prompt);
       } else {
-        contents.push({
-          role: 'user',
-          parts: [
-            { text: `Document content:\n${textContent}\n\n${prompt}` }
-          ]
-        });
+        contents.push(`Document content:\n${textContent}\n\n${prompt}`);
       }
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash', // Switched to flash as pro alias is returning 404
-        contents,
-        config: {
-          responseMimeType: "application/json",
-        }
-      });
-      return response.text;
+      const response = await model.generateContent(contents);
+      return response.response.text();
     };
 
     const callGroq = async () => {
