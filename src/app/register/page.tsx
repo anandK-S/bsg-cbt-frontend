@@ -146,7 +146,10 @@ export default function Register() {
 
       // 3. The SQL trigger automatically creates the base profile.
       // Now we update the profile with the rest of the metadata.
-      const profileUpdate: any = {};
+      const profileUpdate: any = {
+        role: role,
+        name: name,
+      };
       if (registerType === 'Candidate') {
         profileUpdate.bsg_id = bsgId;
         profileUpdate.section = section;
