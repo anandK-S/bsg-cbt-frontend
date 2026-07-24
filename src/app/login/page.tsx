@@ -350,36 +350,6 @@ export default function Login() {
                   </button>
                 </div>
               </motion.div>
-              
-              {(globalSettings?.termsUrl || globalSettings?.privacyUrl) && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex items-start mt-4">
-                  <div className="flex items-center h-5">
-                    <input
-                      id="terms"
-                      type="checkbox"
-                      checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="w-4 h-4 text-bsg-blue bg-gray-100 border-gray-300 rounded focus:ring-bsg-blue focus:ring-2"
-                    />
-                  </div>
-                  <div className="ml-2 text-sm">
-                    <label htmlFor="terms" className="font-medium text-gray-700">
-                      I agree to the{' '}
-                      {globalSettings?.termsUrl && (
-                        <a href={globalSettings.termsUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
-                          Terms & Conditions
-                        </a>
-                      )}
-                      {globalSettings?.termsUrl && globalSettings?.privacyUrl && ' and '}
-                      {globalSettings?.privacyUrl && (
-                        <a href={globalSettings.privacyUrl} target="_blank" rel="noreferrer" className="text-bsg-blue hover:underline">
-                          Privacy Policy
-                        </a>
-                      )}
-                    </label>
-                  </div>
-                </motion.div>
-              )}
             </div>
 
           {envWarning && (
