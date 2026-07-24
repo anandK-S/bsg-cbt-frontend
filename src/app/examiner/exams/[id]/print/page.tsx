@@ -41,13 +41,11 @@ export default function MasterQuestionPaper() {
     fetchExam();
   }, [_hasHydrated, isAuthenticated, user, router, examId]);
 
-  // Auto-print once exam is loaded
   useEffect(() => {
-    if (exam && !printed) {
-      setPrinted(true);
-      setTimeout(() => window.print(), 800);
+    if (exam) {
+      document.title = exam.title;
     }
-  }, [exam, printed]);
+  }, [exam]);
 
   if (!_hasHydrated || loading) return (
     <div className="p-10 text-center">
@@ -175,6 +173,28 @@ export default function MasterQuestionPaper() {
             </div>
           );
         })}
+      </div>
+      
+      {/* Answer Key Section */}
+      <div className="mt-12 pt-8 border-t-2 border-black break-before-page">
+        <h2 className="text-2xl font-bold text-center mb-6 uppercase">Answer Key</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-4 text-sm">
+          {(exam.questions || []).map((q: any, idx: number) => {
+            if (!q.questionId) return null;
+            let ans = '';
+            if (q.questionId.type === 'Subjective') {
+              ans = (q.questionId.acceptableAnswers || []).join(', ');
+            } else {
+              ans = ['A', 'B', 'C', 'D'][q.questionId.correctOptionIndex];
+            }
+            return (
+              <div key={`ans-${idx}`} className="flex gap-4 border-b border-gray-300 pb-1">
+                <span className="font-bold w-12 shrink-0">Q.{idx + 1}</span>
+                <span className="font-medium text-gray-800">{ans}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
       
       <style dangerouslySetInnerHTML={{__html: `

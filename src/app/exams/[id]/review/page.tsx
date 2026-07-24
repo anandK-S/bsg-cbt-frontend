@@ -19,6 +19,13 @@ export default function ExamReviewPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Set document title for printing when data is loaded
+  useEffect(() => {
+    if (data?.result?.examId?.title) {
+      document.title = `Result - ${data.result.examId.title}`;
+    }
+  }, [data]);
+
   useEffect(() => {
     if (!_hasHydrated) return;
     if (!isAuthenticated) {
@@ -47,10 +54,10 @@ export default function ExamReviewPage() {
   if (loading || !_hasHydrated) return <div className="min-h-screen flex items-center justify-center text-bsg-blue font-semibold text-lg animate-pulse">Loading detailed analysis...</div>;
   if (!data) return null;
 
-  const { result, questionDetails } = data;
-  const exam = result.examId;
-  const percentage = (result.score / result.totalMarks) * 100;
+  const percentage = data ? (data.result.score / data.result.totalMarks) * 100 : 0;
   const isPassed = percentage >= 50;
+  const { result, questionDetails } = data || { result: {}, questionDetails: [] };
+  const exam = result?.examId;
 
   return (
     <div className="min-h-screen bg-gray-50/50 relative py-8 px-4 sm:px-6 lg:px-8">

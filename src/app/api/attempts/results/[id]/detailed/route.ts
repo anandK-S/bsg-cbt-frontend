@@ -63,12 +63,15 @@ export async function GET(
     if (questionsError) throw questionsError;
 
     // 3. Fetch candidate's answers
-    const { data: answers, error: answersError } = await supabase
-      .from('attempt_answers')
-      .select('*')
-      .eq('attempt_id', attemptUuid);
-
-    if (answersError) throw answersError;
+    let answers: any[] = [];
+    if (attemptUuid) {
+      const { data, error } = await supabase
+        .from('attempt_answers')
+        .select('*')
+        .eq('attempt_id', attemptUuid);
+      if (error) throw error;
+      answers = data || [];
+    }
 
     // 4. Map questions to frontend format with answers
     const questionDetails = questions.map((q: any) => {

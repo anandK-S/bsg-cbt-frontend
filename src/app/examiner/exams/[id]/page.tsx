@@ -758,7 +758,7 @@ export default function ExamDetails() {
                       id="passingMarks"
                       required
                       min="1"
-                      value={editForm.passingMarks || 50}
+                      value={editForm.passingMarks ?? 50}
                       onChange={(e) => setEditForm({ ...editForm, passingMarks: e.target.value === '' ? '' : parseInt(e.target.value) })}
                       placeholder="50"
                       className="w-full py-3 px-4 text-base font-bold text-gray-900 text-center bg-transparent focus:outline-none"
