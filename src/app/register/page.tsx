@@ -67,11 +67,24 @@ export default function Register() {
 
   useEffect(() => {
     setMounted(true);
-    setGlobalSettings(null);
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        if (data) setGlobalSettings(data);
+      } catch (err) {
+        console.error('Failed to load settings', err);
+      }
+    };
+    fetchSettings(); 
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (globalSettings?.maintenanceMode) {
+      setError({ message: 'System is currently under maintenance. Registration is temporarily disabled.' });
+      return;
+    }
     if (globalSettings?.termsUrl && !agreeTerms) {
       setError({ message: 'You must agree to the Terms & Privacy Policy to register.' });
       return;

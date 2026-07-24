@@ -32,7 +32,8 @@ export default function Login() {
     // Fetch global settings directly from Supabase
     const fetchSettings = async () => {
       try {
-        const { data } = await supabase.from('settings').select('*').limit(1).single();
+        const res = await fetch('/api/settings');
+        const data = await res.json();
         if (data) setGlobalSettings(data);
       } catch (err) {
         console.error('Failed to load settings', err);
@@ -95,7 +96,7 @@ export default function Login() {
         throw new Error('User is blocked');
       }
 
-      if (globalSettings?.maintenance_mode && profile.role !== 'Admin') {
+      if (globalSettings?.maintenanceMode && profile.role !== 'Admin') {
         throw new Error('Maintenance Mode');
       }
 
