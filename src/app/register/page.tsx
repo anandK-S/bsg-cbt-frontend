@@ -29,6 +29,7 @@ export default function Register() {
   const [rank, setRank] = useState('');
   const [showSecretCode, setShowSecretCode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const capitalizeWords = (str: string) => {
     return str
@@ -106,6 +107,16 @@ export default function Register() {
         role = 'Examiner';
       }
 
+      // Check for duplicate Email
+      const { data: existingEmail } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email);
+        
+      if (existingEmail && existingEmail.length > 0) {
+        throw new Error('User already registered');
+      }
+
       // Check for duplicate BSG ID
       if (registerType === 'Candidate' && bsgId) {
         const { data: existingUsers } = await supabase
@@ -155,28 +166,12 @@ export default function Register() {
         if (profileError) throw profileError;
       }
 
-      // 4. Update local Zustand Store
-      const userData = {
-        _id: data.user.id,
-        name,
-        email,
-        role: role as 'Candidate' | 'Examiner' | 'Admin',
-        bsgId: registerType === 'Candidate' ? bsgId : undefined,
-        district: registerType === 'Candidate' ? district : undefined,
-        unitNumber: registerType === 'Candidate' ? unitNumber : undefined,
-        unitName: registerType === 'Candidate' ? unitName : undefined,
-        token: data.session?.access_token,
-      };
-
-      login(userData);
-
-      if (role === 'Admin') {
-        router.push('/admin');
-      } else if (role === 'Examiner') {
-        router.push('/examiner');
-      } else {
-        router.push('/dashboard');
-      }
+      // Show success message instead of auto-login
+      setSuccessMessage(
+        language === 'hi'
+          ? 'कृपया सत्यापन लिंक के लिए अपना ईमेल जांचें, फिर लॉगिन करें।'
+          : 'Please check your email for a verification link, then login.'
+      );
     } catch (err: any) {
       let errorMessage = err.message || 'Registration failed. Please try again.';
       if (errorMessage.includes('User already registered')) {
@@ -203,9 +198,9 @@ export default function Register() {
         </div>
       )}
       
-      <div className="flex-1 flex flex-col lg:flex-row min-h-full bg-white">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-screen bg-white">
         {/* Left Panel: Hero Graphic */}
-        <div className="hidden lg:flex lg:w-5/12 xl:w-1/2 relative bg-[#0B1B3D] items-center justify-center overflow-hidden">
+        <div className="hidden lg:flex lg:w-5/12 xl:w-1/2 relative bg-[#0B1B3D] items-center justify-center overflow-hidden lg:sticky lg:top-0 lg:h-screen">
           {/* Deep immersive background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#0B1B3D] via-[#112A5E] to-[#1A3F8C] opacity-90"></div>
           
@@ -235,11 +230,18 @@ export default function Register() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}
               whileHover={{ y: -5, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.3)" }}
-              className="group relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl max-w-sm mt-auto mb-12 transition-all duration-300 cursor-default"
+              className="group relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl max-w-sm mt-auto mb-4 transition-all duration-300 cursor-default"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              <p className="text-blue-100/80 italic font-medium">"Creating a better world through education, empowerment, and character."</p>
+              <p className="text-blue-100/80 italic font-medium">"Creating a better India through education, empowerment, and character."</p>
               <p className="text-bsg-gold text-sm font-bold mt-2 tracking-widest uppercase">— Bharat Scouts and Guides</p>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mb-12 text-center">
+              <span className="text-blue-100/80 font-medium">{t("alreadyHaveAccount") || "Already have an account?"} </span>
+              <Link href="/login" className="text-bsg-gold font-bold hover:text-white hover:underline transition-all">
+                {t("loginHere") || "Login here"}
+              </Link>
             </motion.div>
           </div>
         </div>
@@ -263,12 +265,32 @@ export default function Register() {
               <h2 className="text-3xl font-black text-gray-900 tracking-tight">
                 {t("createAccount")}
               </h2>
-              <p className="mt-2 text-sm text-gray-500 font-medium">
-                {t("alreadyHaveAccount") || "Already have an account?"} <Link href="/login" className="text-bsg-blue font-bold hover:underline transition-all">{t("loginHere") || "Login here"}</Link>
-              </p>
             </motion.div>
 
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            {successMessage ? (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-green-50 border-2 border-green-200 p-8 rounded-3xl text-center space-y-6 shadow-sm"
+              >
+                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Mail size={40} />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900">
+                  {language === 'hi' ? 'सफलतापूर्वक पंजीकृत!' : 'Registration Successful!'}
+                </h3>
+                <p className="text-green-800 font-medium text-lg leading-relaxed max-w-md mx-auto">
+                  {successMessage}
+                </p>
+                <button
+                  onClick={() => router.push('/login')}
+                  className="mt-6 inline-flex justify-center items-center px-8 py-3.5 bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold rounded-xl transition-all shadow-md active:scale-95"
+                >
+                  {language === 'hi' ? 'लॉगिन पेज पर जाएं' : 'Go to Login'}
+                </button>
+              </motion.div>
+            ) : (
+              <form className="space-y-4" onSubmit={handleSubmit}>
                   {error && (
                     <motion.div 
                       initial={{ opacity: 0, y: -8, scale: 0.97 }}
@@ -560,13 +582,7 @@ export default function Register() {
                     </button>
                   </div>
                 </form>
-                
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-8 pt-6 border-t border-gray-100 text-center text-sm">
-              <span className="text-gray-500 font-medium">{t("alreadyHaveAccount")} </span>
-              <Link href="/login" className="text-bsg-blue font-black hover:text-bsg-blue-dark hover:underline transition-all">
-                {t("signIn")}
-              </Link>
-            </motion.div>
+            )}
           </div>
         </div>
       </div>

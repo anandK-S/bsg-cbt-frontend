@@ -151,9 +151,9 @@ export default function Login() {
         <p className="mt-4 text-lg font-bold text-bsg-blue animate-pulse">Logging in...</p>
       </div>
     )}
-    <div className="flex-1 flex flex-col lg:flex-row min-h-full bg-white">
+    <div className="flex-1 flex flex-col lg:flex-row min-h-screen bg-white">
       {/* Left Panel: Hero Graphic */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#0B1B3D] items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-[#0B1B3D] items-center justify-center overflow-hidden lg:sticky lg:top-0 lg:h-screen">
         {/* Deep immersive background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0B1B3D] via-[#112A5E] to-[#1A3F8C] opacity-90"></div>
         
@@ -183,11 +183,18 @@ export default function Login() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}
             whileHover={{ y: -5, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.3)" }}
-            className="group relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl max-w-sm mt-auto mb-12 transition-all duration-300 cursor-default"
+            className="group relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl max-w-sm mt-auto mb-4 transition-all duration-300 cursor-default"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             <p className="text-blue-100/80 italic font-medium">"Be Prepared."</p>
             <p className="text-bsg-gold text-sm font-bold mt-2 tracking-widest uppercase">— Bharat Scouts and Guides</p>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mb-12 text-center">
+            <span className="text-blue-100/80 font-medium">{t("dontHaveAccount") || "Don't have an account?"} </span>
+            <Link href="/register" className="text-bsg-gold font-bold hover:text-white hover:underline transition-all">
+              {t("register") || "Register"}
+            </Link>
           </motion.div>
         </div>
       </div>
@@ -209,10 +216,10 @@ export default function Login() {
             className="mb-8 text-center lg:text-left"
           >
             <h2 className="text-3xl font-black text-gray-900 tracking-tight">
-              {t("welcomeBack")}
+              {language === 'hi' ? 'लॉगिन' : 'Login'}
             </h2>
             <p className="mt-2 text-sm text-gray-500 font-medium">
-              {t("dontHaveAccount") || "Don't have an account?"} <Link href="/register" className="text-bsg-blue font-bold hover:underline transition-all">{t("register") || "Register"}</Link>
+              {language === 'hi' ? 'आप अपने ईमेल पते या BSG ID से लॉगिन कर सकते हैं।' : 'You can login with your Email Address or BSG ID.'}
             </p>
           </motion.div>
 
@@ -256,7 +263,7 @@ export default function Login() {
                     required
                     autoComplete="email"
                     className="block w-full pl-11 pr-3 py-3.5 border-2 border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-bsg-blue/10 focus:border-bsg-blue transition-all font-medium text-sm shadow-sm"
-                    placeholder="e.g. name@example.com or 12345678"
+                    placeholder="e.g. name@example.com or BSG123456789"
                     value={email}
                     onChange={(e) => {
                       let val = e.target.value;
@@ -391,13 +398,6 @@ export default function Login() {
               </button>
             </motion.div>
           </form>
-          
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-8 pt-6 border-t border-gray-100 text-center text-sm">
-            <span className="text-gray-500 font-medium">{t("dontHaveAccount")} </span>
-            <Link href="/register" className="text-bsg-blue font-black hover:text-bsg-blue-dark hover:underline transition-all">
-              {t("register")}
-            </Link>
-          </motion.div>
         </div>
       </div>
 
