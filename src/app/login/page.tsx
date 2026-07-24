@@ -91,6 +91,9 @@ export default function Login() {
         throw new Error('Maintenance Mode');
       }
 
+      // Update last_login
+      await supabase.from('profiles').update({ last_login: new Date().toISOString() }).eq('id', authData.user.id);
+
       // 3. Update Zustand Store
       const userData = {
         _id: authData.user.id,

@@ -238,6 +238,17 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileForm({ ...profileForm, profileImage: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleUpdateSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUpdatingSettings(true);
@@ -655,10 +666,25 @@ export default function AdminDashboard() {
                   <input type="email" value={profileForm.email} onChange={e => setProfileForm({...profileForm, email: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue outline-none text-sm bg-gray-50" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Profile Image URL</label>
-                  <input type="url" value={profileForm.profileImage} onChange={e => setProfileForm({...profileForm, profileImage: e.target.value})} placeholder="https://example.com/photo.jpg" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue outline-none text-sm bg-gray-50" />
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Profile Image</label>
+                  <div className="flex gap-4 items-center">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={handleImageUpload} 
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue outline-none text-sm bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-bsg-blue file:text-white hover:file:bg-bsg-blue-dark"
+                    />
+                    <div className="text-gray-500 font-bold">OR</div>
+                    <input 
+                      type="url" 
+                      value={profileForm.profileImage} 
+                      onChange={e => setProfileForm({...profileForm, profileImage: e.target.value})} 
+                      placeholder="https://example.com/photo.jpg" 
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue outline-none text-sm bg-gray-50" 
+                    />
+                  </div>
                   {profileForm.profileImage && (
-                    <img src={profileForm.profileImage} alt="Preview" className="mt-3 w-16 h-16 rounded-full object-cover border border-gray-200" />
+                    <img src={profileForm.profileImage} alt="Preview" className="mt-3 w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm" />
                   )}
                 </div>
                 <div>
@@ -692,14 +718,24 @@ export default function AdminDashboard() {
                     {/* Branding Section */}
                     <div className="col-span-1 md:col-span-2">
                       <h4 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-4 border-b pb-2">Branding & Links</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-bold text-gray-700 mb-1">Platform Name</label>
-                          <input type="text" value={settingsForm.platformName} onChange={e => setSettingsForm({...settingsForm, platformName: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
+                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Platform Name</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-bsg-blue/20 focus:border-bsg-blue transition-all"
+                            value={settingsForm.platformName || ''}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, platformName: e.target.value })}
+                          />
                         </div>
                         <div>
-                          <label className="block text-sm font-bold text-gray-700 mb-1">Support Email</label>
-                          <input type="email" value={settingsForm.supportEmail} onChange={e => setSettingsForm({...settingsForm, supportEmail: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
+                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Support Email</label>
+                          <input 
+                            type="email" 
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-bsg-blue/20 focus:border-bsg-blue transition-all"
+                            value={settingsForm.supportEmail || ''}
+                            onChange={(e) => setSettingsForm({ ...settingsForm, supportEmail: e.target.value })}
+                          />
                         </div>
                       </div>
                     </div>

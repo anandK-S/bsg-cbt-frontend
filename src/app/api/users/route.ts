@@ -15,7 +15,15 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
 
     // Map `id` to `_id` for frontend compatibility
-    const formattedUsers = users.map((u: any) => ({ ...u, _id: u.id, bsgId: u.bsg_id }));
+    const formattedUsers = users.map((u: any) => ({ 
+      ...u, 
+      _id: u.id, 
+      bsgId: u.bsg_id,
+      lastLogin: u.last_login,
+      lastLogout: u.last_logout,
+      lockedUntil: u.locked_until,
+      failedLoginAttempts: u.failed_login_attempts
+    }));
 
     return camelCaseResponse(formattedUsers);
   } catch (error: any) {

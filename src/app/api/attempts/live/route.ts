@@ -1,7 +1,7 @@
 import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/utils/authServer';
-import { supabaseAdmin } from '@/utils/supabaseClient';
+import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
