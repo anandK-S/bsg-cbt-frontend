@@ -19,9 +19,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       .from('profiles')
       .update({
         name,
-        bsg_id: bsgId,
-        section,
-        district,
+        bsg_id: bsgId === "" ? null : bsgId,
+        section: section === "" ? null : section,
+        district: district === "" ? null : district,
         role,
         status
       })
