@@ -142,9 +142,10 @@ Important Rules:
       }
 
       let allQuestions: any[] = [];
+      let chunkErrors: string[] = [];
       
-      // Execute all chunks concurrently to prevent Vercel timeout
-      const chunkPromises = chunks.map(async (chunk) => {
+      // Execute all chunks concurrently
+      const chunkPromises = chunks.map(async (chunk, index) => {
          if (!chunk.trim()) return [];
          const chunkPrompt = `${prompt}\n\nExtract ALL questions from this specific document chunk. DO NOT skip any.\n\nChunk Content:\n${chunk}`;
          try {
@@ -158,9 +159,12 @@ Important Rules:
              if (Array.isArray(parsed)) {
                return parsed;
              }
+           } else {
+             chunkErrors.push(`Chunk ${index} returned no JSON: ${raw.substring(0, 50)}...`);
            }
-         } catch (e) {
+         } catch (e: any) {
            console.error("Chunk parse error via Gemini", e);
+           chunkErrors.push(`Chunk ${index} error: ${e.message}`);
          }
          return [];
       });
@@ -168,6 +172,10 @@ Important Rules:
       const results = await Promise.all(chunkPromises);
       for (const result of results) {
         allQuestions = allQuestions.concat(result);
+      }
+      
+      if (allQuestions.length === 0) {
+        throw new Error(`Gemini chunking failed. Text length: ${textContent.length}. Chunks: ${chunks.length}. Errors: ${chunkErrors.join(' | ')}`);
       }
       
       return JSON.stringify(allQuestions);
@@ -199,8 +207,9 @@ Important Rules:
       }
 
       let allQuestions: any[] = [];
+      let chunkErrors: string[] = [];
       
-      const chunkPromises = chunks.map(async (chunk) => {
+      const chunkPromises = chunks.map(async (chunk, index) => {
          if (!chunk.trim()) return [];
          const chunkMessages = [...messages, { role: 'user', content: `Chunk Content:\n${chunk}\n\n${prompt}` }];
          try {
@@ -221,9 +230,12 @@ Important Rules:
              if (possibleArray) {
                return possibleArray;
              }
+           } else {
+             chunkErrors.push(`Chunk ${index} returned invalid JSON structure`);
            }
-         } catch (e) {
+         } catch (e: any) {
            console.error("Chunk parse error via Groq", e);
+           chunkErrors.push(`Chunk ${index} error: ${e.message}`);
          }
          return [];
       });
@@ -231,6 +243,10 @@ Important Rules:
       const results = await Promise.all(chunkPromises);
       for (const result of results) {
         allQuestions = allQuestions.concat(result);
+      }
+      
+      if (allQuestions.length === 0) {
+        throw new Error(`Groq chunking failed. Text length: ${textContent.length}. Chunks: ${chunks.length}. Errors: ${chunkErrors.join(' | ')}`);
       }
       
       return JSON.stringify(allQuestions);
