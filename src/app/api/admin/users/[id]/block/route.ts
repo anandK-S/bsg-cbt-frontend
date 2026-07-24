@@ -3,8 +3,9 @@ import { camelCaseResponse } from '@/utils/apiResponse';
 import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const auth = await getUserFromRequest(req);
     if (!auth || auth.profile?.role !== 'Admin') {
       return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
@@ -13,14 +14,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const { error } = await supabaseAdmin
       .from('profiles')
       .update({ status: 'Blocked' })
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) throw error;
 
     await supabaseAdmin.from('audit_logs').insert({
       user_id: auth.id,
       action: `USER_BLOCKED`,
-      details: `Admin ${auth.email} blocked user ${params.id}`
+      details: `Admin ${auth.email} blocked user ${id}`
     });
 
     return camelCaseResponse({ message: `User blocked successfully.` });

@@ -3,8 +3,9 @@ import { camelCaseResponse } from '@/utils/apiResponse';
 import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const auth = await getUserFromRequest(req);
     if (!auth || auth.profile?.role !== 'Admin') {
       return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
@@ -24,24 +25,24 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         role,
         status
       })
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (profileError) throw profileError;
 
     // Update Auth Email if changed
     if (email) {
-      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(params.id, { email });
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(id, { email });
       if (authError) throw authError;
     }
 
     await supabaseAdmin.from('audit_logs').insert({
       user_id: auth.id,
       action: `USER_UPDATED`,
-      details: `Admin ${auth.email} updated user ${params.id}`
+      details: `Admin ${auth.email} updated user ${id}`
     });
 
     // Fetch updated user to return
-    const { data: user } = await supabaseAdmin.from('profiles').select('*').eq('id', params.id).single();
+    const { data: user } = await supabaseAdmin.from('profiles').select('*').eq('id', id).single();
 
     return camelCaseResponse({ message: 'User updated successfully', user: { ...user, _id: user.id, bsgId: user.bsg_id } });
   } catch (error: any) {

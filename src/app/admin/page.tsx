@@ -88,7 +88,19 @@ export default function AdminDashboard() {
   const [auditRoleFilter, setAuditRoleFilter] = useState('All');
   const [auditDateFilter, setAuditDateFilter] = useState('');
 
-  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+  const getPasswordStrength = (pass: string) => {
+    if (!pass) return null;
+    let strength = 0;
+    if (pass.length > 5) strength += 1;
+    if (pass.match(/[a-z]+/)) strength += 1;
+    if (pass.match(/[A-Z]+/)) strength += 1;
+    if (pass.match(/[0-9]+/)) strength += 1;
+    if (pass.match(/[$@#&!]+/)) strength += 1;
+
+    if (strength <= 2) return { label: t("weak") || "Weak", color: "text-red-500", bg: "bg-red-500", w: "w-1/3" };
+    if (strength <= 4) return { label: t("medium") || "Medium", color: "text-amber-500", bg: "bg-amber-500", w: "w-2/3" };
+    return { label: t("strong") || "Strong", color: "text-green-500", bg: "bg-green-500", w: "w-full" };
+  };
 
   // Modals Data
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -218,8 +230,8 @@ export default function AdminDashboard() {
     setIsUpdatingProfile(true);
     setProfileMsg({ text: '', type: '' });
 
-    if (profileForm.password && !passwordRegex.test(profileForm.password)) {
-      setProfileMsg({ text: 'Password must be 6+ chars, include a letter, number, and special char.', type: 'error' });
+    if (profileForm.password && profileForm.password.length < 6) {
+      setProfileMsg({ text: 'Password must be at least 6 characters long.', type: 'error' });
       setIsUpdatingProfile(false);
       return;
     }
@@ -317,8 +329,8 @@ export default function AdminDashboard() {
   };
 
   const handlePasswordReset = async () => {
-    if (!passwordRegex.test(newPassword)) {
-      setResetMsg({ text: 'Password must be 6+ chars, include a letter, number, and special character.', type: 'error' });
+    if (!newPassword || newPassword.length < 6) {
+      setResetMsg({ text: 'Password must be at least 6 characters long.', type: 'error' });
       return;
     }
     setIsResetting(true);
@@ -338,8 +350,8 @@ export default function AdminDashboard() {
       setExaminerMsg({ text: 'Name, email, and password are required', type: 'error' });
       return;
     }
-    if (!passwordRegex.test(examinerData.password)) {
-      setExaminerMsg({ text: 'Password must be 6+ chars, include a letter, number, and special char.', type: 'error' });
+    if (!examinerData.password || examinerData.password.length < 6) {
+      setExaminerMsg({ text: 'Password must be at least 6 characters long.', type: 'error' });
       return;
     }
 
@@ -688,9 +700,20 @@ export default function AdminDashboard() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">New Password</label>
-                  <input type="password" value={profileForm.password} onChange={e => setProfileForm({...profileForm, password: e.target.value})} placeholder="Leave blank to keep current" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue outline-none text-sm bg-gray-50" />
-                  <p className="text-xs text-gray-500 mt-1">Min 6 chars, 1 letter, 1 number, 1 special char.</p>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">New Password</label>
+                    <input type="password" value={profileForm.password} onChange={e => setProfileForm({...profileForm, password: e.target.value})} placeholder="Leave blank to keep current" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-bsg-blue outline-none text-sm bg-gray-50" />
+                    {profileForm.password && (
+                      <div className="mt-2 mb-1">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-semibold text-gray-500">{t("passwordStrength") || 'Password Strength'}</span>
+                          <span className={`text-xs font-bold ${getPasswordStrength(profileForm.password)?.color}`}>{getPasswordStrength(profileForm.password)?.label}</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden flex">
+                          <div className={`h-full ${getPasswordStrength(profileForm.password)?.bg} ${getPasswordStrength(profileForm.password)?.w} transition-all duration-300`}></div>
+                        </div>
+                      </div>
+                    )}
+                    {!profileForm.password && <p className="text-xs text-gray-500 mt-1">Minimum 6 characters (Optional)</p>}
                 </div>
                 
                 {profileMsg.text && <div className={`p-3 rounded-lg text-sm font-bold ${profileMsg.type === 'error' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>{profileMsg.text}</div>}
@@ -891,7 +914,18 @@ export default function AdminDashboard() {
               <input type={showPassword ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-bsg-blue outline-none text-sm bg-gray-50" placeholder="New Secure Password" />
               <button type="button" className="absolute right-3 top-2.5 text-xs font-bold text-gray-400" onClick={() => setShowPassword(!showPassword)}>{showPassword ? 'Hide' : 'Show'}</button>
             </div>
-            <p className="text-[10px] text-gray-500 mt-1 mb-3">Min 6 chars, 1 letter, 1 number, 1 special char.</p>
+            {newPassword && (
+                <div className="mt-2 mb-3">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-semibold text-gray-500">{t("passwordStrength") || 'Password Strength'}</span>
+                    <span className={`text-xs font-bold ${getPasswordStrength(newPassword)?.color}`}>{getPasswordStrength(newPassword)?.label}</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden flex">
+                    <div className={`h-full ${getPasswordStrength(newPassword)?.bg} ${getPasswordStrength(newPassword)?.w} transition-all duration-300`}></div>
+                  </div>
+                </div>
+              )}
+            {!newPassword && <p className="text-[10px] text-gray-500 mt-1 mb-3">Minimum 6 characters</p>}
             {resetMsg.text && <p className={`mb-3 text-xs font-bold p-2 rounded-lg ${resetMsg.type === 'error' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>{resetMsg.text}</p>}
             <button onClick={handlePasswordReset} disabled={isResetting} className="w-full bg-bsg-blue hover:bg-bsg-blue-dark text-white font-bold py-2.5 rounded-lg text-sm transition-colors">
               {isResetting ? 'Saving...' : 'Reset Password'}
@@ -923,7 +957,18 @@ export default function AdminDashboard() {
                   <input type={showExaminerPassword ? "text" : "password"} value={examinerData.password} onChange={e => setExaminerData({...examinerData, password: e.target.value})} className="w-full px-3 py-2 pr-10 border rounded-lg outline-none text-sm focus:ring-2 focus:ring-bsg-blue bg-gray-50" />
                   <button type="button" className="absolute right-3 top-2.5 text-xs font-bold text-gray-400" onClick={() => setShowExaminerPassword(!showExaminerPassword)}>{showExaminerPassword ? 'Hide' : 'Show'}</button>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-1">Min 6 chars, 1 letter, 1 number, 1 special char.</p>
+                {examinerData.password && (
+                    <div className="mt-2 mb-1">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-semibold text-gray-500">{t("passwordStrength") || 'Password Strength'}</span>
+                        <span className={`text-xs font-bold ${getPasswordStrength(examinerData.password)?.color}`}>{getPasswordStrength(examinerData.password)?.label}</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden flex">
+                        <div className={`h-full ${getPasswordStrength(examinerData.password)?.bg} ${getPasswordStrength(examinerData.password)?.w} transition-all duration-300`}></div>
+                      </div>
+                    </div>
+                  )}
+                {!examinerData.password && <p className="text-[10px] text-gray-500 mt-1 mb-1">Minimum 6 characters</p>}
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">BSG ID (Optional)</label>

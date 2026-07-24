@@ -3,8 +3,9 @@ import { camelCaseResponse } from '@/utils/apiResponse';
 import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const auth = await getUserFromRequest(req);
     if (!auth || auth.profile?.role !== 'Admin') {
       return camelCaseResponse({ message: 'Unauthorized' }, { status: 403 });
@@ -27,14 +28,14 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return camelCaseResponse({ message: 'Invalid admin password.' }, { status: 401 });
     }
 
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(params.id);
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(id);
 
     if (error) throw error;
 
     await supabaseAdmin.from('audit_logs').insert({
       user_id: auth.id,
       action: `USER_DELETED`,
-      details: `Admin ${auth.email} deleted user ${params.id}`
+      details: `Admin ${auth.email} deleted user ${id}`
     });
 
     return camelCaseResponse({ message: 'User deleted successfully.' });
