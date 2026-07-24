@@ -134,29 +134,28 @@ export default function Register() {
       if (error) throw error;
       if (!data.user) throw new Error('Registration failed. Please try again.');
 
-      // 3. The SQL trigger automatically creates the base profile.
-      // Now we update the profile with the rest of the metadata.
-      const profileUpdate: any = {
-        role: role,
-        name: name,
-      };
-      if (registerType === 'Candidate') {
-        profileUpdate.bsg_id = bsgId;
-        profileUpdate.section = section;
-        profileUpdate.district = district;
-        profileUpdate.unit_number = unitNumber;
-        profileUpdate.unit_name = unitName;
-      } else if (registerType === 'Examiner') {
-        profileUpdate.rank = rank;
-      }
+      // 3. Force create the profile in the database via the backend API.
+      // This bypasses the potentially broken database trigger and RLS rules.
+      const syncProfileRes = await fetch('/api/auth/sync-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: data.user.id,
+          name,
+          email,
+          role,
+          bsgId: registerType === 'Candidate' ? bsgId : undefined,
+          section: registerType === 'Candidate' ? section : undefined,
+          district: registerType === 'Candidate' ? district : undefined,
+          unitNumber: registerType === 'Candidate' ? unitNumber : undefined,
+          unitName: registerType === 'Candidate' ? unitName : undefined,
+          rank: registerType === 'Examiner' ? rank : undefined,
+        })
+      });
 
-      if (Object.keys(profileUpdate).length > 0) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update(profileUpdate)
-          .eq('id', data.user.id);
-          
-        if (profileError) throw profileError;
+      if (!syncProfileRes.ok) {
+        console.error("Profile sync failed");
+        throw new Error('Failed to create user profile. Please contact support.');
       }
 
       if (data.session) {
@@ -184,8 +183,8 @@ export default function Register() {
         // Show success message if email confirmation is required (session is null)
         setSuccessMessage(
           language === 'hi'
-            ? 'पंजीकरण सफल! कृपया अपना ईमेल सत्यापित करें, फिर लॉगिन करें।'
-            : 'Registration Successful! Please check your email for a verification link, then login.'
+            ? 'पंजीकरण सफल! यदि आपको कोई ईमेल प्राप्त नहीं होता है, तो कृपया एडमिन से संपर्क करें।'
+            : 'Registration Successful! Since email confirmations are enabled, please check your inbox. If you do not receive an email (e.g. rate limit), please contact the Administrator to verify your account.'
         );
       }
     } catch (err: any) {
