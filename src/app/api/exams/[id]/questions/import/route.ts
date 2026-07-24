@@ -8,8 +8,6 @@ import mammoth from 'mammoth';
 
 export const maxDuration = 60; // Max execution time for Vercel Hobby tier
 
-export const maxDuration = 60; // Max timeout for Vercel
-
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
