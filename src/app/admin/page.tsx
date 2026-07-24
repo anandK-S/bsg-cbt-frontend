@@ -142,23 +142,40 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
       try {
-        const [usersRes, examsRes, settingsRes, auditRes] = await Promise.all([
-          axios.get(`${API_URL}/api/users`, { withCredentials: true }),
-          axios.get(`${API_URL}/api/exams`, { withCredentials: true }),
-          axios.get(`${API_URL}/api/settings`, { withCredentials: true }),
-          axios.get(`${API_URL}/api/users/audit-logs`, { withCredentials: true })
+        const fetchApi = async (url: string, fallback: any) => {
+          try {
+            const res = await axios.get(url, { withCredentials: true });
+            return res.data;
+          } catch (error: any) {
+            if (error.response?.status === 401 || error.response?.status === 403) {
+              throw error; // Re-throw to handle logout
+            }
+            console.error(`Failed to fetch ${url}:`, error.response?.data || error.message);
+            return fallback;
+          }
+        };
+
+        const [usersData, examsData, settingsData, auditData] = await Promise.all([
+          fetchApi(`${API_URL}/api/users`, []),
+          fetchApi(`${API_URL}/api/exams`, []),
+          fetchApi(`${API_URL}/api/settings`, null),
+          fetchApi(`${API_URL}/api/users/audit-logs`, [])
         ]);
-        setUsers(usersRes.data);
-        setExams(examsRes.data);
-        setGlobalSettings(settingsRes.data);
-        setSettingsForm(settingsRes.data);
-        setAuditLogs(auditRes.data);
+
+        if (usersData) setUsers(usersData);
+        if (examsData) setExams(examsData);
+        if (settingsData) {
+          setGlobalSettings(settingsData);
+          setSettingsForm(settingsData);
+        }
+        if (auditData) setAuditLogs(auditData);
+
       } catch (error: any) {
         if (error.response?.status === 401 || error.response?.status === 403) {
           logout();
           router.push('/login');
         } else {
-          console.error('Error fetching admin data:', error);
+          console.error('Critical error fetching admin data:', error);
         }
       } finally {
         setLoading(false);
