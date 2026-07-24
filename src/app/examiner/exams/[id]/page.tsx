@@ -493,10 +493,10 @@ export default function ExamDetails() {
     try {
       // Swap their created_at timestamps to swap their positions in the sorted list
       const formDataCurrent = new FormData();
-      formDataCurrent.append('createdAt', targetQ.questionId.created_at);
+      formDataCurrent.append('createdAt', targetQ.questionId.createdAt);
       
       const formDataTarget = new FormData();
-      formDataTarget.append('createdAt', currentQ.questionId.created_at);
+      formDataTarget.append('createdAt', currentQ.questionId.createdAt);
 
       await Promise.all([
         axios.put(`${API_URL}/api/exams/${examId}/questions/${currentQ.questionId._id}`, formDataCurrent, { withCredentials: true }),
@@ -520,8 +520,8 @@ export default function ExamDetails() {
     let newDate;
     if (nextQ) {
       // Average the two timestamps
-      const t1 = new Date(currentQ.questionId.created_at).getTime();
-      const t2 = new Date(nextQ.questionId.created_at).getTime();
+      const t1 = new Date(currentQ.questionId.createdAt).getTime();
+      const t2 = new Date(nextQ.questionId.createdAt).getTime();
       newDate = new Date((t1 + t2) / 2).toISOString();
     } else {
       // If inserting after the last element, just use a date 1 minute from now
