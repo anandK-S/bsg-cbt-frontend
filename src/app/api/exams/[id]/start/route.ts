@@ -83,7 +83,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // Fetch questions to send to frontend
-    const { data: questions } = await supabase.from('questions').select('*').eq('exam_id', (await params).id);
+    const { data: questions } = await supabase
+      .from('questions')
+      .select('*')
+      .eq('exam_id', (await params).id)
+      .order('created_at', { ascending: true });
     
     // Map data for frontend
     const mappedQuestions = (questions || []).map(q => ({

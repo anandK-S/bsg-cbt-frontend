@@ -24,11 +24,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return camelCaseResponse({ message: 'Not authorized' }, { status: 403 });
     }
 
-    // Fetch questions manually if needed
     const { data: questions } = await supabaseAdmin
       .from('questions')
       .select('*')
-      .eq('exam_id', id);
+      .eq('exam_id', id)
+      .order('created_at', { ascending: true });
 
     const formattedQuestions = (questions || []).map(q => ({
       questionId: {

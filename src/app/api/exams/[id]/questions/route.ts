@@ -2,7 +2,6 @@ import { camelCaseResponse } from '@/utils/apiResponse';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
-
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getUserFromRequest(req);
@@ -11,7 +10,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { data: questions, error } = await supabase
       .from('questions')
       .select('*')
-      .eq('exam_id', (await params).id);
+      .eq('exam_id', (await params).id)
+      .order('created_at', { ascending: true });
 
     if (error) throw error;
     return camelCaseResponse(questions);
