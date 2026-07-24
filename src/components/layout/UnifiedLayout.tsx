@@ -21,6 +21,7 @@ export default function UnifiedLayout({ children }: { children: React.ReactNode 
   const isTakeExamPage = pathname?.includes('/take');
   const isPrintPage = pathname?.includes('/print');
   const isLandingPage = pathname === '/';
+  const isAuthPage = pathname === '/login' || pathname === '/register';
 
   if (!mounted || !_hasHydrated) {
     return (
@@ -30,7 +31,7 @@ export default function UnifiedLayout({ children }: { children: React.ReactNode 
     );
   }
 
-  if (isTakeExamPage || isLandingPage || isPrintPage) {
+  if (isTakeExamPage || isLandingPage || isPrintPage || isAuthPage) {
     return <main className="flex-grow flex flex-col relative z-10 w-full min-h-screen bg-gray-50">{children}</main>;
   }
 
