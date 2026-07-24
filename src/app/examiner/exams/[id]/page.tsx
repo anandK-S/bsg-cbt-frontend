@@ -1667,50 +1667,85 @@ export default function ExamDetails() {
         </div>
       )}
 
-      {/* AI Import Modal (Simplified for brevity in UI rewrite) */}
+      {/* AI Import Modal (Enhanced UI) */}
       {showAiModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative overflow-hidden">
-            <h3 className="text-2xl font-black text-gray-900 mb-6">AI Import Questions</h3>
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Upload File (.txt, .pdf, .docx, images)</label>
-              <input 
-                type="file" 
-                accept=".txt,.pdf,.docx,image/*"
-                onChange={(e) => setImportFile(e.target.files ? e.target.files[0] : null)}
-                disabled={isImporting}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-bsg-blue/10 file:text-bsg-blue hover:file:bg-bsg-blue/20 disabled:opacity-50"
-              />
-            </div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl relative overflow-hidden border border-gray-100">
+            {/* Sparkle background effects */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-bsg-gold/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-bsg-blue/10 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/4 pointer-events-none"></div>
 
-            {isImporting && (
-              <div className="mb-6">
-                <div className="flex justify-between text-sm font-bold text-gray-700 mb-2">
-                  <span>Extracting & Translating...</span>
-                  <span>{Math.round(importProgress)}%</span>
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-14 h-14 bg-gradient-to-br from-bsg-gold to-yellow-600 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/30">
+                  <Upload size={28} className="text-white" />
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden border border-gray-200">
-                  <div 
-                    className="bg-bsg-blue h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden" 
-                    style={{ width: `${importProgress}%` }}
-                  >
-                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                  </div>
+                <div>
+                  <h3 className="text-2xl font-black text-gray-900">AI Master Import</h3>
+                  <p className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-bsg-blue to-purple-600">
+                    Powered by Gemini & Groq
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500 mt-2 text-center font-medium">Large documents with many questions take time. Please do not close this window.</p>
               </div>
-            )}
+              
+              <p className="text-gray-500 font-medium mb-6 mt-4 text-sm leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <span className="font-bold text-gray-800">Magical Translation:</span> Upload a test in English or Hindi. Our AI will automatically extract the questions and translate them so your test is ready in <strong className="text-bsg-blue">BOTH languages</strong> instantly!
+              </p>
 
-            {aiError && !isImporting && <div className="mb-6 text-sm font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-100">{aiError}</div>}
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setShowAiModal(false)} className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100">Cancel</button>
-              <button 
-                onClick={handleAiImport} 
-                disabled={isImporting || !importFile}
-                className="bg-bsg-gold text-bsg-blue-dark hover:bg-yellow-500 px-6 py-2.5 rounded-xl font-black shadow-md transition-all disabled:opacity-50"
-              >
-                {isImporting ? 'Processing AI...' : 'Import'}
-              </button>
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Upload Test Paper (.txt, .pdf, .docx, images)</label>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-bsg-blue/5 rounded-2xl border-2 border-dashed border-bsg-blue/30 group-hover:bg-bsg-blue/10 transition-colors pointer-events-none"></div>
+                  <input 
+                    type="file" 
+                    accept=".txt,.pdf,.docx,image/*"
+                    onChange={(e) => setImportFile(e.target.files ? e.target.files[0] : null)}
+                    disabled={isImporting}
+                    className="w-full text-sm text-gray-600 p-4 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-bsg-blue file:text-white hover:file:bg-bsg-blue-dark disabled:opacity-50 cursor-pointer relative z-10"
+                  />
+                </div>
+              </div>
+
+              {isImporting && (
+                <div className="mb-8 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                  <div className="flex justify-between text-sm font-bold text-bsg-blue mb-3">
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-bsg-blue border-t-transparent rounded-full animate-spin"></div>
+                      Extracting & Translating...
+                    </span>
+                    <span>{Math.round(importProgress)}%</span>
+                  </div>
+                  <div className="w-full bg-blue-100 rounded-full h-3 overflow-hidden border border-blue-200/50 shadow-inner">
+                    <div 
+                      className="bg-gradient-to-r from-bsg-blue to-bsg-blue-light h-full rounded-full transition-all duration-1000 ease-out relative overflow-hidden" 
+                      style={{ width: `${importProgress}%` }}
+                    >
+                      <div className="absolute inset-0 bg-white/30 animate-[shimmer_2s_infinite] -skew-x-12"></div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-bsg-blue/70 mt-3 text-center font-bold">Please do not close this window while AI is processing.</p>
+                </div>
+              )}
+
+              {aiError && !isImporting && (
+                <div className="mb-6 text-sm font-bold text-red-600 bg-red-50 p-4 rounded-xl border border-red-200 flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></div>
+                  {aiError}
+                </div>
+              )}
+              
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button onClick={() => setShowAiModal(false)} className="px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors focus:ring-4 focus:ring-gray-100">
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleAiImport} 
+                  disabled={isImporting || !importFile}
+                  className="bg-gradient-to-r from-bsg-gold to-yellow-500 hover:from-yellow-400 hover:to-yellow-500 text-bsg-blue-dark px-8 py-3 rounded-xl font-black shadow-lg shadow-yellow-500/30 transition-all disabled:opacity-50 disabled:shadow-none flex items-center gap-2 transform active:scale-95"
+                >
+                  {isImporting ? 'Processing...' : <><Upload size={18} /> Start Import</>}
+                </button>
+              </div>
             </div>
           </div>
         </div>

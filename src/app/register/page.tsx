@@ -13,7 +13,7 @@ export default function Register() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const _hasHydrated = useAuthStore((state) => state._hasHydrated);
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -271,22 +271,22 @@ export default function Register() {
             <form className="space-y-4" onSubmit={handleSubmit}>
                   {error && (
                     <motion.div 
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className={`${error.supportEmail ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-red-500/10 text-red-500 border-red-500/20'} p-4 rounded-xl border flex flex-col gap-2 font-medium text-sm`}
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                      className="bg-red-50 text-red-700 border-2 border-red-200 p-4 rounded-2xl flex items-start gap-3 font-medium text-sm shadow-sm"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${error.supportEmail ? 'bg-amber-500' : 'bg-red-500'}`} />
-                        <span className="font-bold">{error.platformName ? `${error.platformName} is Under Maintenance` : 'Error'}</span>
+                      <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
-                      <p>{error.message}</p>
-                      {error.supportEmail && (
-                        <p className="mt-2 text-xs font-bold bg-amber-100 p-2 rounded-lg text-amber-900 inline-block text-center border border-amber-200">
-                          Contact Support: {error.supportEmail}
-                        </p>
-                      )}
+                      <div className="flex-1">
+                        <p className="font-black text-red-800 text-sm mb-0.5">{language === 'hi' ? 'पंजीकरण विफल' : 'Registration Error'}</p>
+                        <p className="text-red-600 font-medium">{error.message}</p>
+                      </div>
+                      <button type="button" onClick={() => setError(null)} className="text-red-400 hover:text-red-600 transition-colors flex-shrink-0">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
                     </motion.div>
-                  )}
 
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex bg-gray-100/80 p-1.5 rounded-xl mb-6 border border-gray-200">
                     <button
