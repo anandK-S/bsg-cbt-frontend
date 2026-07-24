@@ -96,28 +96,6 @@ export default function AdminSettings() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Terms & Conditions URL</label>
-              <input 
-                type="url" 
-                placeholder="https://"
-                value={settings.termsUrl}
-                onChange={(e) => setSettings({...settings, termsUrl: e.target.value})}
-                className="w-full sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-shadow outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Privacy Policy URL</label>
-              <input 
-                type="url" 
-                placeholder="https://"
-                value={settings.privacyUrl}
-                onChange={(e) => setSettings({...settings, privacyUrl: e.target.value})}
-                className="w-full sm:max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsg-blue focus:border-bsg-blue transition-shadow outline-none"
-              />
-            </div>
-
-            <div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input 
                   type="checkbox" 
