@@ -125,6 +125,19 @@ Important Rules:
           displayName: file.name,
         });
         
+        // Wait for the uploaded PDF to become ACTIVE before generating content
+        let fileState = await fileManager.getFile(uploadResult.file.name);
+        let retries = 0;
+        while (fileState.state === 'PROCESSING' && retries < 15) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          fileState = await fileManager.getFile(uploadResult.file.name);
+          retries++;
+        }
+        
+        if (fileState.state === 'FAILED') {
+          throw new Error("Google AI failed to process the PDF document.");
+        }
+        
         contents.push({
           fileData: {
             mimeType: uploadResult.file.mimeType,
