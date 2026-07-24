@@ -43,7 +43,7 @@ export default function MasterQuestionPaper() {
 
   useEffect(() => {
     if (exam) {
-      document.title = exam.title;
+      document.title = `${exam.title} bsg-cbt`;
     }
   }, [exam]);
 

@@ -22,7 +22,7 @@ export default function ExamReviewPage() {
   // Set document title for printing when data is loaded
   useEffect(() => {
     if (data?.result?.examId?.title) {
-      document.title = `Result - ${data.result.examId.title}`;
+      document.title = `Result - ${data.result.examId.title} bsg-cbt`;
     }
   }, [data]);
 
