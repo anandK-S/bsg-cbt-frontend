@@ -40,10 +40,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let base64Data = buffer.toString('base64');
     let mimeType = file.type || 'application/octet-stream';
 
-    // Parse file content
     if (file.name.toLowerCase().endsWith('.pdf')) {
-      mimeType = 'application/pdf';
-      isNativeGeminiFile = true;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const PDFParser = require('pdf2json');
+        
+        textContent = await new Promise((resolve, reject) => {
+          const pdfParser = new PDFParser(null, 1); // 1 = extract raw text
+          pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
+          pdfParser.on("pdfParser_dataReady", () => resolve(pdfParser.getRawTextContent()));
+          pdfParser.parseBuffer(buffer);
+        });
+        
+      } catch (err) {
+        console.error("PDF parse error", err);
+        return camelCaseResponse({ message: 'Failed to read PDF file on the server. Try uploading a text file or image instead.' }, { status: 400 });
+      }
     } else if (file.name.toLowerCase().endsWith('.docx')) {
       try {
         const result = await mammoth.extractRawText({ buffer });
@@ -112,17 +124,6 @@ Important Rules:
       const messages: any[] = [];
 
       let finalContent = textContent;
-      // If Groq fallback is triggered for a PDF, extract text on the fly
-      if (file.name.toLowerCase().endsWith('.pdf')) {
-         try {
-           // eslint-disable-next-line @typescript-eslint/no-require-imports
-           const pdfParse = require('pdf-parse');
-           const pdfData = await pdfParse(buffer);
-           finalContent = pdfData.text;
-         } catch(e) {
-           throw new Error("PDF parse failed for Groq fallback. Gemini is required for this PDF.");
-         }
-      }
 
       if (mimeType.startsWith('image/')) {
         messages.push({
