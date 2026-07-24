@@ -44,6 +44,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const acceptableAnswersRaw = formData.get('acceptableAnswers') as string;
     const acceptableAnswers = acceptableAnswersRaw ? JSON.parse(acceptableAnswersRaw) : [];
+    
+    const createdAt = formData.get('createdAt') as string;
 
     // Handle File Upload to Supabase Storage
     const file = formData.get('file') as File;
@@ -76,6 +78,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         media_url: mediaUrl,
         text_hindi: textHindi,
         options_hindi: optionsHindi,
+        ...(createdAt && { created_at: createdAt }),
       }
     ]).select().single();
 

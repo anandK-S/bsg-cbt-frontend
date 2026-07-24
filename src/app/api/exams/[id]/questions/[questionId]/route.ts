@@ -19,6 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ ques
     if (formData.has('marks')) updateData.marks = Number(formData.get('marks'));
     if (formData.has('type')) updateData.type = formData.get('type');
     if (formData.has('textHindi')) updateData.text_hindi = formData.get('textHindi');
+    if (formData.has('createdAt')) updateData.created_at = formData.get('createdAt');
     
     if (formData.has('options')) updateData.options = JSON.parse(formData.get('options') as string);
     if (formData.has('optionsHindi')) updateData.options_hindi = JSON.parse(formData.get('optionsHindi') as string);

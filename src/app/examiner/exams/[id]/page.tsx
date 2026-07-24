@@ -114,9 +114,12 @@ export default function ExamDetails() {
     type: 'SingleChoice',
     mediaUrl: ''
   });
+  const [insertTargetDate, setInsertTargetDate] = useState<string | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [isSavingManual, setIsSavingManual] = useState(false);
   const [manualError, setManualError] = useState('');
+  
+  const [isReordering, setIsReordering] = useState<string | null>(null);
 
   const fetchExam = async () => {
     try {
@@ -306,6 +309,10 @@ export default function ExamDetails() {
         formData.append('correctOptionIndex', manualQuestion.correctOptionIndex.toString());
       }
       
+      if (insertTargetDate) {
+        formData.append('createdAt', insertTargetDate);
+      }
+      
       if (mediaFile) {
         formData.append('media', mediaFile);
       }
@@ -342,6 +349,7 @@ export default function ExamDetails() {
         type: 'SingleChoice',
         mediaUrl: ''
       });
+      setInsertTargetDate(null);
       setMediaFile(null);
       fetchExam();
     } catch (err: unknown) {
@@ -470,6 +478,70 @@ export default function ExamDetails() {
       optionsHindi: newOptionsHindi,
       correctOptionIndex: newCorrectIndex
     });
+  };
+
+  const handleMoveQuestion = async (index: number, direction: 'up' | 'down') => {
+    if (!exam || !exam.questions) return;
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= exam.questions.length) return;
+
+    const currentQ = exam.questions[index];
+    const targetQ = exam.questions[targetIndex];
+    
+    setIsReordering(currentQ.questionId._id);
+    
+    try {
+      // Swap their created_at timestamps to swap their positions in the sorted list
+      const formDataCurrent = new FormData();
+      formDataCurrent.append('createdAt', targetQ.questionId.created_at);
+      
+      const formDataTarget = new FormData();
+      formDataTarget.append('createdAt', currentQ.questionId.created_at);
+
+      await Promise.all([
+        axios.put(`${API_URL}/api/exams/${examId}/questions/${currentQ.questionId._id}`, formDataCurrent, { withCredentials: true }),
+        axios.put(`${API_URL}/api/exams/${examId}/questions/${targetQ.questionId._id}`, formDataTarget, { withCredentials: true })
+      ]);
+      
+      fetchExam();
+    } catch (err) {
+      console.error("Reorder error", err);
+      toast.error("Failed to reorder questions");
+    } finally {
+      setIsReordering(null);
+    }
+  };
+
+  const openInsertModal = (index: number) => {
+    if (!exam || !exam.questions) return;
+    const currentQ = exam.questions[index];
+    const nextQ = exam.questions[index + 1];
+    
+    let newDate;
+    if (nextQ) {
+      // Average the two timestamps
+      const t1 = new Date(currentQ.questionId.created_at).getTime();
+      const t2 = new Date(nextQ.questionId.created_at).getTime();
+      newDate = new Date((t1 + t2) / 2).toISOString();
+    } else {
+      // If inserting after the last element, just use a date 1 minute from now
+      newDate = new Date(Date.now() + 60000).toISOString();
+    }
+    
+    setInsertTargetDate(newDate);
+    setManualQuestion({
+      text: '',
+      options: ['', '', '', ''],
+      correctOptionIndex: 0,
+      acceptableAnswers: [''],
+      category: '',
+      section: '',
+      marks: 1,
+      type: 'SingleChoice',
+      mediaUrl: ''
+    });
+    setEditingQuestionId(null);
+    setShowManualModal(true);
   };
 
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-bsg-blue font-semibold text-xl">Loading configuration...</div>;
@@ -953,12 +1025,39 @@ export default function ExamDetails() {
                 {exam.questions
                   .filter(q => categoryFilter === 'All' || q.questionId.category === categoryFilter)
                   .map((q, idx) => (
-                  <div key={q.questionId._id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-start">
-                      <div className="flex items-start gap-4">
-                        <span className="w-8 h-8 rounded-lg bg-bsg-blue/10 text-bsg-blue font-black flex items-center justify-center flex-shrink-0">
-                          {idx + 1}
-                        </span>
+                  <div key={q.questionId._id} className="relative mb-6 group">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative">
+                      {isReordering === q.questionId._id && (
+                        <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
+                          <span className="text-bsg-blue font-bold flex items-center gap-2">
+                            <span className="w-4 h-4 border-2 border-bsg-blue border-t-transparent rounded-full animate-spin"></span>
+                            Reordering...
+                          </span>
+                        </div>
+                      )}
+                      <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-start">
+                        <div className="flex items-start gap-4">
+                          <div className="flex flex-col items-center gap-0.5">
+                            <button 
+                              onClick={() => handleMoveQuestion(idx, 'up')}
+                              disabled={idx === 0 || isReordering !== null}
+                              className="text-gray-400 hover:text-bsg-blue disabled:opacity-30 disabled:hover:text-gray-400 p-0.5 rounded transition-colors"
+                              title="Move Up"
+                            >
+                              <ChevronUp size={20} />
+                            </button>
+                            <span className="w-8 h-8 rounded-lg bg-bsg-blue/10 text-bsg-blue font-black flex items-center justify-center flex-shrink-0">
+                              {idx + 1}
+                            </span>
+                            <button
+                              onClick={() => handleMoveQuestion(idx, 'down')}
+                              disabled={idx === exam.questions.length - 1 || isReordering !== null}
+                              className="text-gray-400 hover:text-bsg-blue disabled:opacity-30 disabled:hover:text-gray-400 p-0.5 rounded transition-colors"
+                              title="Move Down"
+                            >
+                              <ChevronDown size={20} />
+                            </button>
+                          </div>
                         <div>
                           <p className="text-gray-900 font-bold text-lg">
                             {language === 'hi' && q.questionId.textHindi ? q.questionId.textHindi : q.questionId.text}
@@ -1037,6 +1136,16 @@ export default function ExamDetails() {
                         })}
                       </div>
 
+                    </div>
+                    </div>
+                    
+                    <div className="absolute left-1/2 -bottom-3 -translate-x-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => openInsertModal(idx)}
+                        className="bg-bsg-blue text-white text-xs font-bold px-3 py-1 rounded-full shadow-md hover:bg-bsg-blue-dark flex items-center gap-1 border-2 border-white"
+                      >
+                        + Insert Question Here
+                      </button>
                     </div>
                   </div>
                 ))}
