@@ -72,12 +72,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const prompt = `You are an expert exam question extractor and translator. 
-Extract all questions from the provided document/image. 
+Extract ALL questions from the provided document/image. 
 For each question, extract or generate the question and its options in BOTH English and Hindi.
 If the document is only in English, translate it to Hindi. If it is only in Hindi, translate it to English.
 
-Return a strict JSON array of objects. Do not include markdown codeblocks around the output. Just return the JSON array.
-Each object must follow this exact schema:
+CRITICAL RULES:
+1. You MUST extract EVERY SINGLE QUESTION from the document. There may be 50-100 questions.
+2. DO NOT stop early. DO NOT truncate the list. DO NOT skip any questions.
+3. Return a strict JSON array of objects. Do not include markdown codeblocks around the output. Just return the JSON array.
+4. Each object must follow this exact schema:
 {
   "text": "The question text in English",
   "text_hindi": "The question text translated to Hindi",
@@ -101,7 +104,10 @@ Important Rules:
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-1.5-pro', // Using the stable pro model via the generative-ai SDK
-        generationConfig: { responseMimeType: 'application/json' }
+        generationConfig: { 
+          responseMimeType: 'application/json',
+          maxOutputTokens: 8192 // Ensure the model doesn't stop early for large documents
+        }
       });
       
       const contents = [];
