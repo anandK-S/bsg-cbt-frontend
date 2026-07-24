@@ -107,26 +107,16 @@ export default function Register() {
         role = 'Examiner';
       }
 
-      // Check for duplicate Email
-      const { data: existingEmail } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email);
-        
-      if (existingEmail && existingEmail.length > 0) {
-        throw new Error('User already registered');
-      }
-
-      // Check for duplicate BSG ID
-      if (registerType === 'Candidate' && bsgId) {
-        const { data: existingUsers } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('bsg_id', bsgId);
-          
-        if (existingUsers && existingUsers.length > 0) {
-          throw new Error('BSG ID already registered');
-        }
+      // Check for duplicates securely via API
+      const dupCheck = await fetch('/api/auth/check-duplicate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, bsgId, registerType })
+      });
+      
+      const dupResult = await dupCheck.json();
+      if (!dupCheck.ok) {
+        throw new Error(dupResult.error || 'User already registered');
       }
 
       // 2. Register User via Supabase Auth
@@ -254,21 +244,33 @@ export default function Register() {
             </motion.p>
             
             <motion.div 
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}
-              whileHover={{ y: -5, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.3)" }}
-              className="group relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl max-w-sm mt-auto mb-4 transition-all duration-300 cursor-default"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              <p className="text-blue-100/80 italic font-medium">"Creating a better India through education, empowerment, and character."</p>
-              <p className="text-bsg-gold text-sm font-bold mt-2 tracking-widest uppercase">— Bharat Scouts and Guides</p>
-            </motion.div>
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }}
+            whileHover={{ y: -5, boxShadow: "0 20px 40px -10px rgba(0,0,0,0.3)" }}
+            className="group relative overflow-hidden bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl max-w-sm mt-auto mb-4 transition-all duration-300 cursor-default shadow-2xl"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.017 21L16.411 14.908H11V3H21V12.98L18.494 21H14.017ZM3.017 21L5.411 14.908H0V3H10V12.98L7.494 21H3.017Z" />
+              </svg>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+            <p className="text-white text-lg italic font-medium leading-relaxed relative z-10">"Creating a better India through education, empowerment, and character."</p>
+            <div className="flex items-center mt-6 gap-3 relative z-10">
+              <div className="w-10 h-10 rounded-full bg-bsg-gold/20 flex items-center justify-center border border-bsg-gold/50">
+                <span className="text-bsg-gold font-bold text-lg">B</span>
+              </div>
+              <p className="text-bsg-gold text-xs font-bold tracking-widest uppercase">— Bharat Scouts and Guides</p>
+            </div>
+          </motion.div>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mb-12 text-center">
-              <span className="text-blue-100/80 font-medium">{t("alreadyHaveAccount") || "Already have an account?"} </span>
-              <Link href="/login" className="text-bsg-gold font-bold hover:text-white hover:underline transition-all">
-                {t("loginHere") || "Login here"}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="mt-8 text-center">
+            <div className="inline-flex items-center justify-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 px-2 py-2 pl-6 rounded-full shadow-lg">
+              <span className="text-blue-100/90 font-medium text-sm">{t("alreadyHaveAccount") || "Already have an account?"}</span>
+              <Link href="/login" className="text-[#0B1B3D] font-black bg-[#FFC107] px-6 py-2.5 rounded-full hover:bg-yellow-400 hover:shadow-[0_0_20px_rgba(255,193,7,0.4)] transition-all text-sm transform hover:scale-105">
+                {t("signIn") || "Login"}
               </Link>
-            </motion.div>
+            </div>
+          </motion.div>
           </div>
         </div>
 
@@ -610,10 +612,10 @@ export default function Register() {
                 </form>
             )}
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="mt-8 pt-6 border-t border-gray-100 text-center text-sm lg:hidden">
-              <span className="text-gray-500 font-medium">{t("alreadyHaveAccount") || "Already have an account?"} </span>
-              <Link href="/login" className="text-bsg-blue font-black hover:text-bsg-blue-dark hover:underline transition-all">
-                {t("signIn") || "Login here"}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-8 pt-8 border-t border-gray-100 text-center lg:hidden">
+              <p className="text-gray-500 font-medium mb-4">{t("alreadyHaveAccount") || "Already have an account?"}</p>
+              <Link href="/login" className="inline-flex w-full justify-center px-8 py-3.5 bg-gray-50 hover:bg-bsg-blue/5 text-bsg-blue font-black rounded-xl border-2 border-gray-100 hover:border-bsg-blue/20 transition-all active:scale-95 shadow-sm">
+                {t("signIn") || "Login to your account"}
               </Link>
             </motion.div>
           </div>
