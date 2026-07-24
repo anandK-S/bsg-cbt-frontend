@@ -3,12 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/utils/supabaseClient';
 import { getUserFromRequest } from '@/utils/authServer';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GoogleAIFileManager } from '@google/generative-ai/server';
-import { writeFile, unlink } from 'fs/promises';
-import { join } from 'path';
-import { tmpdir } from 'os';
 import Groq from 'groq-sdk';
 import mammoth from 'mammoth';
+
+export const maxDuration = 60; // Max execution time for Vercel Hobby tier
 
 export const maxDuration = 60; // Max timeout for Vercel
 
@@ -44,22 +42,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let base64Data = buffer.toString('base64');
     let mimeType = file.type || 'application/octet-stream';
 
-    let pdfUploadUri = null;
-    let pdfUploadMime = null;
-    let tempFilePath = null;
-
     if (file.name.toLowerCase().endsWith('.pdf')) {
       try {
-        // Since raw text extraction scrambles layout, we will upload the PDF natively using File API
-        const tempFilename = `upload_${Date.now()}_${Math.random().toString(36).substring(7)}.pdf`;
-        tempFilePath = join(tmpdir(), tempFilename);
-        await writeFile(tempFilePath, buffer);
-        isNativeGeminiFile = true;
-        mimeType = 'application/pdf';
-        pdfUploadMime = 'application/pdf';
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const PDFParser = require('pdf2json');
+        
+        textContent = await new Promise((resolve, reject) => {
+          const pdfParser = new PDFParser(null, 1);
+          pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
+          pdfParser.on("pdfParser_dataReady", () => resolve(pdfParser.getRawTextContent()));
+          pdfParser.parseBuffer(buffer);
+        });
       } catch (err) {
-        console.error("PDF setup error", err);
-        return camelCaseResponse({ message: 'Failed to prepare PDF file on the server.' }, { status: 500 });
+        console.error("PDF parse error", err);
+        return camelCaseResponse({ message: 'Failed to read PDF file on the server.' }, { status: 400 });
       }
     } else if (file.name.toLowerCase().endsWith('.docx')) {
       try {
@@ -109,59 +105,74 @@ Important Rules:
     const callGemini = async (apiKey: string) => {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-pro', // Using the stable pro model via the generative-ai SDK
+        model: 'gemini-1.5-pro',
         generationConfig: { 
           responseMimeType: 'application/json',
-          maxOutputTokens: 8192 // Ensure the model doesn't stop early for large documents
+          maxOutputTokens: 8192
         }
       });
       
-      const contents = [];
+      // If image, do single shot
+      if (isNativeGeminiFile && mimeType.startsWith('image/')) {
+        const contents = [];
+        contents.push({ inlineData: { data: base64Data, mimeType } });
+        contents.push(prompt);
+        const response = await model.generateContent(contents);
+        return response.response.text();
+      }
       
-      if (isNativeGeminiFile && tempFilePath) {
-        const fileManager = new GoogleAIFileManager(apiKey);
-        const uploadResult = await fileManager.uploadFile(tempFilePath, {
-          mimeType: pdfUploadMime,
-          displayName: file.name,
-        });
-        
-        // Wait for the uploaded PDF to become ACTIVE before generating content
-        let fileState = await fileManager.getFile(uploadResult.file.name);
-        let retries = 0;
-        while (fileState.state === 'PROCESSING' && retries < 15) {
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          fileState = await fileManager.getFile(uploadResult.file.name);
-          retries++;
-        }
-        
-        if (fileState.state === 'FAILED') {
-          throw new Error("Google AI failed to process the PDF document.");
-        }
-        
-        contents.push({
-          fileData: {
-            mimeType: uploadResult.file.mimeType,
-            fileUri: uploadResult.file.uri
+      // For text/PDFs, implement robust batch chunking to completely eliminate lazy LLM truncations
+      // Split by "Q.1", "Q. 1", "Q.2", or fallback to 3000 chars
+      const blocks = textContent.split(/(?=Q\.\s*\d+|Question\s*\d+)/gi);
+      const chunks = [];
+      let currentChunk = '';
+      
+      if (blocks.length > 2) {
+        // Smart grouping: 10 questions per chunk
+        for (let i = 0; i < blocks.length; i++) {
+          currentChunk += blocks[i] + '\n';
+          if ((i + 1) % 10 === 0 || i === blocks.length - 1) {
+            chunks.push(currentChunk);
+            currentChunk = '';
           }
-        });
-        contents.push(prompt);
-      } else if (isNativeGeminiFile && mimeType.startsWith('image/')) {
-        contents.push({
-          inlineData: { data: base64Data, mimeType }
-        });
-        contents.push(prompt);
+        }
       } else {
-        contents.push(`Document content:\n${textContent}\n\n${prompt}`);
+        // Fallback dumb chunking
+        for (let i = 0; i < textContent.length; i += 3000) {
+          chunks.push(textContent.substring(i, i + 3000));
+        }
       }
 
-      const response = await model.generateContent(contents);
+      let allQuestions: any[] = [];
       
-      // Cleanup temp file if exists
-      if (tempFilePath) {
-        try { await unlink(tempFilePath); } catch (e) { console.error("Cleanup error", e); }
+      // Execute all chunks concurrently to prevent Vercel timeout
+      const chunkPromises = chunks.map(async (chunk) => {
+         if (!chunk.trim()) return [];
+         const chunkPrompt = `${prompt}\n\nExtract ALL questions from this specific document chunk. DO NOT skip any.\n\nChunk Content:\n${chunk}`;
+         try {
+           const response = await model.generateContent(chunkPrompt);
+           let raw = response.response.text().replace(/```json/gi, '').replace(/```/gi, '').trim();
+           const firstBracket = raw.indexOf('[');
+           const lastBracket = raw.lastIndexOf(']');
+           if (firstBracket !== -1 && lastBracket !== -1) {
+             raw = raw.substring(firstBracket, lastBracket + 1);
+             const parsed = JSON.parse(raw);
+             if (Array.isArray(parsed)) {
+               return parsed;
+             }
+           }
+         } catch (e) {
+           console.error("Chunk parse error via Gemini", e);
+         }
+         return [];
+      });
+      
+      const results = await Promise.all(chunkPromises);
+      for (const result of results) {
+        allQuestions = allQuestions.concat(result);
       }
       
-      return response.response.text();
+      return JSON.stringify(allQuestions);
     };
 
     const callGroq = async () => {
@@ -170,28 +181,61 @@ Important Rules:
 
       let finalContent = textContent;
 
-      if (mimeType.startsWith('image/')) {
-        messages.push({
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Data}` } }
-          ]
-        });
+      // For text/PDFs, implement robust batch chunking for Groq as well
+      const blocks = textContent.split(/(?=Q\.\s*\d+|Question\s*\d+)/gi);
+      const chunks = [];
+      let currentChunk = '';
+      
+      if (blocks.length > 2) {
+        for (let i = 0; i < blocks.length; i++) {
+          currentChunk += blocks[i] + '\n';
+          if ((i + 1) % 15 === 0 || i === blocks.length - 1) { // 15 per chunk for Groq (faster)
+            chunks.push(currentChunk);
+            currentChunk = '';
+          }
+        }
       } else {
-        messages.push({
-          role: 'user',
-          content: `Document content:\n${finalContent}\n\n${prompt}`
-        });
+        for (let i = 0; i < textContent.length; i += 3000) {
+          chunks.push(textContent.substring(i, i + 3000));
+        }
       }
 
-      const response = await groq.chat.completions.create({
-        messages,
-        model: mimeType.startsWith('image/') ? 'llama-3.2-90b-vision-preview' : 'llama-3.3-70b-versatile',
-        response_format: { type: 'json_object' }
+      let allQuestions: any[] = [];
+      
+      const chunkPromises = chunks.map(async (chunk) => {
+         if (!chunk.trim()) return [];
+         const chunkMessages = [...messages, { role: 'user', content: `Chunk Content:\n${chunk}\n\n${prompt}` }];
+         try {
+           const response = await groq.chat.completions.create({
+             messages: chunkMessages as any,
+             model: 'llama-3.3-70b-versatile',
+             response_format: { type: 'json_object' }
+           });
+           
+           let raw = response.choices[0]?.message?.content || '';
+           raw = raw.replace(/```json/gi, '').replace(/```/gi, '').trim();
+           
+           const parsed = JSON.parse(raw);
+           if (Array.isArray(parsed)) {
+             return parsed;
+           } else if (parsed && typeof parsed === 'object') {
+             const possibleArray = Object.values(parsed).find(val => Array.isArray(val));
+             if (possibleArray) {
+               return possibleArray;
+             }
+           }
+         } catch (e) {
+           console.error("Chunk parse error via Groq", e);
+         }
+         return [];
       });
       
-      return response.choices[0]?.message?.content;
+      const results = await Promise.all(chunkPromises);
+      for (const result of results) {
+        allQuestions = allQuestions.concat(result);
+      }
+      
+      return JSON.stringify(allQuestions);
     };
 
     // Try Gemini First, Fallback to Groq
