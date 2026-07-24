@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     const profileData: any = {
       id,
       name,
+      email,
       role: role || 'Candidate',
     };
 

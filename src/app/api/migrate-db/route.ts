@@ -6,8 +6,13 @@ export async function GET() {
     const queries = [
       `ALTER TABLE profiles 
        ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'Candidate',
-       ADD COLUMN IF NOT EXISTS bsgid TEXT,
-       ADD COLUMN IF NOT EXISTS district TEXT;`,
+       ADD COLUMN IF NOT EXISTS email TEXT,
+       ADD COLUMN IF NOT EXISTS bsg_id TEXT,
+       ADD COLUMN IF NOT EXISTS section TEXT,
+       ADD COLUMN IF NOT EXISTS rank TEXT,
+       ADD COLUMN IF NOT EXISTS district TEXT,
+       ADD COLUMN IF NOT EXISTS unit_number TEXT,
+       ADD COLUMN IF NOT EXISTS unit_name TEXT;`,
        
       `ALTER TABLE exams 
        ADD COLUMN IF NOT EXISTS passing_criteria_type TEXT DEFAULT 'percentage',
@@ -17,6 +22,14 @@ export async function GET() {
       `ALTER TABLE exam_attempts 
        ADD COLUMN IF NOT EXISTS violation_reason TEXT,
        ADD COLUMN IF NOT EXISTS time_taken INT DEFAULT 0;`,
+
+      `CREATE TABLE IF NOT EXISTS settings (
+        id INT PRIMARY KEY,
+        platform_name TEXT,
+        support_email TEXT,
+        maintenance_mode BOOLEAN DEFAULT FALSE,
+        max_failed_login_attempts INT DEFAULT 5
+      );`,
 
       `ALTER TABLE attempt_answers
        ADD COLUMN IF NOT EXISTS time_spent_seconds INT DEFAULT 0,

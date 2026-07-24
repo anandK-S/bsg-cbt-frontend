@@ -159,7 +159,7 @@ export default function Register() {
       }
 
       if (data.session) {
-        // Auto login if email confirmation is disabled
+        // Auto login if email confirmation is disabled and session is returned
         const userData = {
           _id: data.user.id,
           name,
@@ -171,21 +171,24 @@ export default function Register() {
           unitName: registerType === 'Candidate' ? unitName : undefined,
           token: data.session.access_token,
         };
+        
         login(userData);
-        if (role === 'Admin') {
-          router.push('/admin');
-        } else if (role === 'Examiner') {
+        
+        if (role === 'Examiner') {
           router.push('/examiner');
         } else {
           router.push('/dashboard');
         }
       } else {
-        // Show success message if email confirmation is required (session is null)
+        // If no session is returned, show success and redirect to login
         setSuccessMessage(
           language === 'hi'
-            ? 'पंजीकरण सफल! यदि आपको कोई ईमेल प्राप्त नहीं होता है, तो कृपया एडमिन से संपर्क करें।'
-            : 'Registration Successful! Since email confirmations are enabled, please check your inbox. If you do not receive an email (e.g. rate limit), please contact the Administrator to verify your account.'
+            ? 'पंजीकरण सफल! कृपया अब लॉगिन करें।'
+            : 'Registration Successful! Please login to your account.'
         );
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
       }
     } catch (err: any) {
       let errorMessage = err.message || 'Registration failed. Please try again.';
